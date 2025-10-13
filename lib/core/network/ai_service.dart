@@ -7,10 +7,12 @@ library;
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:dio/browser.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as img;
 import 'package:landcomp_app/core/config/env_config.dart';
 import 'package:landcomp_app/core/ai/agent_selector.dart';
 import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
@@ -319,16 +321,17 @@ class AIService {
             });
           }
           
-          // Add ALL images from this message (up to 5) - NO COMPRESSION
+          // Add ALL images from this message (up to 5) with compression
           final imageAttachments = msg.attachments?.where((a) => a.isImage).take(5).toList() ?? [];
           
           print('📸 Adding ${imageAttachments.length} images to OpenAI request');
           
           for (final attachment in imageAttachments) {
             if (attachment.data != null) {
-              // Send as-is (like in working sendImageToOpenAI - lines 606-614)
-              final base64Image = base64Encode(attachment.data!);
-              print('📸 Image size: ${attachment.data!.length} bytes (base64: ${base64Image.length} chars)');
+              // Compress image before sending (target 25KB for OpenAI compatibility)
+              final compressedData = await _compressImage(attachment.data!, maxSizeKb: 25);
+              final base64Image = base64Encode(compressedData);
+              print('📸 Final image size: ${compressedData.length} bytes (base64: ${base64Image.length} chars)');
               
               contentParts.add({
                 'type': 'image_url',
@@ -414,11 +417,55 @@ IMPORTANT:
     return RegExp(r'[\u0400-\u04FF]').hasMatch(text);
   }
 
+  /// Compress image to reduce size for API requests
+  /// Targets max 100KB per image for OpenAI compatibility
+  Future<Uint8List> _compressImage(Uint8List imageData, {int maxSizeKb = 100}) async {
+    try {
+      final image = img.decodeImage(imageData);
+      if (image == null) {
+        print('⚠️ Could not decode image, returning original');
+        return imageData;
+      }
+
+      final originalSizeKb = imageData.length / 1024;
+      print('📸 Original image: ${image.width}x${image.height}, ${originalSizeKb.toStringAsFixed(1)}KB');
+
+      // If already small enough, return as-is
+      if (originalSizeKb <= maxSizeKb) {
+        print('✅ Image already small enough');
+        return imageData;
+      }
+
+      // Calculate resize ratio to target size
+      // Assuming JPEG compression ratio of ~10:1
+      final targetPixels = (maxSizeKb * 1024 * 10) / 3; // RGB = 3 bytes per pixel
+      final currentPixels = image.width * image.height;
+      final ratio = sqrt(targetPixels / currentPixels);
+      
+      final newWidth = (image.width * ratio).toInt();
+      final newHeight = (image.height * ratio).toInt();
+
+      print('📸 Resizing to ${newWidth}x${newHeight}');
+      final resized = img.copyResize(image, width: newWidth, height: newHeight);
+
+      // Encode as JPEG with quality 85
+      final compressed = Uint8List.fromList(img.encodeJpg(resized, quality: 85));
+      final compressedSizeKb = compressed.length / 1024;
+
+      print('✅ Compressed: ${compressedSizeKb.toStringAsFixed(1)}KB (${((1 - compressedSizeKb / originalSizeKb) * 100).toStringAsFixed(1)}% reduction)');
+      
+      return compressed;
+    } catch (e) {
+      print('⚠️ Image compression failed: $e, returning original');
+      return imageData;
+    }
+  }
+
   /// Send message to Google Gemini
   Future<String> sendToGemini({
     required String message,
     required String systemPrompt,
-    String model = 'gemini-1.5-flash',
+    String model = 'gemini-2.0-flash-exp',
     List<Message>? conversationHistory,
     int maxHistoryMessages = 20,
   }) async {
