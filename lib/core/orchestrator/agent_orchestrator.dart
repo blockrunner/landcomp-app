@@ -91,10 +91,31 @@ class AgentOrchestrator {
         print('   Subtype: ${intent.subtype!.name}');
       }
 
-      // 3. Create request
+      // 2.5. Select relevant images based on intent
+      final relevantImages = await _contextManager.getRelevantImages(
+        userMessage: userMessage,
+        conversationHistory: conversationHistory,
+        intent: intent,
+        currentAttachments: attachments,
+      );
+      
+      print('🖼️ Selected ${relevantImages.length} relevant images for request');
+      
+      // Update context with selected images
+      final updatedContext = context.copyWith(
+        attachments: relevantImages,
+        metadata: {
+          ...context.metadata,
+          'original_attachments_count': attachments?.length ?? 0,
+          'selected_images_count': relevantImages.length,
+          'image_intent': intent.imageIntent?.name,
+        },
+      );
+
+      // 3. Create request with updated context
       final request = AgentRequest(
         requestId: requestId,
-        context: context,
+        context: updatedContext,
         intent: intent,
         timestamp: DateTime.now(),
       );

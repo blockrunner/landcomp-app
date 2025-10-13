@@ -201,6 +201,7 @@ class AgentAdapter implements Agent {
       final response = await _aiService.sendMessageWithSmartSelection(
         message: request.userMessage,
         conversationHistory: request.conversationHistory.cast<Message>(),
+        selectedImages: request.context.attachments,
       );
 
       if (response.isSuccess && response.message != null) {

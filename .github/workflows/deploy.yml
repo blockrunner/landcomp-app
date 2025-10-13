@@ -96,7 +96,7 @@ jobs:
         port: ${{ secrets.SERVER_PORT || 22 }}
         script: |
           # Navigate to application directory
-          cd /opt/landcomp-app
+          cd /home/landcomp-app
           
           # Pull latest changes
           git pull origin main
@@ -108,26 +108,39 @@ jobs:
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           
           # Stop and remove old container
-          docker-compose down || true
+          docker-compose -f docker-compose.prod.yml down || true
           
-          # Start new container
-          docker-compose up -d
+          # Start new container with production compose
+          docker-compose -f docker-compose.prod.yml up -d
           
           # Clean up old images
           docker image prune -f
           
-          # Health check
-          sleep 10
-          curl -f http://localhost/health || exit 1
+          # Health check with retry
+          echo "Waiting for application to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost/health; then
+              echo "Health check passed!"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
+          
+          # Final health check
+          if ! curl -f http://localhost/health; then
+            echo "Final health check failed!"
+            docker-compose -f docker-compose.prod.yml logs
+            exit 1
+          fi
           
           echo "Deployment completed successfully!"
 
     - name: Notify deployment status
-      if: always()
+      if: always() && secrets.SLACK_WEBHOOK
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
         channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

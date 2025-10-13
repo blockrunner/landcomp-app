@@ -4,6 +4,16 @@ FROM ghcr.io/cirruslabs/flutter:stable AS build
 # Set working directory
 WORKDIR /app
 
+# Proxy configuration for build stage
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG ALL_PROXY
+ARG NO_PROXY
+ENV HTTP_PROXY=$HTTP_PROXY
+ENV HTTPS_PROXY=$HTTPS_PROXY
+ENV ALL_PROXY=$ALL_PROXY
+ENV NO_PROXY=$NO_PROXY
+
 # Copy pubspec files
 COPY pubspec.yaml pubspec.lock ./
 
@@ -17,7 +27,7 @@ COPY . .
 RUN flutter packages pub run build_runner build --delete-conflicting-outputs
 
 # Build web application
-RUN flutter build web --release --web-renderer html
+RUN flutter build web --release
 
 # Production stage with Nginx
 FROM nginx:alpine

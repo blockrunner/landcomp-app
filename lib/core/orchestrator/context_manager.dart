@@ -6,6 +6,7 @@ library;
 
 import 'package:landcomp_app/core/storage/chat_storage.dart';
 import 'package:landcomp_app/shared/models/context.dart';
+import 'package:landcomp_app/shared/models/intent.dart';
 import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
 
@@ -237,6 +238,117 @@ class ContextManager {
     }
     
     return null;
+  }
+
+  /// Get relevant images based on user intent and conversation context
+  Future<List<Attachment>> getRelevantImages({
+    required String userMessage,
+    required List<Message> conversationHistory,
+    required Intent intent,
+    List<Attachment>? currentAttachments,
+  }) async {
+    print('🖼️ Smart image selection for intent: ${intent.imageIntent}');
+    
+    switch (intent.imageIntent) {
+      case ImageIntent.analyzeNew:
+        return _getNewImages(currentAttachments);
+        
+      case ImageIntent.analyzeRecent:
+        return _getRecentImages(conversationHistory, limit: intent.imagesNeeded ?? 5);
+        
+      case ImageIntent.compareMultiple:
+        return _getComparisonImages(conversationHistory, currentAttachments);
+        
+      case ImageIntent.referenceSpecific:
+        return _getSpecificImages(conversationHistory, intent.referencedImageIndices);
+        
+      case ImageIntent.generateBased:
+        return _getNewImages(currentAttachments, limit: 1);
+        
+      case ImageIntent.noImageNeeded:
+      case ImageIntent.unclear:
+      default:
+        return [];
+    }
+  }
+
+  /// Get new images from current message
+  List<Attachment> _getNewImages(List<Attachment>? attachments, {int? limit}) {
+    if (attachments == null || attachments.isEmpty) return [];
+    
+    final images = attachments.where((a) => a.isImage).toList();
+    if (limit != null && images.length > limit) {
+      return images.take(limit).toList();
+    }
+    return images;
+  }
+
+  /// Get recent images from conversation history
+  List<Attachment> _getRecentImages(List<Message> history, {int limit = 5}) {
+    final images = <Attachment>[];
+    
+    // Iterate from most recent to oldest
+    for (final msg in history.reversed) {
+      if (msg.attachments != null) {
+        for (final attachment in msg.attachments!.where((a) => a.isImage)) {
+          images.add(attachment);
+          if (images.length >= limit) return images;
+        }
+      }
+    }
+    
+    return images;
+  }
+
+  /// Get images for comparison (new + recent)
+  List<Attachment> _getComparisonImages(
+    List<Message> history,
+    List<Attachment>? currentAttachments,
+  ) {
+    final images = <Attachment>[];
+    
+    // Add new images first
+    if (currentAttachments != null) {
+      images.addAll(currentAttachments.where((a) => a.isImage));
+    }
+    
+    // Add recent images from history (up to 5 total)
+    final needed = 5 - images.length;
+    if (needed > 0) {
+      images.addAll(_getRecentImages(history, limit: needed));
+    }
+    
+    return images;
+  }
+
+  /// Get specific referenced images by indices
+  List<Attachment> _getSpecificImages(
+    List<Message> history,
+    List<int>? indices,
+  ) {
+    if (indices == null || indices.isEmpty) return [];
+    
+    // Collect all images from history with their message index
+    final allImages = <({int msgIndex, Attachment attachment})>[];
+    
+    for (int i = 0; i < history.length; i++) {
+      final msg = history[i];
+      if (msg.attachments != null) {
+        for (final attachment in msg.attachments!.where((a) => a.isImage)) {
+          allImages.add((msgIndex: i, attachment: attachment));
+        }
+      }
+    }
+    
+    // Get images at specified indices
+    final result = <Attachment>[];
+    for (final index in indices) {
+      if (index >= 0 && index < allImages.length) {
+        result.add(allImages[index].attachment);
+      }
+    }
+    
+    return result;
   }
 
 }

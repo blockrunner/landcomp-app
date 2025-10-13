@@ -38,6 +38,17 @@ enum IntentSubtype {
   incomplete,           // Intent is incomplete
 }
 
+/// Image intent classification - what user wants to do with images
+enum ImageIntent {
+  analyzeNew,           // Анализировать новое загруженное изображение
+  analyzeRecent,        // Анализировать недавнее изображение из истории
+  compareMultiple,      // Сравнить несколько изображений
+  referenceSpecific,    // Ссылка на конкретное изображение (первое, второе, предыдущее)
+  generateBased,        // Генерировать на основе изображения
+  noImageNeeded,        // Изображения не нужны для ответа
+  unclear,              // Неясно, нужны ли изображения
+}
+
 
 /// Represents a classified user intent with detailed information
 class Intent extends Equatable {
@@ -48,6 +59,9 @@ class Intent extends Equatable {
     this.subtype,
     this.metadata = const {},
     this.extractedEntities = const [],
+    this.imageIntent,
+    this.referencedImageIndices,
+    this.imagesNeeded,
   });
 
   factory Intent.fromJson(Map<String, dynamic> json) {
@@ -66,6 +80,16 @@ class Intent extends Equatable {
           : null,
       metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
       extractedEntities: List<String>.from(json['extracted_entities'] as List? ?? []),
+      imageIntent: json['imageIntent'] != null
+          ? ImageIntent.values.firstWhere(
+              (e) => e.name == json['imageIntent'],
+              orElse: () => ImageIntent.unclear,
+            )
+          : null,
+      referencedImageIndices: json['referencedImageIndices'] != null
+          ? List<int>.from(json['referencedImageIndices'] as List)
+          : null,
+      imagesNeeded: json['imagesNeeded'] as int?,
     );
   }
 
@@ -75,6 +99,15 @@ class Intent extends Equatable {
   final IntentSubtype? subtype;
   final Map<String, dynamic> metadata;
   final List<String> extractedEntities;
+  
+  /// Image-related intent classification
+  final ImageIntent? imageIntent;
+  
+  /// Referenced image indices (if referenceSpecific)
+  final List<int>? referencedImageIndices;
+  
+  /// Number of images needed for the request
+  final int? imagesNeeded;
 
   /// Check if intent is consultation type
   bool get isConsultation => type == IntentType.consultation;
@@ -108,6 +141,9 @@ class Intent extends Equatable {
       'subtype': subtype?.name,
       'metadata': metadata,
       'extractedEntities': extractedEntities,
+      'imageIntent': imageIntent?.name,
+      'referencedImageIndices': referencedImageIndices,
+      'imagesNeeded': imagesNeeded,
     };
   }
 
@@ -119,5 +155,8 @@ class Intent extends Equatable {
         subtype,
         metadata,
         extractedEntities,
+        imageIntent,
+        referencedImageIndices,
+        imagesNeeded,
       ];
 }

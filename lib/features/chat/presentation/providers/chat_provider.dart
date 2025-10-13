@@ -290,7 +290,7 @@ class ChatProvider extends ChangeNotifier {
 
       // Use new AgentOrchestrator for ALL requests (with or without images)
       print('🤖 Processing message with AgentOrchestrator...');
-      final smartResponse = await _getSmartAIResponse(content.trim());
+      final smartResponse = await _getSmartAIResponse(content.trim(), attachments);
       
       if (smartResponse.isSuccess) {
         final aiMessage = Message.ai(
@@ -327,7 +327,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Get smart AI response from the orchestrator
-  Future<SmartAIResponse> _getSmartAIResponse(String userMessage) async {
+  Future<SmartAIResponse> _getSmartAIResponse(String userMessage, [List<Attachment>? attachments]) async {
     print('🤖 Getting smart AI response for message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...');
     print('🎯 Using AgentOrchestrator for request processing...');
     
@@ -348,6 +348,7 @@ class ChatProvider extends ChangeNotifier {
       final response = await _orchestrator.processRequest(
         userMessage: userMessage,
         conversationHistory: history,
+        attachments: attachments,
         currentAgentId: _currentAgent?.id,
       );
       

@@ -6,14 +6,39 @@ services:
     container_name: landcomp-app
     ports:
       - "80:80"
-      - "443:443"
     environment:
+      # Application environment
       - NODE_ENV=production
+      - FLUTTER_WEB_RENDERER=html
+      - DEBUG=false
+      - HOT_RELOAD=false
+      
+      # AI API Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_API_KEYS_FALLBACK=${GOOGLE_API_KEYS_FALLBACK}
+      
+      # Proxy Configuration
+      - ALL_PROXY=${ALL_PROXY}
+      - BACKUP_PROXIES=${BACKUP_PROXIES}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - NO_PROXY=${NO_PROXY}
+      - no_proxy=${no_proxy}
+      
+      # Additional API Keys
+      - STABILITY_API_KEY=${STABILITY_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      
+      # Yandex Cloud Configuration
+      - YC_API_KEY_ID=${YC_API_KEY_ID}
+      - YC_API_KEY=${YC_API_KEY}
+      - YC_FOLDER_ID=${YC_FOLDER_ID}
+      
     env_file:
       - .env
     volumes:
       - ./logs:/var/log/nginx
-      - ./ssl:/etc/nginx/ssl:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]

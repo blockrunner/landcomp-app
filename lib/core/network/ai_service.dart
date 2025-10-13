@@ -207,6 +207,7 @@ class AIService {
     String model = 'gpt-4o', // Changed from 'gpt-4' to 'gpt-4o' for Vision API support
     List<Message>? conversationHistory,
     int maxHistoryMessages = 20,
+    List<Attachment>? selectedImages,
   }) async {
     if (!EnvConfig.isOpenAIConfigured) {
       throw Exception('OpenAI API key not configured');
@@ -226,7 +227,7 @@ class AIService {
         ),
         data: {
           'model': model,
-          'messages': await _buildOpenAIMessages(systemPrompt, message, conversationHistory, maxHistoryMessages),
+          'messages': await _buildOpenAIMessages(systemPrompt, message, conversationHistory, maxHistoryMessages, selectedImages: selectedImages),
           'max_tokens': 4000, // Increased for detailed responses
           'temperature': 0.7,
           'stream': false,
@@ -276,6 +277,7 @@ class AIService {
     String message,
     List<Message>? conversationHistory,
     int maxHistoryMessages,
+    {List<Attachment>? selectedImages}
   ) async {
     // Detect user language and enhance system prompt
     final enhancedSystemPrompt = _enhanceSystemPromptWithLanguage(systemPrompt, message, conversationHistory);
@@ -284,7 +286,7 @@ class AIService {
       {'role': 'system', 'content': enhancedSystemPrompt},
     ];
     
-    // Add conversation history (last N messages)
+    // Add conversation history WITHOUT images (text only)
     if (conversationHistory != null) {
       final relevantHistory = conversationHistory
           .where((m) => !m.isTyping && !m.isError)
@@ -294,70 +296,47 @@ class AIService {
           .toList()
           .reversed;
       
-      // Find the LAST message with images (most recent)
-      Message? lastImageMessage;
-      
-      for (final msg in relevantHistory.toList().reversed) {
-        if (msg.attachments?.any((Attachment a) => a.isImage) ?? false) {
-          lastImageMessage = msg;
-          break;
-        }
-      }
-      
       for (final msg in relevantHistory) {
-        // Check if message has image attachments
-        final hasImages = msg.attachments?.any((a) => a.isImage) ?? false;
-        
-        // Only include images for THE LAST message with images (up to 5 images)
-        if (hasImages && msg == lastImageMessage) {
-          // Build multipart content with text and ALL images (like in sendImageToOpenAI)
-          final contentParts = <Map<String, dynamic>>[];
-          
-          // Add text content if not empty
-          if (msg.content.isNotEmpty) {
-            contentParts.add({
-              'type': 'text',
-              'text': msg.content,
-            });
-          }
-          
-          // Add ALL images from this message (up to 5) with compression
-          final imageAttachments = msg.attachments?.where((a) => a.isImage).take(5).toList() ?? [];
-          
-          print('📸 Adding ${imageAttachments.length} images to OpenAI request');
-          
-          for (final attachment in imageAttachments) {
-            if (attachment.data != null) {
-              // Compress image before sending (target 25KB for OpenAI compatibility)
-              final compressedData = await _compressImage(attachment.data!, maxSizeKb: 25);
-              final base64Image = base64Encode(compressedData);
-              print('📸 Final image size: ${compressedData.length} bytes (base64: ${base64Image.length} chars)');
-              
-              contentParts.add({
-                'type': 'image_url',
-                'image_url': {
-                  'url': 'data:image/jpeg;base64,$base64Image',
-                },
-              });
-            }
-          }
-          
-          messages.add({
-            'role': msg.type == MessageType.user ? 'user' : 'assistant',
-            'content': contentParts,
-          });
-        } else {
-          // Text-only message (or old image message)
-          messages.add({
-            'role': msg.type == MessageType.user ? 'user' : 'assistant',
-            'content': msg.content,
-          });
-        }
+        messages.add({
+          'role': msg.type == MessageType.user ? 'user' : 'assistant',
+          'content': msg.content,
+        });
       }
     }
     
-    // Add current message (text-only, images should be in history)
-    messages.add({'role': 'user', 'content': message});
+    // Build current message with selected images
+    if (selectedImages != null && selectedImages.isNotEmpty) {
+      final contentParts = <Map<String, dynamic>>[];
+      
+      // Add text
+      contentParts.add({'type': 'text', 'text': message});
+      
+      // Add selected images (up to 5)
+      final imagesToSend = selectedImages.take(5).toList();
+      print('📸 Adding ${imagesToSend.length} selected images to request');
+      
+      for (final attachment in imagesToSend) {
+        if (attachment.data != null) {
+          final compressedData = await _compressImage(
+            attachment.data!, 
+            maxSizeKb: 25
+          );
+          final base64Image = base64Encode(compressedData);
+          
+          contentParts.add({
+            'type': 'image_url',
+            'image_url': {
+              'url': 'data:image/jpeg;base64,$base64Image',
+            },
+          });
+        }
+      }
+      
+      messages.add({'role': 'user', 'content': contentParts});
+    } else {
+      // Text-only message
+      messages.add({'role': 'user', 'content': message});
+    }
     
     return messages;
   }
@@ -468,6 +447,7 @@ IMPORTANT:
     String model = 'gemini-2.0-flash-exp',
     List<Message>? conversationHistory,
     int maxHistoryMessages = 20,
+    List<Attachment>? selectedImages,
   }) async {
     if (!EnvConfig.isGoogleConfigured) {
       throw Exception('Google API key not configured');
@@ -490,7 +470,7 @@ IMPORTANT:
           validateStatus: (status) => status != null && status < 500,
         ),
         data: {
-          'contents': _buildGeminiContents(systemPrompt, message, conversationHistory, maxHistoryMessages),
+          'contents': _buildGeminiContents(systemPrompt, message, conversationHistory, maxHistoryMessages, selectedImages: selectedImages),
           'generationConfig': {
             'temperature': 0.7,
             'maxOutputTokens': 1000,
@@ -565,6 +545,7 @@ IMPORTANT:
     String message,
     List<Message>? conversationHistory,
     int maxHistoryMessages,
+    {List<Attachment>? selectedImages}
   ) {
     // Detect user language and enhance system prompt
     final enhancedSystemPrompt = _enhanceSystemPromptWithLanguage(systemPrompt, message, conversationHistory);
@@ -589,10 +570,33 @@ IMPORTANT:
       }
     }
     
-    // Add current message with enhanced system prompt
+    // Add current message with enhanced system prompt and selected images
+    final parts = <Map<String, dynamic>>[];
+    
+    // Add text with enhanced system prompt
+    parts.add({'text': '$enhancedSystemPrompt\n\nUser: $message'});
+    
+    // Add selected images if any
+    if (selectedImages != null && selectedImages.isNotEmpty) {
+      final imagesToSend = selectedImages.take(5).toList();
+      print('📸 Adding ${imagesToSend.length} selected images to Gemini request');
+      
+      for (final attachment in imagesToSend) {
+        if (attachment.data != null) {
+          final base64Image = base64Encode(attachment.data!);
+          parts.add({
+            'inline_data': {
+              'mime_type': 'image/jpeg',
+              'data': base64Image,
+            },
+          });
+        }
+      }
+    }
+    
     contents.add({
       'role': 'user',
-      'parts': [{'text': '$enhancedSystemPrompt\n\nUser: $message'}],
+      'parts': parts,
     });
     
     return contents;
@@ -1016,6 +1020,7 @@ IMPORTANT:
     required String systemPrompt,
     String preferredProvider = 'openai',
     List<Message>? conversationHistory,
+    List<Attachment>? selectedImages,
   }) async {
     try {
       if (preferredProvider == 'openai' && EnvConfig.isOpenAIConfigured) {
@@ -1023,12 +1028,14 @@ IMPORTANT:
           message: message,
           systemPrompt: systemPrompt,
           conversationHistory: conversationHistory,
+          selectedImages: selectedImages,
         );
       } else if (preferredProvider == 'gemini' && EnvConfig.isGoogleConfigured) {
         return await sendToGemini(
           message: message,
           systemPrompt: systemPrompt,
           conversationHistory: conversationHistory,
+          selectedImages: selectedImages,
         );
       } else {
         // Try both providers
@@ -1037,12 +1044,14 @@ IMPORTANT:
             message: message,
             systemPrompt: systemPrompt,
             conversationHistory: conversationHistory,
+            selectedImages: selectedImages,
           );
         } else if (EnvConfig.isGoogleConfigured) {
           return await sendToGemini(
             message: message,
             systemPrompt: systemPrompt,
             conversationHistory: conversationHistory,
+            selectedImages: selectedImages,
           );
         } else {
           throw Exception('No AI providers configured');
@@ -1073,6 +1082,7 @@ IMPORTANT:
     required String message,
     String preferredProvider = 'openai',
     List<Message>? conversationHistory,
+    List<Attachment>? selectedImages,
   }) async {
     try {
       // First, analyze the message to select appropriate agent
@@ -1097,6 +1107,7 @@ IMPORTANT:
         systemPrompt: systemPrompt,
         preferredProvider: preferredProvider,
         conversationHistory: conversationHistory,
+        selectedImages: selectedImages,
       );
       
       return SmartAIResponse.success(
