@@ -109,7 +109,6 @@ flutter:
     - assets/icons/
     - assets/translations/
     - assets/fonts/
-    - .env
 
   # Fonts
   # fonts:
