@@ -1,5 +1,5 @@
 /// Base card widget following the LandComp style guide
-/// 
+///
 /// This widget provides the foundation for all card components
 /// with consistent styling, shadows, and hover animations.
 library;
@@ -12,7 +12,8 @@ import 'package:landcomp_app/core/theme/design_tokens.dart';
 class BaseCard extends StatefulWidget {
   /// Creates a base card
   const BaseCard({
-    required this.child, super.key,
+    required this.child,
+    super.key,
     this.padding,
     this.margin,
     this.color,
@@ -76,21 +77,17 @@ class _BaseCardState extends State<BaseCard>
       vsync: this,
     );
 
-    _elevationAnimation = Tween<double>(
-      begin: 0,
-      end: 8,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _elevationAnimation = Tween<double>(begin: 0, end: 8).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
-    _transformAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0, -4),
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _transformAnimation =
+        Tween<Offset>(begin: Offset.zero, end: const Offset(0, -4)).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeInOut,
+          ),
+        );
   }
 
   @override
@@ -99,11 +96,11 @@ class _BaseCardState extends State<BaseCard>
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final cardColor = widget.color ?? Theme.of(context).colorScheme.surface;
-    final cardBorderRadius = widget.borderRadius ?? 
+    final cardBorderRadius =
+        widget.borderRadius ??
         BorderRadius.circular(DesignTokens.cardBorderRadius);
 
     return AnimatedBuilder(
@@ -138,7 +135,9 @@ class _BaseCardState extends State<BaseCard>
                 onLongPress: widget.onLongPress,
                 borderRadius: cardBorderRadius,
                 child: Container(
-                  padding: widget.padding ?? const EdgeInsets.all(AppSpacing.internalPadding),
+                  padding:
+                      widget.padding ??
+                      const EdgeInsets.all(AppSpacing.internalPadding),
                   child: widget.child,
                 ),
               ),
@@ -154,7 +153,8 @@ class _BaseCardState extends State<BaseCard>
 class Card extends StatelessWidget {
   /// Creates a card with default styling
   const Card({
-    required this.child, super.key,
+    required this.child,
+    super.key,
     this.padding,
     this.margin,
     this.color,
@@ -202,7 +202,8 @@ class Card extends StatelessWidget {
 class ElevatedCard extends StatelessWidget {
   /// Creates an elevated card
   const ElevatedCard({
-    required this.child, super.key,
+    required this.child,
+    super.key,
     this.padding,
     this.margin,
     this.color,
@@ -255,7 +256,8 @@ class ElevatedCard extends StatelessWidget {
 class OutlinedCard extends StatelessWidget {
   /// Creates an outlined card
   const OutlinedCard({
-    required this.child, super.key,
+    required this.child,
+    super.key,
     this.padding,
     this.margin,
     this.color,

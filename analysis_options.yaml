@@ -13,6 +13,16 @@ analyzer:
     - "**/injection.dart"
     - "**/injection.config.dart"
     - "test/**"
+    - "debug/**"
+    - "scripts/**"
+    - "docs/**"
+    - "*.md"
+    - "*.txt"
+    - "*.log"
+    - "temp_reload.txt"
+    - "speckit.*"
+    - "commands.txt"
+    - "localization-coverage-updated.plan.md"
   errors:
     # Treat most issues as warnings for CI/CD
     invalid_annotation_target: warning
@@ -70,3 +80,11 @@ analyzer:
     public_member_api_docs: warning
     sort_pub_dependencies: warning
     unnecessary_breaks: warning
+    # More rules to treat as warnings
+    avoid_positional_boolean_parameters: warning
+    always_put_required_named_parameters_first: warning
+    cascade_invocations: warning
+    # Additional rules for better CI/CD experience
+    unnecessary_brace_in_string_interps: info
+    curly_braces_in_flow_control_structures: info
+    unnecessary_lambdas: info

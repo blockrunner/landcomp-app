@@ -1,5 +1,5 @@
 /// Chat provider for managing chat state
-/// 
+///
 /// This provider manages the chat conversation state,
 /// AI agent selection, and message handling.
 library;
@@ -56,13 +56,13 @@ class ChatProvider extends ChangeNotifier {
     try {
       // Initialize chat storage
       await _chatStorage.initialize();
-      
+
       // Initialize orchestrator
       await _orchestrator.initialize();
-      
+
       // Load existing sessions
       await _loadSessions();
-      
+
       // Create new session if none exist
       if (_sessions.isEmpty) {
         _createNewSession();
@@ -71,7 +71,7 @@ class ChatProvider extends ChangeNotifier {
         _currentSession = _sessions.first;
         _currentAgent = AIAgentsConfig.getAgentById(_currentSession!.agentId);
       }
-      
+
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
@@ -79,21 +79,27 @@ class ChatProvider extends ChangeNotifier {
       _setError('Failed to initialize chat: ${e}');
     }
   }
-  
+
   /// Load sessions from storage
   Future<void> _loadSessions() async {
     try {
       _sessions = await _chatStorage.loadAllSessions();
       print('📂 Loaded ${_sessions.length} sessions from storage');
-      
+
       // Debug: Check if any messages have images
       for (final session in _sessions) {
         for (final message in session.messages) {
           if (message.attachments != null && message.attachments!.isNotEmpty) {
-            final imageAttachments = message.attachments!.where((a) => a.isImage).toList();
+            final imageAttachments = message.attachments!
+                .where((a) => a.isImage)
+                .toList();
             if (imageAttachments.isNotEmpty) {
-              print('📂 Found message with ${imageAttachments.length} images: ${message.id}');
-              print('📂 Image sizes: ${imageAttachments.map((img) => img.size).toList()}');
+              print(
+                '📂 Found message with ${imageAttachments.length} images: ${message.id}',
+              );
+              print(
+                '📂 Image sizes: ${imageAttachments.map((img) => img.size).toList()}',
+              );
             }
           }
         }
@@ -117,17 +123,19 @@ class ChatProvider extends ChangeNotifier {
     final sessionId = _uuid.v4();
     final session = ChatSession(
       id: sessionId,
-      agentId: _currentAgent?.id ?? 'gardener', // Default to gardener if no agent selected
+      agentId:
+          _currentAgent?.id ??
+          'gardener', // Default to gardener if no agent selected
       title: _getLocalizedAgentName(),
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
     _currentSession = session;
     _sessions.add(session);
-    
+
     // Save to storage
     _saveCurrentSession();
-    
+
     notifyListeners();
   }
 
@@ -135,7 +143,9 @@ class ChatProvider extends ChangeNotifier {
   String _getLocalizedAgentName() {
     if (_currentAgent == null) return 'AI Assistant';
     if (_languageProvider != null) {
-      return _currentAgent!.getLocalizedName(_languageProvider!.currentLocale.languageCode);
+      return _currentAgent!.getLocalizedName(
+        _languageProvider!.currentLocale.languageCode,
+      );
     }
     return _currentAgent!.name;
   }
@@ -145,10 +155,10 @@ class ChatProvider extends ChangeNotifier {
     if (_currentAgent?.id == agent.id) return;
 
     _currentAgent = agent;
-    
+
     // Create new session for new agent
     _createNewSession();
-    
+
     notifyListeners();
   }
 
@@ -156,10 +166,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty || _isLoading) return;
 
-    final userMessage = Message.user(
-      id: _uuid.v4(),
-      content: content.trim(),
-    );
+    final userMessage = Message.user(id: _uuid.v4(), content: content.trim());
 
     // Add user message to current session
     _addMessageToCurrentSession(userMessage);
@@ -174,7 +181,7 @@ class ChatProvider extends ChangeNotifier {
       // STEP 1: Check if this is a visualization request
       final isVisualizationRequest = _isVisualizationRequest(content.trim());
       final hasPreviousImages = _hasImagesInRecentMessages();
-      
+
       print('🔍 Text message analysis:');
       print('   Content: ${content.trim()}');
       print('   Is visualization request: $isVisualizationRequest');
@@ -188,14 +195,17 @@ class ChatProvider extends ChangeNotifier {
         // STEP 3: Regular text response
         print('💬 Regular text response...');
         final smartResponse = await _getSmartAIResponse(content.trim());
-        
+
         if (smartResponse.isSuccess) {
           // Update current agent if it changed
-          if (smartResponse.agent != null && smartResponse.agent != _currentAgent) {
+          if (smartResponse.agent != null &&
+              smartResponse.agent != _currentAgent) {
             _currentAgent = smartResponse.agent;
             // Update session with new agent
             if (_currentSession != null) {
-              _currentSession = _currentSession!.copyWith(agentId: _currentAgent!.id);
+              _currentSession = _currentSession!.copyWith(
+                agentId: _currentAgent!.id,
+              );
               _saveCurrentSession();
             }
           }
@@ -220,7 +230,8 @@ class ChatProvider extends ChangeNotifier {
           // Add error message
           final errorMessage = Message.system(
             id: _uuid.v4(),
-            content: smartResponse.message ?? _getLocalizedError('Unknown error'),
+            content:
+                smartResponse.message ?? _getLocalizedError('Unknown error'),
             isError: true,
           );
 
@@ -230,11 +241,10 @@ class ChatProvider extends ChangeNotifier {
 
       // Remove typing indicator
       _hideTypingIndicator();
-
     } catch (e) {
       _hideTypingIndicator();
       _setError('Failed to get AI response: ${e}');
-      
+
       // Add error message
       final errorMessage = Message.system(
         id: _uuid.v4(),
@@ -276,7 +286,9 @@ class ChatProvider extends ChangeNotifier {
       attachments: attachments,
     );
 
-    print('📸 Created user message with attachments: ${userMessage.attachments?.length ?? 0}');
+    print(
+      '📸 Created user message with attachments: ${userMessage.attachments?.length ?? 0}',
+    );
 
     // Add user message to current session
     _addMessageToCurrentSession(userMessage);
@@ -290,8 +302,11 @@ class ChatProvider extends ChangeNotifier {
 
       // Use new AgentOrchestrator for ALL requests (with or without images)
       print('🤖 Processing message with AgentOrchestrator...');
-      final smartResponse = await _getSmartAIResponse(content.trim(), attachments);
-      
+      final smartResponse = await _getSmartAIResponse(
+        content.trim(),
+        attachments,
+      );
+
       if (smartResponse.isSuccess) {
         final aiMessage = Message.ai(
           id: _uuid.v4(),
@@ -302,13 +317,13 @@ class ChatProvider extends ChangeNotifier {
       } else {
         final errorMessage = Message.system(
           id: _uuid.v4(),
-          content: smartResponse.message ?? 'Произошла ошибка при обработке запроса',
+          content:
+              smartResponse.message ?? 'Произошла ошибка при обработке запроса',
         );
         _addMessageToCurrentSession(errorMessage);
       }
 
       _hideTypingIndicator();
-
     } catch (e) {
       _hideTypingIndicator();
       _setError('Failed to get AI response: ${e}');
@@ -327,23 +342,30 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Get smart AI response from the orchestrator
-  Future<SmartAIResponse> _getSmartAIResponse(String userMessage, [List<Attachment>? attachments]) async {
-    print('🤖 Getting smart AI response for message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...');
+  Future<SmartAIResponse> _getSmartAIResponse(
+    String userMessage, [
+    List<Attachment>? attachments,
+  ]) async {
+    print(
+      '🤖 Getting smart AI response for message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...',
+    );
     print('🎯 Using AgentOrchestrator for request processing...');
-    
+
     // Get conversation history from current session
     final allMessages = _currentSession?.messages ?? [];
     print('📊 Total messages in session: ${allMessages.length}');
     print('   - Typing: ${allMessages.where((m) => m.isTyping).length}');
     print('   - Error: ${allMessages.where((m) => m.isError).length}');
-    
+
     final history = allMessages
         .where((m) => !m.isTyping && !m.isError)
         .toList();
-    
+
     print('📚 Passing ${history.length} messages as conversation history');
-    print('   - With attachments: ${history.where((m) => m.attachments != null && m.attachments!.isNotEmpty).length}');
-    
+    print(
+      '   - With attachments: ${history.where((m) => m.attachments != null && m.attachments!.isNotEmpty).length}',
+    );
+
     try {
       final response = await _orchestrator.processRequest(
         userMessage: userMessage,
@@ -351,21 +373,25 @@ class ChatProvider extends ChangeNotifier {
         attachments: attachments,
         currentAgentId: _currentAgent?.id,
       );
-      
+
       if (response.isSuccess) {
-        print('✅ Orchestrator response received: ${response.message!.substring(0, response.message!.length > 50 ? 50 : response.message!.length)}...');
+        print(
+          '✅ Orchestrator response received: ${response.message!.substring(0, response.message!.length > 50 ? 50 : response.message!.length)}...',
+        );
         print('   Selected agent: ${response.selectedAgent?.name}');
-        
+
         return SmartAIResponse.success(
           agent: response.selectedAgent ?? AIAgentsConfig.getDefaultAgent(),
           message: response.message!,
-          confidence: (response.metadata['confidence'] as num?)?.toDouble() ?? 0.8,
+          confidence:
+              (response.metadata['confidence'] as num?)?.toDouble() ?? 0.8,
         );
       } else {
         print('❌ Error in orchestrator response: ${response.error}');
         // Return user-friendly error message instead of technical details
         return SmartAIResponse.error(
-          message: 'К сожалению, не удалось обработать ваш запрос. Пожалуйста, попробуйте еще раз или измените формулировку.',
+          message:
+              'К сожалению, не удалось обработать ваш запрос. Пожалуйста, попробуйте еще раз или измените формулировку.',
         );
       }
     } catch (e) {
@@ -373,7 +399,8 @@ class ChatProvider extends ChangeNotifier {
       print('   Error type: ${e.runtimeType}');
       // Return user-friendly error message instead of technical exception details
       return SmartAIResponse.error(
-        message: 'К сожалению, произошла ошибка при обработке вашего запроса. Пожалуйста, попробуйте еще раз.',
+        message:
+            'К сожалению, произошла ошибка при обработке вашего запроса. Пожалуйста, попробуйте еще раз.',
       );
     }
   }
@@ -399,18 +426,23 @@ class ChatProvider extends ChangeNotifier {
     if (_currentSession == null) return;
 
     print('💾 Adding message to session: ${message.id}');
-    final imageAttachments = message.attachments?.where((a) => a.isImage).toList() ?? [];
+    final imageAttachments =
+        message.attachments?.where((a) => a.isImage).toList() ?? [];
     print('💾 Message has images: ${imageAttachments.length}');
     if (imageAttachments.isNotEmpty) {
-      print('💾 Image sizes: ${imageAttachments.map((img) => img.size).toList()}');
+      print(
+        '💾 Image sizes: ${imageAttachments.map((img) => img.size).toList()}',
+      );
     }
 
     // Create new session with added message
     final updatedSession = _currentSession!.addMessage(message);
     _currentSession = updatedSession;
-    
+
     // Update session in sessions list
-    final sessionIndex = _sessions.indexWhere((s) => s.id == _currentSession!.id);
+    final sessionIndex = _sessions.indexWhere(
+      (s) => s.id == _currentSession!.id,
+    );
     if (sessionIndex >= 0) {
       _sessions[sessionIndex] = _currentSession!;
     } else {
@@ -455,9 +487,11 @@ class ChatProvider extends ChangeNotifier {
         .toList();
 
     _currentSession = _currentSession!.copyWith(messages: updatedMessages);
-    
+
     // Update session in sessions list
-    final sessionIndex = _sessions.indexWhere((s) => s.id == _currentSession!.id);
+    final sessionIndex = _sessions.indexWhere(
+      (s) => s.id == _currentSession!.id,
+    );
     if (sessionIndex >= 0) {
       _sessions[sessionIndex] = _currentSession!;
     }
@@ -488,9 +522,11 @@ class ChatProvider extends ChangeNotifier {
     if (_currentSession == null) return;
 
     _currentSession = _currentSession!.clearMessages();
-    
+
     // Update session in sessions list
-    final sessionIndex = _sessions.indexWhere((s) => s.id == _currentSession!.id);
+    final sessionIndex = _sessions.indexWhere(
+      (s) => s.id == _currentSession!.id,
+    );
     if (sessionIndex >= 0) {
       _sessions[sessionIndex] = _currentSession!;
     }
@@ -503,9 +539,11 @@ class ChatProvider extends ChangeNotifier {
     if (_currentSession == null) return;
 
     _currentSession = _currentSession!.removeMessage(messageId);
-    
+
     // Update session in sessions list
-    final sessionIndex = _sessions.indexWhere((s) => s.id == _currentSession!.id);
+    final sessionIndex = _sessions.indexWhere(
+      (s) => s.id == _currentSession!.id,
+    );
     if (sessionIndex >= 0) {
       _sessions[sessionIndex] = _currentSession!;
     }
@@ -521,7 +559,7 @@ class ChatProvider extends ChangeNotifier {
     );
 
     _currentSession = session;
-    
+
     // Update current agent based on session
     final agent = AIAgentsConfig.getAgentById(session.agentId);
     if (agent != null) {
@@ -536,10 +574,10 @@ class ChatProvider extends ChangeNotifier {
     try {
       // Remove from storage
       await _chatStorage.deleteSession(sessionId);
-      
+
       // Remove from local list
       _sessions.removeWhere((s) => s.id == sessionId);
-      
+
       // If we deleted the current session, create a new one
       if (_currentSession?.id == sessionId) {
         _createNewSession();
@@ -556,7 +594,9 @@ class ChatProvider extends ChangeNotifier {
   List<String> getQuickStartSuggestions() {
     if (_currentAgent == null) return [];
     if (_languageProvider != null) {
-      return _currentAgent!.getLocalizedQuickStartSuggestions(_languageProvider!.currentLocale.languageCode);
+      return _currentAgent!.getLocalizedQuickStartSuggestions(
+        _languageProvider!.currentLocale.languageCode,
+      );
     }
     return _currentAgent!.quickStartSuggestions;
   }
@@ -566,11 +606,13 @@ class ChatProvider extends ChangeNotifier {
     if (_currentSession == null || messages.isEmpty) return;
 
     // Find last user message
-    final userMessages = messages.where((m) => m.type == MessageType.user).toList();
+    final userMessages = messages
+        .where((m) => m.type == MessageType.user)
+        .toList();
     if (userMessages.isEmpty) return;
 
     final lastUserMessage = userMessages.last;
-    
+
     // Remove last AI message if it exists
     final aiMessages = messages.where((m) => m.type == MessageType.ai).toList();
     if (aiMessages.isNotEmpty) {
@@ -585,7 +627,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> initialize() async {
     await _initializeProvider();
   }
-  
+
   /// Clear all chat history
   Future<void> clearAllHistory() async {
     try {
@@ -605,15 +647,14 @@ class ChatProvider extends ChangeNotifier {
     if (_currentSession == null) {
       _createNewSession();
     }
-    
+
     // Update current session with project messages
     _currentSession = _currentSession!.copyWith(
       messages: List.from(projectMessages),
     );
-    
+
     notifyListeners();
   }
-
 
   /// Generate visualization
   Future<void> _generateVisualization(
@@ -623,9 +664,10 @@ class ChatProvider extends ChangeNotifier {
   ) async {
     // Build enhanced prompt using analysis or context
     String enhancedPrompt;
-    
+
     if (analysis != null) {
-      enhancedPrompt = '''
+      enhancedPrompt =
+          '''
 АНАЛИЗ УЧАСТКА:
 ${analysis.imageAnalysis}
 
@@ -643,8 +685,11 @@ ${analysis.recommendations?.join('\n')}
 ''';
     } else {
       // Build prompt from conversation context
-      final contextSummary = _buildConversationSummary(_currentSession?.messages);
-      enhancedPrompt = '''
+      final contextSummary = _buildConversationSummary(
+        _currentSession?.messages,
+      );
+      enhancedPrompt =
+          '''
 КОНТЕКСТ РАЗГОВОРА:
 $contextSummary
 
@@ -664,19 +709,23 @@ $content
     // Create attachments
     final generatedAttachments = <Attachment>[];
     for (var i = 0; i < generationResponse.generatedImages.length; i++) {
-      generatedAttachments.add(Attachment.image(
-        id: _uuid.v4(),
-        name: 'generated_${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
-        data: generationResponse.generatedImages[i],
-        mimeType: generationResponse.imageMimeTypes[i],
-      ));
+      generatedAttachments.add(
+        Attachment.image(
+          id: _uuid.v4(),
+          name: 'generated_${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
+          data: generationResponse.generatedImages[i],
+          mimeType: generationResponse.imageMimeTypes[i],
+        ),
+      );
     }
 
     final aiMessage = Message.ai(
       id: _uuid.v4(),
       content: generationResponse.textResponse,
       agentId: 'gemini-image-generator',
-      attachments: generatedAttachments.isNotEmpty ? generatedAttachments : null,
+      attachments: generatedAttachments.isNotEmpty
+          ? generatedAttachments
+          : null,
       imageAnalysis: analysis?.imageAnalysis,
     );
 
@@ -688,7 +737,7 @@ $content
   /// Check if text message is a visualization request
   bool _isVisualizationRequest(String content) {
     final lowerContent = content.toLowerCase();
-    
+
     // Direct visualization requests
     final directRequests = [
       'сгенерируй картинку',
@@ -704,7 +753,7 @@ $content
       'картинка',
       'изображение',
     ];
-    
+
     // Leading questions that imply visualization
     final leadingQuestions = [
       'как это будет смотреться',
@@ -714,28 +763,28 @@ $content
       'какой результат',
       'покажи результат',
     ];
-    
+
     // Check for direct requests
     for (final request in directRequests) {
       if (lowerContent.contains(request)) {
         return true;
       }
     }
-    
+
     // Check for leading questions
     for (final question in leadingQuestions) {
       if (lowerContent.contains(question)) {
         return true;
       }
     }
-    
+
     return false;
   }
 
   /// Check if there are images in recent messages
   bool _hasImagesInRecentMessages() {
     if (_currentSession?.messages == null) return false;
-    
+
     // Look for images in the last 10 messages
     final recentMessages = _currentSession!.messages
         .where((m) => !m.isTyping && !m.isError)
@@ -743,14 +792,14 @@ $content
         .reversed
         .take(10)
         .toList();
-    
+
     for (final message in recentMessages) {
-      if (message.attachments != null && 
+      if (message.attachments != null &&
           message.attachments!.any((a) => a.isImage)) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -761,36 +810,41 @@ $content
         .where((m) => !m.isTyping && !m.isError)
         .toList()
         .reversed;
-    
+
     Message? messageWithImages;
     for (final message in recentMessages) {
-      if (message.attachments != null && 
+      if (message.attachments != null &&
           message.attachments!.any((a) => a.isImage)) {
         messageWithImages = message;
         break;
       }
     }
-    
+
     if (messageWithImages?.attachments == null) {
       // No images found, fallback to text response
       print('❌ No images found for visualization request');
       final fallbackMessage = Message.system(
         id: _uuid.v4(),
-        content: 'Для создания визуализации нужны изображения участка. Пожалуйста, загрузите фото участка.',
+        content:
+            'Для создания визуализации нужны изображения участка. Пожалуйста, загрузите фото участка.',
       );
       _addMessageToCurrentSession(fallbackMessage);
       return;
     }
-    
+
     // Extract image data
     final imageAttachments = messageWithImages!.attachments!
         .where((a) => a.isImage)
         .toList();
-    
-    final imageData = imageAttachments.map((a) => a.data).where((data) => data != null).cast<Uint8List>().toList();
-    
+
+    final imageData = imageAttachments
+        .map((a) => a.data)
+        .where((data) => data != null)
+        .cast<Uint8List>()
+        .toList();
+
     print('🎨 Found ${imageData.length} images for visualization');
-    
+
     // Use the existing image generation flow
     await _generateVisualization(content, imageData, null);
   }
@@ -800,7 +854,7 @@ $content
     if (history == null || history.isEmpty) {
       return 'Начало нового разговора';
     }
-    
+
     final summary = StringBuffer();
     final recentMessages = history
         .where((m) => !m.isTyping && !m.isError)
@@ -809,18 +863,17 @@ $content
         .take(5)
         .toList()
         .reversed;
-    
+
     for (final msg in recentMessages) {
       final role = msg.type == MessageType.user ? 'Пользователь' : 'AI';
       summary.writeln('$role: ${msg.content}');
-      
+
       // Добавить анализ изображений если есть
       if (msg.imageAnalysis != null) {
         summary.writeln('[Изображение: ${msg.imageAnalysis}]');
       }
     }
-    
+
     return summary.toString();
   }
-
 }

@@ -1,5 +1,5 @@
 /// Integration tests for complete chat flow
-/// 
+///
 /// Tests the end-to-end functionality from sending a message
 /// to receiving an AI response, including UI interactions.
 library;
@@ -25,15 +25,17 @@ void main() {
       return MultiProvider(
         providers: [
           ChangeNotifierProvider<ChatProvider>.value(value: chatProvider),
-          ChangeNotifierProvider<LanguageProvider>.value(value: languageProvider),
+          ChangeNotifierProvider<LanguageProvider>.value(
+            value: languageProvider,
+          ),
         ],
-        child: const MaterialApp(
-          home: ChatPage(),
-        ),
+        child: const MaterialApp(home: ChatPage()),
       );
     }
 
-    testWidgets('should display chat interface correctly', (WidgetTester tester) async {
+    testWidgets('should display chat interface correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -43,7 +45,9 @@ void main() {
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
 
-    testWidgets('should send user message and display it', (WidgetTester tester) async {
+    testWidgets('should send user message and display it', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -65,7 +69,9 @@ void main() {
       expect(find.text('Hello, how are you?'), findsOneWidget);
     });
 
-    testWidgets('should display typing indicator when AI is responding', (WidgetTester tester) async {
+    testWidgets('should display typing indicator when AI is responding', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -80,7 +86,9 @@ void main() {
       expect(find.byType(ChatPage), findsOneWidget);
     });
 
-    testWidgets('should handle empty message gracefully', (WidgetTester tester) async {
+    testWidgets('should handle empty message gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -93,7 +101,9 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('should clear message input after sending', (WidgetTester tester) async {
+    testWidgets('should clear message input after sending', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -110,12 +120,15 @@ void main() {
       expect(textField.controller?.text, isEmpty);
     });
 
-    testWidgets('should handle long messages correctly', (WidgetTester tester) async {
+    testWidgets('should handle long messages correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
       // Type a long message
-      const longMessage = 'This is a very long message that should be handled correctly by the chat interface without causing any layout issues or overflow problems.';
+      const longMessage =
+          'This is a very long message that should be handled correctly by the chat interface without causing any layout issues or overflow problems.';
       await tester.enterText(find.byType(TextField), longMessage);
       await tester.pump();
 
@@ -146,7 +159,9 @@ void main() {
       expect(find.text('Second message'), findsOneWidget);
     });
 
-    testWidgets('should handle rapid message sending', (WidgetTester tester) async {
+    testWidgets('should handle rapid message sending', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -164,7 +179,9 @@ void main() {
       expect(find.text('Message 2'), findsOneWidget);
     });
 
-    testWidgets('should handle keyboard interactions', (WidgetTester tester) async {
+    testWidgets('should handle keyboard interactions', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -184,7 +201,9 @@ void main() {
       expect(find.text('Keyboard test'), findsOneWidget);
     });
 
-    testWidgets('should handle app lifecycle changes', (WidgetTester tester) async {
+    testWidgets('should handle app lifecycle changes', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -203,7 +222,9 @@ void main() {
       expect(find.text('Lifecycle test'), findsOneWidget);
     });
 
-    testWidgets('should handle different screen orientations', (WidgetTester tester) async {
+    testWidgets('should handle different screen orientations', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -230,7 +251,9 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('should handle network connectivity changes', (WidgetTester tester) async {
+    testWidgets('should handle network connectivity changes', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -250,7 +273,10 @@ void main() {
 
       // Send multiple messages to create memory pressure
       for (var i = 0; i < 10; i++) {
-        await tester.enterText(find.byType(TextField), 'Memory test message $i');
+        await tester.enterText(
+          find.byType(TextField),
+          'Memory test message $i',
+        );
         await tester.tap(find.byType(FloatingActionButton));
         await tester.pump();
       }

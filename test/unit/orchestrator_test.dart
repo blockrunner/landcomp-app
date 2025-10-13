@@ -1,5 +1,5 @@
 /// Unit tests for Agent Orchestrator components
-/// 
+///
 /// This file contains unit tests for the orchestrator infrastructure
 /// including models, interfaces, and core components.
 library;
@@ -155,17 +155,17 @@ void main() {
   group('AgentRegistry Tests', () {
     test('should register and retrieve agents', () {
       final registry = AgentRegistry.instance;
-      
+
       // Clear any existing agents
       registry.clearMetrics();
-      
+
       expect(registry.agentCount, 0);
       expect(registry.getAllAgents(), isEmpty);
     });
 
     test('should track execution metrics', () {
       final registry = AgentRegistry.instance;
-      
+
       // This test verifies the registry can track metrics
       // In a real scenario, agents would be registered first
       expect(registry.getRegistryMetrics(), isA<Map<String, dynamic>>());
@@ -175,17 +175,17 @@ void main() {
   group('ToolRegistry Tests', () {
     test('should register and retrieve tools', () {
       final registry = ToolRegistry.instance;
-      
+
       // Clear any existing tools
       registry.clearMetrics();
-      
+
       expect(registry.toolCount, 0);
       expect(registry.getAllTools(), isEmpty);
     });
 
     test('should track execution metrics', () {
       final registry = ToolRegistry.instance;
-      
+
       // This test verifies the registry can track metrics
       expect(registry.getRegistryMetrics(), isA<Map<String, dynamic>>());
     });
@@ -194,16 +194,24 @@ void main() {
   group('MetricsTracker Tests', () {
     test('should track execution metrics', () {
       final tracker = MetricsTracker.instance;
-      
+
       // Reset metrics
       tracker.reset();
-      
+
       // Track some executions
-      tracker.trackExecution('test-component', Duration(milliseconds: 100), true);
-      tracker.trackExecution('test-component', Duration(milliseconds: 200), false);
-      
+      tracker.trackExecution(
+        'test-component',
+        Duration(milliseconds: 100),
+        true,
+      );
+      tracker.trackExecution(
+        'test-component',
+        Duration(milliseconds: 200),
+        false,
+      );
+
       final metrics = tracker.getMetrics('test-component');
-      
+
       expect(metrics['component'], 'test-component');
       expect(metrics['totalExecutions'], 2);
       expect(metrics['successCount'], 1);
@@ -213,9 +221,9 @@ void main() {
 
     test('should provide summary statistics', () {
       final tracker = MetricsTracker.instance;
-      
+
       final summary = tracker.getSummary();
-      
+
       expect(summary, isA<Map<String, dynamic>>());
       expect(summary['totalComponents'], isA<int>());
       expect(summary['totalExecutions'], isA<int>());

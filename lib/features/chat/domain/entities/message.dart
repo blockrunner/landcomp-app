@@ -1,5 +1,5 @@
 /// Message entity for chat functionality
-/// 
+///
 /// This entity represents a message in the chat conversation
 /// with support for different message types and AI agents.
 library;
@@ -11,15 +11,16 @@ import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
 enum MessageType {
   /// User message
   user,
+
   /// AI agent message
   ai,
+
   /// System message (errors, notifications)
   system,
 }
 
 /// Message entity
 class Message extends Equatable {
-
   /// Create a user message
   factory Message.user({
     required String id,
@@ -75,10 +76,7 @@ class Message extends Equatable {
   }
 
   /// Create a typing indicator
-  factory Message.typing({
-    required String id,
-    required String agentId,
-  }) {
+  factory Message.typing({required String id, required String agentId}) {
     return Message(
       id: id,
       content: '',
@@ -94,21 +92,28 @@ class Message extends Equatable {
     List<Attachment>? attachments;
     if (json['attachments'] != null) {
       try {
-        final List<dynamic> attachmentsList = json['attachments'] as List<dynamic>;
+        final List<dynamic> attachmentsList =
+            json['attachments'] as List<dynamic>;
         attachments = attachmentsList.map((attachmentJson) {
           return Attachment.fromJson(attachmentJson as Map<String, dynamic>);
         }).toList();
-        
-        print('📄 Message.fromJson: Successfully deserialized ${attachments.length} attachments for message ${json['id']}');
-        print('📄 Attachment types: ${attachments.map((a) => a.type.name).toList()}');
+
+        print(
+          '📄 Message.fromJson: Successfully deserialized ${attachments.length} attachments for message ${json['id']}',
+        );
+        print(
+          '📄 Attachment types: ${attachments.map((a) => a.type.name).toList()}',
+        );
       } catch (e) {
         print('❌ Error deserializing attachments: $e');
         attachments = null;
       }
     } else {
-      print('📄 Message.fromJson: No attachments found for message ${json['id']}');
+      print(
+        '📄 Message.fromJson: No attachments found for message ${json['id']}',
+      );
     }
-    
+
     return Message(
       id: json['id'] as String,
       content: json['content'] as String,
@@ -124,6 +129,7 @@ class Message extends Equatable {
       imageAnalysis: json['imageAnalysis'] as String?,
     );
   }
+
   /// Creates a message
   const Message({
     required this.id,
@@ -192,14 +198,20 @@ class Message extends Equatable {
   /// Convert message to JSON
   Map<String, dynamic> toJson() {
     // Convert attachments to JSON
-    final attachmentsJson = attachments?.map((attachment) => attachment.toJson()).toList();
-    
+    final attachmentsJson = attachments
+        ?.map((attachment) => attachment.toJson())
+        .toList();
+
     // Debug: Log attachment serialization
     if (attachments != null && attachments!.isNotEmpty) {
-      print('📄 Message.toJson: Processing ${attachments!.length} attachments for message $id');
-      print('📄 Attachment types: ${attachments!.map((a) => a.type.name).toList()}');
+      print(
+        '📄 Message.toJson: Processing ${attachments!.length} attachments for message $id',
+      );
+      print(
+        '📄 Attachment types: ${attachments!.map((a) => a.type.name).toList()}',
+      );
     }
-    
+
     return {
       'id': id,
       'content': content,
@@ -215,16 +227,16 @@ class Message extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        content,
-        type,
-        timestamp,
-        agentId,
-        isError,
-        isTyping,
-        attachments,
-        imageAnalysis,
-      ];
+    id,
+    content,
+    type,
+    timestamp,
+    agentId,
+    isError,
+    isTyping,
+    attachments,
+    imageAnalysis,
+  ];
 
   @override
   String toString() {

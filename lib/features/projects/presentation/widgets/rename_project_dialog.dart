@@ -1,5 +1,5 @@
 /// Rename project dialog widget
-/// 
+///
 /// This dialog allows users to rename an existing project.
 library;
 
@@ -97,4 +97,3 @@ class _RenameProjectDialogState extends State<RenameProjectDialog> {
     }
   }
 }
-

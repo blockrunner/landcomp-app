@@ -1,5 +1,5 @@
 /// Projects page for managing all projects
-/// 
+///
 /// This page displays a full-screen list of all projects with
 /// search, filter, and management capabilities.
 library;
@@ -67,7 +67,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
       actions: [
         // New project button
         TextButton.icon(
-          onPressed: () => _showNewProjectDialog(context, projectProvider, languageProvider),
+          onPressed: () =>
+              _showNewProjectDialog(context, projectProvider, languageProvider),
           icon: const Icon(Icons.add),
           label: Text(languageProvider.getString('newProject')),
         ),
@@ -162,7 +163,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
       children: [
         // Search bar
         _buildSearchBar(context, languageProvider),
-        
+
         // Projects list
         Expanded(
           child: _buildProjectsList(context, projectProvider, languageProvider),
@@ -172,7 +173,10 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   /// Builds the search bar
-  Widget _buildSearchBar(BuildContext context, LanguageProvider languageProvider) {
+  Widget _buildSearchBar(
+    BuildContext context,
+    LanguageProvider languageProvider,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: TextField(
@@ -191,9 +195,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   },
                 )
               : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
         onChanged: (value) {
           setState(() {
@@ -211,9 +213,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     LanguageProvider languageProvider,
   ) {
     if (projectProvider.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     // Get filtered and sorted projects
@@ -222,7 +222,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
         : projectProvider.getProjectsSortedBy(sortBy: _currentSortBy);
 
     if (projects.isEmpty) {
-      return _buildEmptyState(context, languageProvider, _searchQuery.isNotEmpty);
+      return _buildEmptyState(
+        context,
+        languageProvider,
+        _searchQuery.isNotEmpty,
+      );
     }
 
     return ListView.builder(
@@ -230,20 +234,30 @@ class _ProjectsPageState extends State<ProjectsPage> {
       itemCount: projects.length,
       itemBuilder: (context, index) {
         final project = projects[index];
-        final isCurrentProject = projectProvider.currentProject?.id == project.id;
-        
+        final isCurrentProject =
+            projectProvider.currentProject?.id == project.id;
+
         return ProjectListItem(
           project: project,
           isActive: isCurrentProject,
           onTap: () => _openProject(context, project),
-          onLongPress: () => _showProjectOptions(context, projectProvider, project, languageProvider),
+          onLongPress: () => _showProjectOptions(
+            context,
+            projectProvider,
+            project,
+            languageProvider,
+          ),
         );
       },
     );
   }
 
   /// Builds the empty state
-  Widget _buildEmptyState(BuildContext context, LanguageProvider languageProvider, bool isSearch) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    LanguageProvider languageProvider,
+    bool isSearch,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -257,9 +271,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              isSearch 
-                ? languageProvider.getString('noProjectsFound')
-                : languageProvider.getString('projectsEmpty'),
+              isSearch
+                  ? languageProvider.getString('noProjectsFound')
+                  : languageProvider.getString('projectsEmpty'),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -267,8 +281,8 @@ class _ProjectsPageState extends State<ProjectsPage> {
             const SizedBox(height: 8),
             Text(
               isSearch
-                ? 'Try a different search term'
-                : languageProvider.getString('createFirstProject'),
+                  ? 'Try a different search term'
+                  : languageProvider.getString('createFirstProject'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -342,16 +356,16 @@ class _ProjectsPageState extends State<ProjectsPage> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           Text(
             project.title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          
+
           // Open project
           ListTile(
             leading: const Icon(Icons.open_in_new),
@@ -361,33 +375,38 @@ class _ProjectsPageState extends State<ProjectsPage> {
               _openProject(context, project);
             },
           ),
-          
+
           // Rename
           ListTile(
             leading: const Icon(Icons.edit),
             title: Text(languageProvider.getString('renameProject')),
             onTap: () {
               Navigator.of(context).pop();
-              _showRenameDialog(context, projectProvider, project, languageProvider);
+              _showRenameDialog(
+                context,
+                projectProvider,
+                project,
+                languageProvider,
+              );
             },
           ),
-          
+
           // Toggle favorite
           ListTile(
             leading: Icon(project.isFavorite ? Icons.star : Icons.star_border),
             title: Text(
-              project.isFavorite 
-                ? languageProvider.getString('removeFromFavorites')
-                : languageProvider.getString('markAsFavorite'),
+              project.isFavorite
+                  ? languageProvider.getString('removeFromFavorites')
+                  : languageProvider.getString('markAsFavorite'),
             ),
             onTap: () {
               projectProvider.toggleProjectFavorite(project.id);
               Navigator.of(context).pop();
             },
           ),
-          
+
           const Divider(),
-          
+
           // Delete
           ListTile(
             leading: const Icon(Icons.delete, color: Colors.red),
@@ -397,7 +416,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
             ),
             onTap: () {
               Navigator.of(context).pop();
-              _showDeleteConfirmation(context, projectProvider, project, languageProvider);
+              _showDeleteConfirmation(
+                context,
+                projectProvider,
+                project,
+                languageProvider,
+              );
             },
           ),
         ],
@@ -413,7 +437,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     LanguageProvider languageProvider,
   ) {
     final controller = TextEditingController(text: project.title);
-    
+
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(

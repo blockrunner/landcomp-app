@@ -1,5 +1,5 @@
 /// Chat page for AI conversation
-/// 
+///
 /// This page provides the main chat interface for users to interact
 /// with the AI agents for landscape design assistance.
 library;
@@ -43,32 +43,38 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     // Initialize providers after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+      final projectProvider = Provider.of<ProjectProvider>(
+        context,
+        listen: false,
+      );
       final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-      
+
       // Initialize project provider first
       projectProvider.initialize().then((_) {
         // If specific project ID is provided, switch to it
         if (widget.projectId != null) {
           projectProvider.switchToProject(widget.projectId!);
         }
-        
+
         // Initialize chat provider
         chatProvider.initialize().then((_) {
           // Load current project messages into ChatProvider
           _syncProjectMessagesToChat(projectProvider, chatProvider);
         });
       });
-      
+
       // Listen to project changes to sync messages
       projectProvider.addListener(() {
         _syncProjectMessagesToChat(projectProvider, chatProvider);
       });
     });
   }
-  
+
   /// Sync current project messages to ChatProvider
-  void _syncProjectMessagesToChat(ProjectProvider projectProvider, ChatProvider chatProvider) {
+  void _syncProjectMessagesToChat(
+    ProjectProvider projectProvider,
+    ChatProvider chatProvider,
+  ) {
     final currentProject = projectProvider.currentProject;
     if (currentProject != null) {
       // Load project messages into ChatProvider's current session
@@ -87,158 +93,193 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer3<LanguageProvider, ProjectProvider, ChatProvider>(
-      builder: (context, languageProvider, projectProvider, chatProvider, child) {
-        // Set language provider after build
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          chatProvider.setLanguageProvider(languageProvider);
-          projectProvider.setLanguageProvider(languageProvider);
-        });
-        
-        return Scaffold(
-          appBar: AppBar(
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
-            ),
-            title: Row(
-              children: [
-                const SmallLogoWidget(size: 28),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildProjectTitle(projectProvider, languageProvider),
+      builder:
+          (context, languageProvider, projectProvider, chatProvider, child) {
+            // Set language provider after build
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              chatProvider.setLanguageProvider(languageProvider);
+              projectProvider.setLanguageProvider(languageProvider);
+            });
+
+            return Scaffold(
+              appBar: AppBar(
+                leading: Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  ),
                 ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  _showNewProjectDialog(context, projectProvider, languageProvider);
-                },
-                tooltip: languageProvider.getString('newProject'),
-              ),
-            ],
-          ),
-          drawer: const ProjectsSidebar(),
-          body: Column(
-            children: [
-              // Chat messages area
-              Expanded(
-                child: _buildChatContent(chatProvider, projectProvider),
-              ),
-                // Message input area
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    border: Border(
-                      top: BorderSide(
-                        color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                title: Row(
+                  children: [
+                    const SmallLogoWidget(size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildProjectTitle(
+                        projectProvider,
+                        languageProvider,
                       ),
                     ),
+                  ],
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () {
+                      _showNewProjectDialog(
+                        context,
+                        projectProvider,
+                        languageProvider,
+                      );
+                    },
+                    tooltip: languageProvider.getString('newProject'),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Image picker
-                      if (_showImagePicker) ...[
-                        ImagePickerWidget(
-                          onImagesSelected: (images) {
-                            setState(() {
-                              _selectedImages = images;
-                              if (images.isEmpty) {
-                                _showImagePicker = false;
-                              }
-                            });
-                          },
+                ],
+              ),
+              drawer: const ProjectsSidebar(),
+              body: Column(
+                children: [
+                  // Chat messages area
+                  Expanded(
+                    child: _buildChatContent(chatProvider, projectProvider),
+                  ),
+                  // Message input area
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      border: Border(
+                        top: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
                         ),
-                        const SizedBox(height: 12),
-                      ],
-                      // Message input row
-                      Row(
-                        children: [
-                          // Image picker button
-                          IconButton(
-                            onPressed: chatProvider.isLoading ? null : () {
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Image picker
+                        if (_showImagePicker) ...[
+                          ImagePickerWidget(
+                            onImagesSelected: (images) {
                               setState(() {
-                                if (_showImagePicker) {
+                                _selectedImages = images;
+                                if (images.isEmpty) {
                                   _showImagePicker = false;
-                                  _selectedImages.clear();
-                                } else {
-                                  _showImagePicker = true;
                                 }
                               });
                             },
-                            icon: Icon(
-                              _showImagePicker ? Icons.close : Icons.add_photo_alternate,
-                              color: _showImagePicker 
-                                  ? Theme.of(context).colorScheme.error
-                                  : Theme.of(context).colorScheme.primary,
-                            ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              controller: _messageController,
-                              decoration: InputDecoration(
-                                hintText: _showImagePicker
-                                    ? languageProvider.getString('messageHintWithImage')
-                                    : languageProvider.getString('messageHintExtended'),
-                                border: const OutlineInputBorder(),
-                              ),
-                              maxLines: null,
-                              textInputAction: TextInputAction.send,
-                              enabled: !chatProvider.isLoading,
-                              onSubmitted: (value) {
-                                if (value.trim().isNotEmpty && !chatProvider.isLoading) {
-                                  _sendMessage(chatProvider, projectProvider, value.trim());
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          IconButton(
-                            onPressed: chatProvider.isLoading ? null : () {
-                              final message = _messageController.text.trim();
-                              if (message.isNotEmpty) {
-                                _sendMessage(chatProvider, projectProvider, message);
-                              }
-                            },
-                            icon: chatProvider.isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.send),
-                          ),
+                          const SizedBox(height: 12),
                         ],
-                      ),
-                    ],
+                        // Message input row
+                        Row(
+                          children: [
+                            // Image picker button
+                            IconButton(
+                              onPressed: chatProvider.isLoading
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        if (_showImagePicker) {
+                                          _showImagePicker = false;
+                                          _selectedImages.clear();
+                                        } else {
+                                          _showImagePicker = true;
+                                        }
+                                      });
+                                    },
+                              icon: Icon(
+                                _showImagePicker
+                                    ? Icons.close
+                                    : Icons.add_photo_alternate,
+                                color: _showImagePicker
+                                    ? Theme.of(context).colorScheme.error
+                                    : Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _messageController,
+                                decoration: InputDecoration(
+                                  hintText: _showImagePicker
+                                      ? languageProvider.getString(
+                                          'messageHintWithImage',
+                                        )
+                                      : languageProvider.getString(
+                                          'messageHintExtended',
+                                        ),
+                                  border: const OutlineInputBorder(),
+                                ),
+                                maxLines: null,
+                                textInputAction: TextInputAction.send,
+                                enabled: !chatProvider.isLoading,
+                                onSubmitted: (value) {
+                                  if (value.trim().isNotEmpty &&
+                                      !chatProvider.isLoading) {
+                                    _sendMessage(
+                                      chatProvider,
+                                      projectProvider,
+                                      value.trim(),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            IconButton(
+                              onPressed: chatProvider.isLoading
+                                  ? null
+                                  : () {
+                                      final message = _messageController.text
+                                          .trim();
+                                      if (message.isNotEmpty) {
+                                        _sendMessage(
+                                          chatProvider,
+                                          projectProvider,
+                                          message,
+                                        );
+                                      }
+                                    },
+                              icon: chatProvider.isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.send),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
     );
   }
 
   /// Builds the chat content area
-  Widget _buildChatContent(ChatProvider chatProvider, ProjectProvider projectProvider) {
+  Widget _buildChatContent(
+    ChatProvider chatProvider,
+    ProjectProvider projectProvider,
+  ) {
     final currentProject = projectProvider.currentProject;
-    
+
     // ONLY messages from the current project
     final messages = currentProject?.messages ?? [];
-    
+
     if (messages.isEmpty) {
       return _buildWelcomeScreen(chatProvider);
     }
-    
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -247,16 +288,22 @@ class _ChatPageState extends State<ChatPage> {
         final message = messages[index];
         return MessageBubble(
           message: message,
-          onRetry: message.isError ? () {
-            // Retry will re-send the message
-            final lastUserMessage = messages.lastWhere(
-              (m) => m.type == MessageType.user,
-              orElse: () => message,
-            );
-            if (lastUserMessage.type == MessageType.user) {
-              _sendMessage(chatProvider, projectProvider, lastUserMessage.content);
-            }
-          } : null,
+          onRetry: message.isError
+              ? () {
+                  // Retry will re-send the message
+                  final lastUserMessage = messages.lastWhere(
+                    (m) => m.type == MessageType.user,
+                    orElse: () => message,
+                  );
+                  if (lastUserMessage.type == MessageType.user) {
+                    _sendMessage(
+                      chatProvider,
+                      projectProvider,
+                      lastUserMessage.content,
+                    );
+                  }
+                }
+              : null,
         );
       },
     );
@@ -297,13 +344,13 @@ class _ChatPageState extends State<ChatPage> {
                     children: [
                       Text(
                         languageProvider.getString('getStarted'),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
                       ...chatProvider.getQuickStartSuggestions().map(
-                        (suggestion) => _buildSuggestionItem(suggestion, chatProvider),
+                        (suggestion) =>
+                            _buildSuggestionItem(suggestion, chatProvider),
                       ),
                     ],
                   ),
@@ -322,7 +369,10 @@ class _ChatPageState extends State<ChatPage> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
         onTap: () {
-          final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+          final projectProvider = Provider.of<ProjectProvider>(
+            context,
+            listen: false,
+          );
           _sendMessage(chatProvider, projectProvider, text);
         },
         borderRadius: BorderRadius.circular(8),
@@ -330,7 +380,9 @@ class _ChatPageState extends State<ChatPage> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceVariant.withOpacity(0.5),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -348,10 +400,14 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// Sends a message to the AI
-  void _sendMessage(ChatProvider chatProvider, ProjectProvider projectProvider, String message) async {
+  void _sendMessage(
+    ChatProvider chatProvider,
+    ProjectProvider projectProvider,
+    String message,
+  ) async {
     final currentProject = projectProvider.currentProject;
     if (currentProject == null) return;
-    
+
     // Send message through ChatProvider (which handles AI logic)
     if (_selectedImages.isNotEmpty) {
       await chatProvider.sendMessageWithImages(
@@ -365,7 +421,7 @@ class _ChatPageState extends State<ChatPage> {
     } else {
       await chatProvider.sendMessage(message);
     }
-    
+
     // After AI response, sync ALL messages from ChatProvider to current project
     // ChatProvider.messages contains the complete conversation including the new AI response
     final updatedProject = currentProject.copyWith(
@@ -373,36 +429,39 @@ class _ChatPageState extends State<ChatPage> {
       updatedAt: DateTime.now(),
     );
     await projectProvider.updateCurrentProjectWithMessage(updatedProject);
-    
+
     // Auto-rename project based on first user message (like ChatGPT)
     // Check the project from provider after update
     final projectAfterUpdate = projectProvider.currentProject;
     if (projectAfterUpdate != null) {
-      print('🏷️ Auto-rename check: messageCount=${projectAfterUpdate.messages.length}, title="${projectAfterUpdate.title}"');
-      
-      if (projectAfterUpdate.messages.length == 2 && // user message + AI response
-          (projectAfterUpdate.title.startsWith('Новый проект') || projectAfterUpdate.title == 'New Project')) {
-        
+      print(
+        '🏷️ Auto-rename check: messageCount=${projectAfterUpdate.messages.length}, title="${projectAfterUpdate.title}"',
+      );
+
+      if (projectAfterUpdate.messages.length ==
+              2 && // user message + AI response
+          (projectAfterUpdate.title.startsWith('Новый проект') ||
+              projectAfterUpdate.title == 'New Project')) {
         print('✅ Auto-rename conditions met, renaming project...');
-        
+
         // Get first user message
         final firstUserMessage = projectAfterUpdate.messages.firstWhere(
           (m) => m.type == MessageType.user,
           orElse: () => projectAfterUpdate.messages.first,
         );
-        
+
         // Generate title from first 50 chars of message
         final newTitle = firstUserMessage.content.length > 50
             ? '${firstUserMessage.content.substring(0, 50)}...'
             : firstUserMessage.content;
-        
+
         print('🏷️ Renaming project to: "$newTitle"');
         await projectProvider.renameProject(projectAfterUpdate.id, newTitle);
       } else {
         print('❌ Auto-rename conditions not met');
       }
     }
-    
+
     _messageController.clear();
     _scrollToBottom();
   }
@@ -421,15 +480,18 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// Build project title
-  Widget _buildProjectTitle(ProjectProvider projectProvider, LanguageProvider languageProvider) {
+  Widget _buildProjectTitle(
+    ProjectProvider projectProvider,
+    LanguageProvider languageProvider,
+  ) {
     final currentProject = projectProvider.currentProject;
-    
+
     if (currentProject == null) {
       return Text(
         languageProvider.getString('currentProject'),
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w500,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
       );
     }
 
@@ -453,7 +515,12 @@ class _ChatPageState extends State<ChatPage> {
         ),
         IconButton(
           icon: const Icon(Icons.edit, size: 20),
-          onPressed: () => _showRenameDialog(context, projectProvider, currentProject, languageProvider),
+          onPressed: () => _showRenameDialog(
+            context,
+            projectProvider,
+            currentProject,
+            languageProvider,
+          ),
           tooltip: languageProvider.getString('renameProject'),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),

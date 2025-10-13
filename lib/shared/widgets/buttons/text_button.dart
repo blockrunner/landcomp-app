@@ -1,5 +1,5 @@
 /// Text button widget following the LandComp style guide
-/// 
+///
 /// This widget implements the text button with transparent background
 /// and proper hover states according to the design system.
 library;
@@ -15,7 +15,9 @@ import 'package:landcomp_app/shared/widgets/buttons/primary_button.dart';
 class AppTextButton extends StatefulWidget {
   /// Creates a text button
   const AppTextButton({
-    required this.onPressed, required this.child, super.key,
+    required this.onPressed,
+    required this.child,
+    super.key,
     this.size = ButtonSize.medium,
     this.isLoading = false,
     this.isDisabled = false,
@@ -64,13 +66,9 @@ class _AppTextButtonState extends State<AppTextButton>
       duration: DesignTokens.animationFast,
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1,
-      end: 0.98,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1, end: 0.98).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -81,9 +79,8 @@ class _AppTextButtonState extends State<AppTextButton>
 
   @override
   Widget build(BuildContext context) {
-    final isEnabled = widget.onPressed != null && 
-                          !widget.isDisabled && 
-                          !widget.isLoading;
+    final isEnabled =
+        widget.onPressed != null && !widget.isDisabled && !widget.isLoading;
 
     final buttonColor = widget.color ?? AppColors.darkTeal;
 
@@ -95,7 +92,9 @@ class _AppTextButtonState extends State<AppTextButton>
           child: GestureDetector(
             onTapDown: isEnabled ? (_) => _animationController.forward() : null,
             onTapUp: isEnabled ? (_) => _animationController.reverse() : null,
-            onTapCancel: isEnabled ? () => _animationController.reverse() : null,
+            onTapCancel: isEnabled
+                ? () => _animationController.reverse()
+                : null,
             onTap: isEnabled ? widget.onPressed : null,
             child: Container(
               width: widget.width ?? _getButtonWidth(),
@@ -203,9 +202,7 @@ class _AppTextButtonState extends State<AppTextButton>
           const SizedBox(width: AppSpacing.sm),
           Text(
             'Loading...',
-            style: _getTextStyle().copyWith(
-              color: buttonColor,
-            ),
+            style: _getTextStyle().copyWith(color: buttonColor),
           ),
         ],
       ],
@@ -236,9 +233,7 @@ class _AppTextButtonState extends State<AppTextButton>
           const SizedBox(width: AppSpacing.sm),
         ],
         DefaultTextStyle(
-          style: _getTextStyle().copyWith(
-            color: buttonColor,
-          ),
+          style: _getTextStyle().copyWith(color: buttonColor),
           child: widget.child,
         ),
       ],
@@ -263,7 +258,9 @@ class _AppTextButtonState extends State<AppTextButton>
 /// Convenience constructors for different button sizes
 class AppTextButtonLarge extends AppTextButton {
   const AppTextButtonLarge({
-    required super.onPressed, required super.child, super.key,
+    required super.onPressed,
+    required super.child,
+    super.key,
     super.isLoading,
     super.isDisabled,
     super.width,
@@ -274,7 +271,9 @@ class AppTextButtonLarge extends AppTextButton {
 
 class AppTextButtonSmall extends AppTextButton {
   const AppTextButtonSmall({
-    required super.onPressed, required super.child, super.key,
+    required super.onPressed,
+    required super.child,
+    super.key,
     super.isLoading,
     super.isDisabled,
     super.width,
@@ -285,12 +284,11 @@ class AppTextButtonSmall extends AppTextButton {
 
 class AppTextButtonIcon extends AppTextButton {
   const AppTextButtonIcon({
-    required super.onPressed, required super.icon, super.key,
+    required super.onPressed,
+    required super.icon,
+    super.key,
     super.isLoading,
     super.isDisabled,
     super.color,
-  }) : super(
-          size: ButtonSize.icon,
-          child: const SizedBox.shrink(),
-        );
+  }) : super(size: ButtonSize.icon, child: const SizedBox.shrink());
 }

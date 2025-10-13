@@ -1,5 +1,5 @@
 /// Metrics Tracker for orchestrator components
-/// 
+///
 /// This utility tracks performance metrics for agents, tools, and other components
 /// in the orchestrator system.
 library;
@@ -25,7 +25,7 @@ class MetricsTracker {
 
     // Add execution time
     _executionTimes[component]!.add(duration);
-    
+
     // Keep only last 100 execution times
     if (_executionTimes[component]!.length > 100) {
       _executionTimes[component]!.removeAt(0);
@@ -85,12 +85,13 @@ class MetricsTracker {
   /// Get metrics for all components
   Map<String, dynamic> getAllMetrics() {
     final componentMetrics = <String, Map<String, dynamic>>{};
-    
+
     for (final component in _executionTimes.keys) {
       componentMetrics[component] = getMetrics(component);
     }
 
-    final totalExecutions = _successCounts.values.fold(0, (a, b) => a + b) +
+    final totalExecutions =
+        _successCounts.values.fold(0, (a, b) => a + b) +
         _errorCounts.values.fold(0, (a, b) => a + b);
 
     return {
@@ -112,8 +113,11 @@ class MetricsTracker {
       }
     }
 
-    components.sort((a, b) => (b['successRate'] as double).compareTo(a['successRate'] as double));
-    
+    components.sort(
+      (a, b) =>
+          (b['successRate'] as double).compareTo(a['successRate'] as double),
+    );
+
     return components.take(limit).toList();
   }
 
@@ -129,8 +133,12 @@ class MetricsTracker {
       }
     }
 
-    components.sort((a, b) => (b['averageExecutionTime'] as double).compareTo(a['averageExecutionTime'] as double));
-    
+    components.sort(
+      (a, b) => (b['averageExecutionTime'] as double).compareTo(
+        a['averageExecutionTime'] as double,
+      ),
+    );
+
     return components.take(limit).toList();
   }
 
@@ -146,8 +154,10 @@ class MetricsTracker {
       }
     }
 
-    components.sort((a, b) => (b['errorCount'] as int).compareTo(a['errorCount'] as int));
-    
+    components.sort(
+      (a, b) => (b['errorCount'] as int).compareTo(a['errorCount'] as int),
+    );
+
     return components;
   }
 
@@ -173,7 +183,7 @@ class MetricsTracker {
   Map<String, dynamic> getSummary() {
     final allMetrics = getAllMetrics();
     final components = allMetrics['components'] as Map<String, dynamic>;
-    
+
     if (components.isEmpty) {
       return {
         'totalComponents': 0,
@@ -187,7 +197,7 @@ class MetricsTracker {
         .map((m) => m['successRate'] as double)
         .where((rate) => rate > 0)
         .toList();
-    
+
     final executionTimes = components.values
         .map((m) => m['averageExecutionTime'] as double)
         .where((time) => time > 0)
@@ -196,11 +206,11 @@ class MetricsTracker {
     return {
       'totalComponents': components.length,
       'totalExecutions': allMetrics['totalExecutions'],
-      'averageSuccessRate': successRates.isNotEmpty 
-          ? successRates.reduce((a, b) => a + b) / successRates.length 
+      'averageSuccessRate': successRates.isNotEmpty
+          ? successRates.reduce((a, b) => a + b) / successRates.length
           : 0.0,
-      'averageExecutionTime': executionTimes.isNotEmpty 
-          ? executionTimes.reduce((a, b) => a + b) / executionTimes.length 
+      'averageExecutionTime': executionTimes.isNotEmpty
+          ? executionTimes.reduce((a, b) => a + b) / executionTimes.length
           : 0.0,
     };
   }

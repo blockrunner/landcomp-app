@@ -1,5 +1,5 @@
 /// Tool execution result model
-/// 
+///
 /// This model represents the result of executing a tool,
 /// including success status, data, and execution metrics.
 library;
@@ -122,13 +122,13 @@ class ToolResult extends Equatable {
 
   @override
   List<Object?> get props => [
-        toolId,
-        isSuccess,
-        data,
-        error,
-        executionTime,
-        metadata,
-      ];
+    toolId,
+    isSuccess,
+    data,
+    error,
+    executionTime,
+    metadata,
+  ];
 
   @override
   String toString() {

@@ -1,5 +1,5 @@
 /// Integration tests for offline mode functionality
-/// 
+///
 /// Tests cached responses, fallback mechanisms, and offline behavior.
 library;
 
@@ -24,21 +24,23 @@ void main() {
       return MultiProvider(
         providers: [
           ChangeNotifierProvider<ChatProvider>.value(value: chatProvider),
-          ChangeNotifierProvider<LanguageProvider>.value(value: languageProvider),
+          ChangeNotifierProvider<LanguageProvider>.value(
+            value: languageProvider,
+          ),
         ],
-        child: const MaterialApp(
-          home: ChatPage(),
-        ),
+        child: const MaterialApp(home: ChatPage()),
       );
     }
 
-    testWidgets('should handle offline state gracefully', (WidgetTester tester) async {
+    testWidgets('should handle offline state gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
       // Simulate offline state by disabling network
       // Note: In a real test, you would mock the network connectivity
-      
+
       // Send a message while offline
       await tester.enterText(find.byType(TextField), 'Offline test message');
       await tester.tap(find.byType(FloatingActionButton));
@@ -49,7 +51,9 @@ void main() {
       expect(find.text('Offline test message'), findsOneWidget);
     });
 
-    testWidgets('should display cached responses when available', (WidgetTester tester) async {
+    testWidgets('should display cached responses when available', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -72,7 +76,9 @@ void main() {
       expect(find.text('Cache test message'), findsOneWidget);
     });
 
-    testWidgets('should show appropriate error messages when offline', (WidgetTester tester) async {
+    testWidgets('should show appropriate error messages when offline', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -86,7 +92,9 @@ void main() {
       expect(find.text('Error test message'), findsOneWidget);
     });
 
-    testWidgets('should maintain chat history during offline periods', (WidgetTester tester) async {
+    testWidgets('should maintain chat history during offline periods', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -111,7 +119,9 @@ void main() {
       expect(find.text('Offline message'), findsOneWidget);
     });
 
-    testWidgets('should handle network reconnection gracefully', (WidgetTester tester) async {
+    testWidgets('should handle network reconnection gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -126,7 +136,9 @@ void main() {
       expect(find.text('Reconnection test'), findsOneWidget);
     });
 
-    testWidgets('should use fallback mechanisms when primary AI fails', (WidgetTester tester) async {
+    testWidgets('should use fallback mechanisms when primary AI fails', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -140,7 +152,9 @@ void main() {
       expect(find.text('Fallback test message'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy failures gracefully', (WidgetTester tester) async {
+    testWidgets('should handle proxy failures gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -154,7 +168,9 @@ void main() {
       expect(find.text('Proxy test message'), findsOneWidget);
     });
 
-    testWidgets('should maintain app state during network interruptions', (WidgetTester tester) async {
+    testWidgets('should maintain app state during network interruptions', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -169,7 +185,9 @@ void main() {
       expect(find.text('State test message'), findsOneWidget);
     });
 
-    testWidgets('should handle API rate limiting gracefully', (WidgetTester tester) async {
+    testWidgets('should handle API rate limiting gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -187,7 +205,9 @@ void main() {
       expect(find.text('Rate limit test 4'), findsOneWidget);
     });
 
-    testWidgets('should handle API quota exceeded gracefully', (WidgetTester tester) async {
+    testWidgets('should handle API quota exceeded gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -201,7 +221,9 @@ void main() {
       expect(find.text('Quota test message'), findsOneWidget);
     });
 
-    testWidgets('should handle malformed API responses gracefully', (WidgetTester tester) async {
+    testWidgets('should handle malformed API responses gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -215,7 +237,9 @@ void main() {
       expect(find.text('Malformed response test'), findsOneWidget);
     });
 
-    testWidgets('should handle timeout errors gracefully', (WidgetTester tester) async {
+    testWidgets('should handle timeout errors gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -229,7 +253,9 @@ void main() {
       expect(find.text('Timeout test message'), findsOneWidget);
     });
 
-    testWidgets('should handle authentication errors gracefully', (WidgetTester tester) async {
+    testWidgets('should handle authentication errors gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -243,7 +269,9 @@ void main() {
       expect(find.text('Auth test message'), findsOneWidget);
     });
 
-    testWidgets('should handle server errors gracefully', (WidgetTester tester) async {
+    testWidgets('should handle server errors gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -257,7 +285,9 @@ void main() {
       expect(find.text('Server error test'), findsOneWidget);
     });
 
-    testWidgets('should handle concurrent requests gracefully', (WidgetTester tester) async {
+    testWidgets('should handle concurrent requests gracefully', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 

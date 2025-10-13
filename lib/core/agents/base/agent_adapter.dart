@@ -1,5 +1,5 @@
 /// Agent Adapter for wrapping existing AIAgent entities
-/// 
+///
 /// This is a temporary adapter to make existing AIAgent entities work
 /// with the new Agent interface until proper Agent implementations are created.
 library;
@@ -34,12 +34,12 @@ class AgentAdapter implements Agent {
     if (_cachedCapabilities != null) {
       return _cachedCapabilities!;
     }
-    
+
     print('🔍 Building capabilities for ${_aiAgent.name}');
-    
+
     // Map AIAgent expertise areas to capabilities
     final capabilities = <String>[];
-    
+
     for (final area in _aiAgent.expertiseAreas) {
       final lowerArea = area.toLowerCase();
       switch (lowerArea) {
@@ -97,7 +97,7 @@ class AgentAdapter implements Agent {
           break;
       }
     }
-    
+
     // Add specific capabilities based on agent name
     final agentName = _aiAgent.name.toLowerCase();
     if (agentName.contains('landscape') || agentName.contains('дизайн')) {
@@ -113,14 +113,14 @@ class AgentAdapter implements Agent {
     if (agentName.contains('ecologist') || agentName.contains('эколог')) {
       capabilities.add(AgentCapabilities.ecology);
     }
-    
+
     // Add common capabilities
     capabilities.addAll([
       AgentCapabilities.textGeneration,
       AgentCapabilities.consultation,
       AgentCapabilities.analysis,
     ]);
-    
+
     // Cache and remove duplicates - IMPORTANT: create the list once and reuse it
     final uniqueCapabilities = capabilities.toSet().toList();
     _cachedCapabilities = uniqueCapabilities;
@@ -132,7 +132,7 @@ class AgentAdapter implements Agent {
   Future<bool> canHandle(Intent intent, RequestContext context) async {
     // Enhanced capability-based matching with subtype consideration
     bool canHandle = false;
-    
+
     // Check base intent type
     switch (intent.type) {
       case IntentType.consultation:
@@ -150,19 +150,23 @@ class AgentAdapter implements Agent {
       case IntentType.unclear:
         canHandle = true; // All agents can handle unclear intents
     }
-    
-    print('   🔍 ${_aiAgent.name}: base intent ${intent.type.name} -> $canHandle');
-    
+
+    print(
+      '   🔍 ${_aiAgent.name}: base intent ${intent.type.name} -> $canHandle',
+    );
+
     // If base intent is handled, check subtype-specific capabilities
     if (canHandle && intent.subtype != null) {
       final subtypeResult = _canHandleSubtype(intent.subtype!);
-      print('   🔍 ${_aiAgent.name}: subtype ${intent.subtype!.name} -> $subtypeResult');
+      print(
+        '   🔍 ${_aiAgent.name}: subtype ${intent.subtype!.name} -> $subtypeResult',
+      );
       canHandle = subtypeResult;
     }
-    
+
     // Note: We don't block agents based on image presence
     // Image analysis capability is a bonus in scoring, not a requirement
-    
+
     print('   🔍 ${_aiAgent.name}: final canHandle = $canHandle');
     return canHandle;
   }
@@ -172,7 +176,7 @@ class AgentAdapter implements Agent {
     switch (subtype) {
       case IntentSubtype.landscapePlanning:
         return capabilities.contains(AgentCapabilities.landscapeDesign) ||
-               capabilities.contains(AgentCapabilities.planning);
+            capabilities.contains(AgentCapabilities.planning);
       case IntentSubtype.plantSelection:
         return capabilities.contains(AgentCapabilities.gardening);
       case IntentSubtype.constructionAdvice:
@@ -191,13 +195,17 @@ class AgentAdapter implements Agent {
   @override
   Future<AgentResponse> execute(AgentRequest request) async {
     print('🤖 Executing request with agent: ${_aiAgent.name}');
-    
+
     try {
       // ALWAYS use sendMessageWithSmartSelection for full conversation context
       // It handles both text-only and image requests properly with full history
-      print('📸 Request has ${request.context.attachments?.length ?? 0} attachments');
-      print('📚 Conversation history: ${request.conversationHistory.length} messages');
-      
+      print(
+        '📸 Request has ${request.context.attachments?.length ?? 0} attachments',
+      );
+      print(
+        '📚 Conversation history: ${request.conversationHistory.length} messages',
+      );
+
       final response = await _aiService.sendMessageWithSmartSelection(
         message: request.userMessage,
         conversationHistory: request.conversationHistory.cast<Message>(),
@@ -220,9 +228,7 @@ class AgentAdapter implements Agent {
         return AgentResponse.error(
           requestId: request.requestId,
           error: response.message ?? 'Unknown error from AI service',
-          metadata: {
-            'execution_method': 'ai_service_smart_selection',
-          },
+          metadata: {'execution_method': 'ai_service_smart_selection'},
         );
       }
     } catch (e) {

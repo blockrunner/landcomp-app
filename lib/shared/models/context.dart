@@ -1,5 +1,5 @@
 /// Request context model for orchestrator
-/// 
+///
 /// This model represents the context of a user request including
 /// conversation history, attachments, and extracted metadata.
 library;
@@ -90,12 +90,17 @@ class RequestContext extends Equatable {
   /// Check if context has recent images (within last 5 messages)
   bool get hasRecentImagesInHistory {
     if (conversationHistory.length < 5) return hasImages;
-    
-    final recentMessages = conversationHistory.length > 5 
+
+    final recentMessages = conversationHistory.length > 5
         ? conversationHistory.sublist(conversationHistory.length - 5)
         : conversationHistory;
-    return recentMessages.any((Message message) => 
-        message.attachments?.any((Attachment attachment) => attachment.isImage) ?? false);
+    return recentMessages.any(
+      (Message message) =>
+          message.attachments?.any(
+            (Attachment attachment) => attachment.isImage,
+          ) ??
+          false,
+    );
   }
 
   /// Copy context with new values
@@ -117,7 +122,8 @@ class RequestContext extends Equatable {
       currentAgentId: currentAgentId ?? this.currentAgentId,
       timestamp: timestamp ?? this.timestamp,
       metadata: metadata ?? this.metadata,
-      previousImageAnalyses: previousImageAnalyses ?? this.previousImageAnalyses,
+      previousImageAnalyses:
+          previousImageAnalyses ?? this.previousImageAnalyses,
       hasRecentImages: hasRecentImages ?? this.hasRecentImages,
       userLanguage: userLanguage ?? this.userLanguage,
     );
@@ -125,16 +131,16 @@ class RequestContext extends Equatable {
 
   @override
   List<Object?> get props => [
-        userMessage,
-        conversationHistory,
-        attachments,
-        currentAgentId,
-        timestamp,
-        metadata,
-        previousImageAnalyses,
-        hasRecentImages,
-        userLanguage,
-      ];
+    userMessage,
+    conversationHistory,
+    attachments,
+    currentAgentId,
+    timestamp,
+    metadata,
+    previousImageAnalyses,
+    hasRecentImages,
+    userLanguage,
+  ];
 
   @override
   String toString() {

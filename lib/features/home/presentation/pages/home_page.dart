@@ -1,5 +1,5 @@
 /// Home page for LandComp application
-/// 
+///
 /// This page serves as the main landing page with hero section,
 /// quick start options, recent projects, and AI assistant selection.
 library;
@@ -30,13 +30,13 @@ class HomePage extends StatelessWidget {
             slivers: [
               // App Bar
               _buildAppBar(context, languageProvider),
-              
+
               // Hero Section
               _buildHeroSection(context, languageProvider),
-              
+
               // Quick Start Section
               _buildQuickStartSection(context, languageProvider),
-              
+
               // Footer
               _buildFooter(context, languageProvider),
             ],
@@ -87,7 +87,10 @@ class HomePage extends StatelessWidget {
   }
 
   /// Builds the hero section with main title and CTA
-  Widget _buildHeroSection(BuildContext context, LanguageProvider languageProvider) {
+  Widget _buildHeroSection(
+    BuildContext context,
+    LanguageProvider languageProvider,
+  ) {
     return SliverToBoxAdapter(
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -103,7 +106,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Subtitle
             Text(
               languageProvider.getString('homeHeroSubtitle'),
@@ -118,7 +121,10 @@ class HomePage extends StatelessWidget {
   }
 
   /// Builds the quick start section
-  Widget _buildQuickStartSection(BuildContext context, LanguageProvider languageProvider) {
+  Widget _buildQuickStartSection(
+    BuildContext context,
+    LanguageProvider languageProvider,
+  ) {
     return SliverToBoxAdapter(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -127,12 +133,12 @@ class HomePage extends StatelessWidget {
           children: [
             Text(
               languageProvider.getString('quickStart'),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             Row(
               children: [
                 Expanded(
@@ -140,7 +146,9 @@ class HomePage extends StatelessWidget {
                     feature: FeatureData(
                       icon: Icons.add_circle_outline,
                       title: languageProvider.getString('newProject'),
-                      description: languageProvider.getString('newProjectDescription'),
+                      description: languageProvider.getString(
+                        'newProjectDescription',
+                      ),
                       onTap: () async {
                         // Get ProjectProvider (now always available globally)
                         final projectProvider = context.read<ProjectProvider>();
@@ -148,7 +156,9 @@ class HomePage extends StatelessWidget {
                         await projectProvider.createNewProject();
                         // Navigate to the new project
                         if (projectProvider.currentProject != null) {
-                          context.go('/chat/${projectProvider.currentProject!.id}');
+                          context.go(
+                            '/chat/${projectProvider.currentProject!.id}',
+                          );
                         }
                       },
                     ),
@@ -160,7 +170,9 @@ class HomePage extends StatelessWidget {
                     feature: FeatureData(
                       icon: Icons.folder_open,
                       title: languageProvider.getString('myProjects'),
-                      description: languageProvider.getString('myProjectsDescription'),
+                      description: languageProvider.getString(
+                        'myProjectsDescription',
+                      ),
                       onTap: () {
                         context.go('/projects');
                       },
@@ -175,9 +187,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
-
-
   /// Builds the footer
   Widget _buildFooter(BuildContext context, LanguageProvider languageProvider) {
     return SliverToBoxAdapter(
@@ -188,7 +197,7 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 32),
             const Divider(),
             const SizedBox(height: 24),
-            
+
             Row(
               children: [
                 const SmallLogoWidget(size: 24),
@@ -209,9 +218,9 @@ class HomePage extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Text(
               languageProvider.getString('homeFooterDescription'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

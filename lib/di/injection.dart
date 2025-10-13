@@ -1,5 +1,5 @@
 /// Dependency injection configuration
-/// 
+///
 /// This file contains the dependency injection setup using GetIt
 /// for managing dependencies throughout the application.
 library;

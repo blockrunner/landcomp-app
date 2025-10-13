@@ -1,5 +1,5 @@
 /// Base Agent interface for orchestrator
-/// 
+///
 /// This interface defines the contract for all agents in the system,
 /// including capability checking and request execution.
 library;

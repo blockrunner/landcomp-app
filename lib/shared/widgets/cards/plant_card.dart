@@ -1,5 +1,5 @@
 /// Plant card widget following the LandComp style guide
-/// 
+///
 /// This widget displays plant information in a card format
 /// with image, characteristics, and action button.
 library;
@@ -51,7 +51,8 @@ class PlantData {
 class PlantCard extends StatelessWidget {
   /// Creates a plant card
   const PlantCard({
-    required this.plant, super.key,
+    required this.plant,
+    super.key,
     this.onAddToComposition,
     this.onTap,
     this.width,
@@ -183,11 +184,7 @@ class PlantCard extends StatelessWidget {
     return Row(
       children: [
         if (plant.height != null) ...[
-          _buildCharacteristic(
-            context,
-            Icons.height,
-            plant.height!,
-          ),
+          _buildCharacteristic(context, Icons.height, plant.height!),
           const SizedBox(width: AppSpacing.md),
         ],
         if (plant.seasonality != null)
@@ -246,7 +243,8 @@ class PlantCard extends StatelessWidget {
 class CompactPlantCard extends StatelessWidget {
   /// Creates a compact plant card
   const CompactPlantCard({
-    required this.plant, super.key,
+    required this.plant,
+    super.key,
     this.onTap,
     this.onAddToComposition,
   });
@@ -269,9 +267,7 @@ class CompactPlantCard extends StatelessWidget {
         children: [
           _buildCompactImage(context),
           const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: _buildCompactContent(context),
-          ),
+          Expanded(child: _buildCompactContent(context)),
           const SizedBox(width: AppSpacing.sm),
           _buildCompactActionButton(context),
         ],

@@ -1,5 +1,5 @@
 /// Theme extensions for the LandComp application
-/// 
+///
 /// This file contains custom theme extensions that provide
 /// additional colors and styles beyond the standard Material Design theme.
 library;
@@ -82,8 +82,16 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     }
     return AppColorsExtension(
       primaryGreen: Color.lerp(primaryGreen, other.primaryGreen, t)!,
-      primaryGreenLight: Color.lerp(primaryGreenLight, other.primaryGreenLight, t)!,
-      primaryGreenDark: Color.lerp(primaryGreenDark, other.primaryGreenDark, t)!,
+      primaryGreenLight: Color.lerp(
+        primaryGreenLight,
+        other.primaryGreenLight,
+        t,
+      )!,
+      primaryGreenDark: Color.lerp(
+        primaryGreenDark,
+        other.primaryGreenDark,
+        t,
+      )!,
       darkTeal: Color.lerp(darkTeal, other.darkTeal, t)!,
       lightGray: Color.lerp(lightGray, other.lightGray, t)!,
       success: Color.lerp(success, other.success, t)!,
@@ -191,7 +199,10 @@ class AppSpacingExtension extends ThemeExtension<AppSpacingExtension> {
   }
 
   @override
-  AppSpacingExtension lerp(ThemeExtension<AppSpacingExtension>? other, double t) {
+  AppSpacingExtension lerp(
+    ThemeExtension<AppSpacingExtension>? other,
+    double t,
+  ) {
     if (other is! AppSpacingExtension) {
       return this;
     }
@@ -203,10 +214,14 @@ class AppSpacingExtension extends ThemeExtension<AppSpacingExtension> {
       xl: xl + (other.xl - xl) * t,
       xxl: xxl + (other.xxl - xxl) * t,
       xxxl: xxxl + (other.xxxl - xxxl) * t,
-      containerPadding: containerPadding + (other.containerPadding - containerPadding) * t,
-      sectionSpacing: sectionSpacing + (other.sectionSpacing - sectionSpacing) * t,
-      elementSpacing: elementSpacing + (other.elementSpacing - elementSpacing) * t,
-      internalPadding: internalPadding + (other.internalPadding - internalPadding) * t,
+      containerPadding:
+          containerPadding + (other.containerPadding - containerPadding) * t,
+      sectionSpacing:
+          sectionSpacing + (other.sectionSpacing - sectionSpacing) * t,
+      elementSpacing:
+          elementSpacing + (other.elementSpacing - elementSpacing) * t,
+      internalPadding:
+          internalPadding + (other.internalPadding - internalPadding) * t,
     );
   }
 
@@ -309,7 +324,10 @@ class AppTypographyExtension extends ThemeExtension<AppTypographyExtension> {
   }
 
   @override
-  AppTypographyExtension lerp(ThemeExtension<AppTypographyExtension>? other, double t) {
+  AppTypographyExtension lerp(
+    ThemeExtension<AppTypographyExtension>? other,
+    double t,
+  ) {
     if (other is! AppTypographyExtension) {
       return this;
     }
@@ -381,22 +399,23 @@ class AppTypographyExtension extends ThemeExtension<AppTypographyExtension> {
 extension ThemeDataExtensions on ThemeData {
   /// Get custom colors
   AppColorsExtension get appColors => extension<AppColorsExtension>()!;
-  
+
   /// Get custom spacing
   AppSpacingExtension get appSpacing => extension<AppSpacingExtension>()!;
-  
+
   /// Get custom typography
-  AppTypographyExtension get appTypography => extension<AppTypographyExtension>()!;
+  AppTypographyExtension get appTypography =>
+      extension<AppTypographyExtension>()!;
 }
 
 /// Extension methods for BuildContext
 extension ThemeExtensions on BuildContext {
   /// Get custom colors
   AppColorsExtension get appColors => Theme.of(this).appColors;
-  
+
   /// Get custom spacing
   AppSpacingExtension get appSpacing => Theme.of(this).appSpacing;
-  
+
   /// Get custom typography
   AppTypographyExtension get appTypography => Theme.of(this).appTypography;
 }

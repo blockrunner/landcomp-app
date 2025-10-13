@@ -1,5 +1,5 @@
 /// Agent request model for orchestrator
-/// 
+///
 /// This model represents a request to be processed by an agent
 /// containing context and classified intent.
 library;
@@ -64,12 +64,7 @@ class AgentRequest extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        requestId,
-        context,
-        intent,
-        timestamp,
-      ];
+  List<Object?> get props => [requestId, context, intent, timestamp];
 
   @override
   String toString() {

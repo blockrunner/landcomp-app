@@ -1,5 +1,5 @@
 /// Application theme configuration
-/// 
+///
 /// This file contains the theme setup for both light and dark modes
 /// following the LandComp style guide and Material Design 3 guidelines.
 library;
@@ -21,7 +21,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Color scheme
       colorScheme: const ColorScheme.light(
         primary: LightThemeColors.primary,
@@ -122,9 +122,7 @@ class AppTheme {
           ),
           minimumSize: const Size(0, DesignTokens.buttonHeightMedium),
           textStyle: AppTypography.button,
-          side: const BorderSide(
-            color: LightThemeColors.outline,
-          ),
+          side: const BorderSide(color: LightThemeColors.outline),
         ),
       ),
 
@@ -229,7 +227,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      
+
       // Color scheme
       colorScheme: const ColorScheme.dark(
         primary: DarkThemeColors.primary,
@@ -332,9 +330,7 @@ class AppTheme {
           ),
           minimumSize: const Size(0, DesignTokens.buttonHeightMedium),
           textStyle: AppTypography.button,
-          side: const BorderSide(
-            color: DarkThemeColors.outline,
-          ),
+          side: const BorderSide(color: DarkThemeColors.outline),
         ),
       ),
 

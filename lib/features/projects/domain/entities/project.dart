@@ -46,39 +46,24 @@ class Project extends Equatable {
 
   Project addMessage(Message message) {
     final updatedMessages = List<Message>.from(messages)..add(message);
-    return copyWith(
-      messages: updatedMessages,
-      updatedAt: DateTime.now(),
-    );
+    return copyWith(messages: updatedMessages, updatedAt: DateTime.now());
   }
 
   Project removeMessage(String messageId) {
     final updatedMessages = messages.where((m) => m.id != messageId).toList();
-    return copyWith(
-      messages: updatedMessages,
-      updatedAt: DateTime.now(),
-    );
+    return copyWith(messages: updatedMessages, updatedAt: DateTime.now());
   }
 
   Project clearMessages() {
-    return copyWith(
-      messages: const [],
-      updatedAt: DateTime.now(),
-    );
+    return copyWith(messages: const [], updatedAt: DateTime.now());
   }
 
   Project updateTitle(String newTitle) {
-    return copyWith(
-      title: newTitle,
-      updatedAt: DateTime.now(),
-    );
+    return copyWith(title: newTitle, updatedAt: DateTime.now());
   }
 
   Project toggleFavorite() {
-    return copyWith(
-      isFavorite: !isFavorite,
-      updatedAt: DateTime.now(),
-    );
+    return copyWith(isFavorite: !isFavorite, updatedAt: DateTime.now());
   }
 
   int get messageCount => messages.length;
@@ -86,7 +71,7 @@ class Project extends Equatable {
   String get lastModifiedRelative {
     final now = DateTime.now();
     final difference = now.difference(updatedAt);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays} дн. назад';
     } else if (difference.inHours > 0) {
@@ -112,7 +97,8 @@ class Project extends Equatable {
   }
 
   factory Project.fromJson(Map<String, dynamic> json) {
-    final messages = (json['messages'] as List<dynamic>?)
+    final messages =
+        (json['messages'] as List<dynamic>?)
             ?.map((m) => Message.fromJson(m as Map<String, dynamic>))
             .toList() ??
         const [];
@@ -130,15 +116,15 @@ class Project extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        createdAt,
-        updatedAt,
-        messages,
-        isFavorite,
-        description,
-        previewText,
-      ];
+    id,
+    title,
+    createdAt,
+    updatedAt,
+    messages,
+    isFavorite,
+    description,
+    previewText,
+  ];
 
   @override
   String toString() {

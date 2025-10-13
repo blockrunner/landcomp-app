@@ -1,5 +1,5 @@
 /// Agent response model for orchestrator
-/// 
+///
 /// This model represents the response from an agent after processing
 /// a request, including success status and generated content.
 library;
@@ -56,8 +56,8 @@ class AgentResponse extends Equatable {
           : null,
       generatedAttachments: json['generatedAttachments'] != null
           ? (json['generatedAttachments'] as List)
-              .map((a) => Attachment.fromJson(a as Map<String, dynamic>))
-              .toList()
+                .map((a) => Attachment.fromJson(a as Map<String, dynamic>))
+                .toList()
           : null,
       metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
       error: json['error'] as String?,
@@ -114,7 +114,9 @@ class AgentResponse extends Equatable {
   /// Get generated image attachments
   List<Attachment> get generatedImageAttachments {
     if (!hasGeneratedAttachments) return [];
-    return generatedAttachments!.where((attachment) => attachment.isImage).toList();
+    return generatedAttachments!
+        .where((attachment) => attachment.isImage)
+        .toList();
   }
 
   /// Get selected agent ID
@@ -152,8 +154,12 @@ class AgentResponse extends Equatable {
       'requestId': requestId,
       'isSuccess': isSuccess,
       'message': message,
-      'selectedAgent': selectedAgent != null ? {'id': selectedAgent!.id, 'name': selectedAgent!.name} : null,
-      'generatedAttachments': generatedAttachments?.map((a) => a.toJson()).toList(),
+      'selectedAgent': selectedAgent != null
+          ? {'id': selectedAgent!.id, 'name': selectedAgent!.name}
+          : null,
+      'generatedAttachments': generatedAttachments
+          ?.map((a) => a.toJson())
+          .toList(),
       'metadata': metadata,
       'error': error,
       'timestamp': timestamp.toIso8601String(),
@@ -162,15 +168,15 @@ class AgentResponse extends Equatable {
 
   @override
   List<Object?> get props => [
-        requestId,
-        isSuccess,
-        message,
-        selectedAgent,
-        generatedAttachments,
-        metadata,
-        error,
-        timestamp,
-      ];
+    requestId,
+    isSuccess,
+    message,
+    selectedAgent,
+    generatedAttachments,
+    metadata,
+    error,
+    timestamp,
+  ];
 
   @override
   String toString() {

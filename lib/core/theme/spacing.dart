@@ -1,5 +1,5 @@
 /// Spacing system for the LandComp application
-/// 
+///
 /// This file contains spacing constants following the 8px grid system
 /// and responsive spacing utilities.
 library;
@@ -13,34 +13,34 @@ class AppSpacing {
 
   /// Extra small spacing - 4px
   static const double xs = 4;
-  
+
   /// Small spacing - 8px
   static const double sm = 8;
-  
+
   /// Medium spacing - 16px
   static const double md = 16;
-  
+
   /// Large spacing - 24px
   static const double lg = 24;
-  
+
   /// Extra large spacing - 32px
   static const double xl = 32;
-  
+
   /// 2X large spacing - 48px
   static const double xxl = 48;
-  
+
   /// 3X large spacing - 64px
   static const double xxxl = 64;
 
   /// Container padding - 16px
   static const double containerPadding = md;
-  
+
   /// Section spacing - 32px
   static const double sectionSpacing = xl;
-  
+
   /// Element spacing - 16px
   static const double elementSpacing = md;
-  
+
   /// Internal padding - 20px
   static const double internalPadding = 20;
 }
@@ -90,31 +90,26 @@ class AppEdgeInsets {
 
   /// All sides with same spacing
   static EdgeInsets all(double spacing) => EdgeInsets.all(spacing);
-  
+
   /// Horizontal spacing only
-  static EdgeInsets horizontal(double spacing) => EdgeInsets.symmetric(horizontal: spacing);
-  
+  static EdgeInsets horizontal(double spacing) =>
+      EdgeInsets.symmetric(horizontal: spacing);
+
   /// Vertical spacing only
-  static EdgeInsets vertical(double spacing) => EdgeInsets.symmetric(vertical: spacing);
-  
+  static EdgeInsets vertical(double spacing) =>
+      EdgeInsets.symmetric(vertical: spacing);
+
   /// Symmetric spacing
-  static EdgeInsets symmetric({
-    double horizontal = 0,
-    double vertical = 0,
-  }) => EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical);
-  
+  static EdgeInsets symmetric({double horizontal = 0, double vertical = 0}) =>
+      EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical);
+
   /// Only specific sides
   static EdgeInsets only({
     double left = 0,
     double top = 0,
     double right = 0,
     double bottom = 0,
-  }) => EdgeInsets.only(
-    left: left,
-    top: top,
-    right: right,
-    bottom: bottom,
-  );
+  }) => EdgeInsets.only(left: left, top: top, right: right, bottom: bottom);
 
   // Predefined common spacing combinations
   static EdgeInsets get xs => all(AppSpacing.xs);
@@ -141,11 +136,14 @@ class AppEdgeInsets {
 
   // Container padding
   static EdgeInsets get container => all(AppSpacing.containerPadding);
-  static EdgeInsets get containerHorizontal => horizontal(AppSpacing.containerPadding);
-  static EdgeInsets get containerVertical => vertical(AppSpacing.containerPadding);
+  static EdgeInsets get containerHorizontal =>
+      horizontal(AppSpacing.containerPadding);
+  static EdgeInsets get containerVertical =>
+      vertical(AppSpacing.containerPadding);
 
   // Section spacing
   static EdgeInsets get section => all(AppSpacing.sectionSpacing);
-  static EdgeInsets get sectionHorizontal => horizontal(AppSpacing.sectionSpacing);
+  static EdgeInsets get sectionHorizontal =>
+      horizontal(AppSpacing.sectionSpacing);
   static EdgeInsets get sectionVertical => vertical(AppSpacing.sectionSpacing);
 }

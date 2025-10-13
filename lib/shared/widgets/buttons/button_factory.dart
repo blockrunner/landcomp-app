@@ -1,5 +1,5 @@
 /// Button factory for creating consistent buttons across the app
-/// 
+///
 /// This factory provides a unified interface for creating different
 /// types of buttons with consistent styling and behavior.
 library;
@@ -13,8 +13,10 @@ import 'package:landcomp_app/shared/widgets/buttons/text_button.dart';
 enum ButtonType {
   /// Primary button with gradient background
   primary,
+
   /// Secondary button with light background and border
   secondary,
+
   /// Text button with transparent background
   text,
 }

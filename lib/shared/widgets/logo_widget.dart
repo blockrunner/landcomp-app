@@ -1,5 +1,5 @@
 /// Logo widget for LandComp application
-/// 
+///
 /// This widget displays the LandComp logo with customizable size and styling.
 library;
 
@@ -73,7 +73,8 @@ class LogoWidget extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'LandComp',
-            style: textStyle ??
+            style:
+                textStyle ??
                 Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).primaryColor,
@@ -88,10 +89,7 @@ class LogoWidget extends StatelessWidget {
 /// Small logo widget for app bars and compact spaces
 class SmallLogoWidget extends StatelessWidget {
   /// Creates a small logo widget
-  const SmallLogoWidget({
-    super.key,
-    this.size = 32,
-  });
+  const SmallLogoWidget({super.key, this.size = 32});
 
   /// Size of the logo
   final double size;

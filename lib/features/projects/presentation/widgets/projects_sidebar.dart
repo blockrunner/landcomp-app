@@ -1,5 +1,5 @@
 /// Projects sidebar widget
-/// 
+///
 /// This widget displays a sidebar with navigation menu and projects list.
 library;
 
@@ -31,7 +31,7 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
   Widget build(BuildContext context) {
     // ProjectProvider is now always available globally
     final projectProvider = context.watch<ProjectProvider>();
-    
+
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
         return Drawer(
@@ -39,7 +39,7 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
             children: [
               // Header with logo and app name
               _buildHeader(context, languageProvider),
-              
+
               // Home navigation item
               _buildNavItem(
                 context,
@@ -50,19 +50,19 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
                   Navigator.of(context).pop();
                 },
               ),
-              
+
               // Projects section (expandable)
               _buildProjectsSection(context, projectProvider, languageProvider),
-              
+
               const Divider(height: 1),
-              
+
               // Other navigation items
               _buildOtherNavigationMenu(context, languageProvider),
-              
+
               const Spacer(),
-              
+
               const Divider(height: 1),
-              
+
               // Footer with version info
               _buildFooter(context, languageProvider),
             ],
@@ -107,7 +107,10 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
   }
 
   /// Builds other navigation menu items (catalog, planner, profile, settings)
-  Widget _buildOtherNavigationMenu(BuildContext context, LanguageProvider languageProvider) {
+  Widget _buildOtherNavigationMenu(
+    BuildContext context,
+    LanguageProvider languageProvider,
+  ) {
     return Column(
       children: [
         _buildNavItem(
@@ -164,24 +167,26 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
     return ListTile(
       leading: Icon(
         icon,
-        color: enabled 
-          ? Theme.of(context).colorScheme.onSurface 
-          : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+        color: enabled
+            ? Theme.of(context).colorScheme.onSurface
+            : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: enabled 
-            ? Theme.of(context).colorScheme.onSurface 
-            : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+          color: enabled
+              ? Theme.of(context).colorScheme.onSurface
+              : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
         ),
       ),
-      subtitle: subtitle != null ? Text(
-        subtitle,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ) : null,
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            )
+          : null,
       enabled: enabled,
       onTap: enabled ? onTap : null,
     );
@@ -215,16 +220,23 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
               child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => _showNewProjectDialog(context, projectProvider, languageProvider),
+                  onPressed: () => _showNewProjectDialog(
+                    context,
+                    projectProvider,
+                    languageProvider,
+                  ),
                   icon: const Icon(Icons.add, size: 20),
                   label: Text(languageProvider.getString('newProject')),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                   ),
                 ),
               ),
             ),
-            
+
             // Projects list
             if (projectProvider.isLoading)
               const Padding(
@@ -255,13 +267,19 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
         itemCount: projectProvider.projects.length,
         itemBuilder: (context, index) {
           final project = projectProvider.projects[index];
-          final isCurrentProject = projectProvider.currentProject?.id == project.id;
-          
+          final isCurrentProject =
+              projectProvider.currentProject?.id == project.id;
+
           return ProjectListItem(
             project: project,
             isActive: isCurrentProject,
             onTap: () => _switchToProject(context, projectProvider, project),
-            onLongPress: () => _showProjectOptions(context, projectProvider, project, languageProvider),
+            onLongPress: () => _showProjectOptions(
+              context,
+              projectProvider,
+              project,
+              languageProvider,
+            ),
           );
         },
       ),
@@ -269,7 +287,10 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
   }
 
   /// Builds the empty state when no projects exist
-  Widget _buildEmptyState(BuildContext context, LanguageProvider languageProvider) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    LanguageProvider languageProvider,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -278,7 +299,9 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
           Icon(
             Icons.folder_open_outlined,
             size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.5),
           ),
           const SizedBox(height: 12),
           Text(
@@ -388,41 +411,46 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           Text(
             project.title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          
+
           // Options
           ListTile(
             leading: const Icon(Icons.edit),
             title: Text(languageProvider.getString('renameProject')),
             onTap: () {
               Navigator.of(context).pop();
-              _showRenameDialog(context, projectProvider, project, languageProvider);
+              _showRenameDialog(
+                context,
+                projectProvider,
+                project,
+                languageProvider,
+              );
             },
           ),
-          
+
           ListTile(
             leading: Icon(project.isFavorite ? Icons.star : Icons.star_border),
             title: Text(
-              project.isFavorite 
-                ? languageProvider.getString('removeFromFavorites')
-                : languageProvider.getString('markAsFavorite'),
+              project.isFavorite
+                  ? languageProvider.getString('removeFromFavorites')
+                  : languageProvider.getString('markAsFavorite'),
             ),
             onTap: () {
               projectProvider.toggleProjectFavorite(project.id);
               Navigator.of(context).pop();
             },
           ),
-          
+
           const Divider(),
-          
+
           ListTile(
             leading: const Icon(Icons.delete, color: Colors.red),
             title: Text(
@@ -431,7 +459,12 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
             ),
             onTap: () {
               Navigator.of(context).pop();
-              _showDeleteConfirmation(context, projectProvider, project, languageProvider);
+              _showDeleteConfirmation(
+                context,
+                projectProvider,
+                project,
+                languageProvider,
+              );
             },
           ),
         ],

@@ -1,5 +1,5 @@
 /// Typography system for the LandComp application
-/// 
+///
 /// This file contains typography definitions following the style guide
 /// with responsive font sizes and proper line heights.
 library;
@@ -161,10 +161,10 @@ class ResponsiveTypography {
     double? preferredSize,
   }) {
     final preferred = preferredSize ?? (minSize + maxSize) / 2;
-    
+
     // Calculate viewport-based size (similar to CSS vw)
     final viewportSize = screenWidth * 0.05; // 5vw equivalent
-    
+
     // Clamp the size between min and max
     return (preferred + viewportSize).clamp(minSize, maxSize);
   }

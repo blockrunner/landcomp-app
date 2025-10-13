@@ -1,5 +1,5 @@
 /// Unit tests for AI Service
-/// 
+///
 /// Tests OpenAI and Google Gemini integration,
 /// fallback mechanisms, and proxy support.
 library;
@@ -33,7 +33,9 @@ void main() {
     group('Initialization', () {
       test('should initialize successfully with proxy configuration', () async {
         // Arrange
-        when(mockEnvConfig.getCurrentProxy()).thenReturn('socks5h://user:pass@proxy:1080');
+        when(
+          mockEnvConfig.getCurrentProxy(),
+        ).thenReturn('socks5h://user:pass@proxy:1080');
         when(mockEnvConfig.googleApiKey).thenReturn('test-google-key');
         when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
         when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
@@ -75,21 +77,21 @@ void main() {
           data: {
             'choices': [
               {
-                'message': {
-                  'content': expectedResponse,
-                }
-              }
-            ]
+                'message': {'content': expectedResponse},
+              },
+            ],
           },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/test'),
         );
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenAnswer((_) async => mockResponse);
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenAnswer((_) async => mockResponse);
 
         when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
         when(mockEnvConfig.openaiApiKey).thenReturn('test-openai-key');
@@ -102,11 +104,13 @@ void main() {
 
         // Assert
         expect(result, equals(expectedResponse));
-        verify(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).called(1);
+        verify(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).called(1);
       });
 
       test('should handle OpenAI rate limit error', () async {
@@ -117,18 +121,22 @@ void main() {
         final mockError = DioException(
           requestOptions: RequestOptions(path: '/test'),
           response: Response(
-            data: {'error': {'message': 'Rate limit exceeded'}},
+            data: {
+              'error': {'message': 'Rate limit exceeded'},
+            },
             statusCode: 429,
             requestOptions: RequestOptions(path: '/test'),
           ),
           type: DioExceptionType.badResponse,
         );
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenThrow(mockError);
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenThrow(mockError);
 
         when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
         when(mockEnvConfig.openaiApiKey).thenReturn('test-openai-key');
@@ -139,11 +147,13 @@ void main() {
             message: message,
             systemPrompt: systemPrompt,
           ),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('rate limit exceeded'),
-          )),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('rate limit exceeded'),
+            ),
+          ),
         );
       });
 
@@ -155,18 +165,22 @@ void main() {
         final mockError = DioException(
           requestOptions: RequestOptions(path: '/test'),
           response: Response(
-            data: {'error': {'message': 'Invalid API key'}},
+            data: {
+              'error': {'message': 'Invalid API key'},
+            },
             statusCode: 401,
             requestOptions: RequestOptions(path: '/test'),
           ),
           type: DioExceptionType.badResponse,
         );
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenThrow(mockError);
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenThrow(mockError);
 
         when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
         when(mockEnvConfig.openaiApiKey).thenReturn('invalid-key');
@@ -177,11 +191,13 @@ void main() {
             message: message,
             systemPrompt: systemPrompt,
           ),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('API key is invalid'),
-          )),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('API key is invalid'),
+            ),
+          ),
         );
       });
 
@@ -191,15 +207,14 @@ void main() {
 
         // Act & Assert
         expect(
-          () => aiService.sendToOpenAI(
-            message: 'test',
-            systemPrompt: 'test',
+          () => aiService.sendToOpenAI(message: 'test', systemPrompt: 'test'),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('OpenAI API key not configured'),
+            ),
           ),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('OpenAI API key not configured'),
-          )),
         );
       });
     });
@@ -217,86 +232,27 @@ void main() {
               {
                 'content': {
                   'parts': [
-                    {'text': expectedResponse}
-                  ]
-                }
-              }
-            ]
+                    {'text': expectedResponse},
+                  ],
+                },
+              },
+            ],
           },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/test'),
         );
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          queryParameters: anyNamed('queryParameters'),
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenAnswer((_) async => mockResponse);
-
-        when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
-        when(mockEnvConfig.googleApiKey).thenReturn('test-google-key');
-
-        // Act
-        final result = await aiService.sendToGemini(
-          message: message,
-          systemPrompt: systemPrompt,
-        );
-
-        // Assert
-        expect(result, equals(expectedResponse));
-        verify(mockDio.post<Map<String, dynamic>>(
-          any,
-          queryParameters: anyNamed('queryParameters'),
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).called(1);
-      });
-
-      test('should handle Google Gemini rate limit with fallback key', () async {
-        // Arrange
-        const message = 'Test message';
-        const systemPrompt = 'You are a helpful assistant';
-        const expectedResponse = 'Test response from Gemini with fallback';
-
-        // First call fails with rate limit
-        final mockError = DioException(
-          requestOptions: RequestOptions(path: '/test'),
-          response: Response(
-            data: {'error': {'message': 'Rate limit exceeded'}},
-            statusCode: 429,
-            requestOptions: RequestOptions(path: '/test'),
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            queryParameters: anyNamed('queryParameters'),
+            data: anyNamed('data'),
+            options: anyNamed('options'),
           ),
-          type: DioExceptionType.badResponse,
-        );
-
-        // Second call succeeds with fallback key
-        final mockSuccessResponse = Response<Map<String, dynamic>>(
-          data: {
-            'candidates': [
-              {
-                'content': {
-                  'parts': [
-                    {'text': expectedResponse}
-                  ]
-                }
-              }
-            ]
-          },
-          statusCode: 200,
-          requestOptions: RequestOptions(path: '/test'),
-        );
-
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          queryParameters: anyNamed('queryParameters'),
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenThrow(mockError).thenAnswer((_) async => mockSuccessResponse);
+        ).thenAnswer((_) async => mockResponse);
 
         when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
         when(mockEnvConfig.googleApiKey).thenReturn('test-google-key');
-        when(mockEnvConfig.getNextGoogleApiKey(any)).thenReturn('fallback-key');
 
         // Act
         final result = await aiService.sendToGemini(
@@ -306,13 +262,87 @@ void main() {
 
         // Assert
         expect(result, equals(expectedResponse));
-        verify(mockDio.post<Map<String, dynamic>>(
-          any,
-          queryParameters: anyNamed('queryParameters'),
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).called(2); // Called twice: first fails, second succeeds
+        verify(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            queryParameters: anyNamed('queryParameters'),
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).called(1);
       });
+
+      test(
+        'should handle Google Gemini rate limit with fallback key',
+        () async {
+          // Arrange
+          const message = 'Test message';
+          const systemPrompt = 'You are a helpful assistant';
+          const expectedResponse = 'Test response from Gemini with fallback';
+
+          // First call fails with rate limit
+          final mockError = DioException(
+            requestOptions: RequestOptions(path: '/test'),
+            response: Response(
+              data: {
+                'error': {'message': 'Rate limit exceeded'},
+              },
+              statusCode: 429,
+              requestOptions: RequestOptions(path: '/test'),
+            ),
+            type: DioExceptionType.badResponse,
+          );
+
+          // Second call succeeds with fallback key
+          final mockSuccessResponse = Response<Map<String, dynamic>>(
+            data: {
+              'candidates': [
+                {
+                  'content': {
+                    'parts': [
+                      {'text': expectedResponse},
+                    ],
+                  },
+                },
+              ],
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/test'),
+          );
+
+          when(
+            mockDio.post<Map<String, dynamic>>(
+              any,
+              queryParameters: anyNamed('queryParameters'),
+              data: anyNamed('data'),
+              options: anyNamed('options'),
+            ),
+          ).thenThrow(mockError).thenAnswer((_) async => mockSuccessResponse);
+
+          when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
+          when(mockEnvConfig.googleApiKey).thenReturn('test-google-key');
+          when(
+            mockEnvConfig.getNextGoogleApiKey(any),
+          ).thenReturn('fallback-key');
+
+          // Act
+          final result = await aiService.sendToGemini(
+            message: message,
+            systemPrompt: systemPrompt,
+          );
+
+          // Assert
+          expect(result, equals(expectedResponse));
+          verify(
+            mockDio.post<Map<String, dynamic>>(
+              any,
+              queryParameters: anyNamed('queryParameters'),
+              data: anyNamed('data'),
+              options: anyNamed('options'),
+            ),
+          ).called(2); // Called twice: first fails, second succeeds
+        },
+      );
 
       test('should handle Google Gemini resource exhausted error', () async {
         // Arrange
@@ -322,19 +352,23 @@ void main() {
         final mockError = DioException(
           requestOptions: RequestOptions(path: '/test'),
           response: Response(
-            data: {'error': {'message': 'RESOURCE_EXHAUSTED'}},
+            data: {
+              'error': {'message': 'RESOURCE_EXHAUSTED'},
+            },
             statusCode: 400,
             requestOptions: RequestOptions(path: '/test'),
           ),
           type: DioExceptionType.badResponse,
         );
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          queryParameters: anyNamed('queryParameters'),
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenThrow(mockError);
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            queryParameters: anyNamed('queryParameters'),
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenThrow(mockError);
 
         when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
         when(mockEnvConfig.googleApiKey).thenReturn('test-google-key');
@@ -346,78 +380,87 @@ void main() {
             message: message,
             systemPrompt: systemPrompt,
           ),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('RESOURCE_EXHAUSTED'),
-          )),
-        );
-      });
-
-      test('should throw exception when Google Gemini not configured', () async {
-        // Arrange
-        when(mockEnvConfig.isGoogleConfigured).thenReturn(false);
-
-        // Act & Assert
-        expect(
-          () => aiService.sendToGemini(
-            message: 'test',
-            systemPrompt: 'test',
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('RESOURCE_EXHAUSTED'),
+            ),
           ),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Google API key not configured'),
-          )),
         );
       });
+
+      test(
+        'should throw exception when Google Gemini not configured',
+        () async {
+          // Arrange
+          when(mockEnvConfig.isGoogleConfigured).thenReturn(false);
+
+          // Act & Assert
+          expect(
+            () => aiService.sendToGemini(message: 'test', systemPrompt: 'test'),
+            throwsA(
+              isA<Exception>().having(
+                (e) => e.toString(),
+                'message',
+                contains('Google API key not configured'),
+              ),
+            ),
+          );
+        },
+      );
     });
 
     group('Smart Message Sending', () {
-      test('should send message with automatic provider selection (OpenAI preferred)', () async {
-        // Arrange
-        const message = 'Test message';
-        const systemPrompt = 'You are a helpful assistant';
-        const expectedResponse = 'Test response from OpenAI';
+      test(
+        'should send message with automatic provider selection (OpenAI preferred)',
+        () async {
+          // Arrange
+          const message = 'Test message';
+          const systemPrompt = 'You are a helpful assistant';
+          const expectedResponse = 'Test response from OpenAI';
 
-        final mockResponse = Response<Map<String, dynamic>>(
-          data: {
-            'choices': [
-              {
-                'message': {
-                  'content': expectedResponse,
-                }
-              }
-            ]
-          },
-          statusCode: 200,
-          requestOptions: RequestOptions(path: '/test'),
-        );
+          final mockResponse = Response<Map<String, dynamic>>(
+            data: {
+              'choices': [
+                {
+                  'message': {'content': expectedResponse},
+                },
+              ],
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/test'),
+          );
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenAnswer((_) async => mockResponse);
+          when(
+            mockDio.post<Map<String, dynamic>>(
+              any,
+              data: anyNamed('data'),
+              options: anyNamed('options'),
+            ),
+          ).thenAnswer((_) async => mockResponse);
 
-        when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
-        when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
-        when(mockEnvConfig.openaiApiKey).thenReturn('test-openai-key');
+          when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
+          when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
+          when(mockEnvConfig.openaiApiKey).thenReturn('test-openai-key');
 
-        // Act
-        final result = await aiService.sendMessage(
-          message: message,
-          systemPrompt: systemPrompt,
-        );
+          // Act
+          final result = await aiService.sendMessage(
+            message: message,
+            systemPrompt: systemPrompt,
+          );
 
-        // Assert
-        expect(result, equals(expectedResponse));
-        verify(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).called(1);
-      });
+          // Assert
+          expect(result, equals(expectedResponse));
+          verify(
+            mockDio.post<Map<String, dynamic>>(
+              any,
+              data: anyNamed('data'),
+              options: anyNamed('options'),
+            ),
+          ).called(1);
+        },
+      );
 
       test('should fallback to Gemini when OpenAI fails', () async {
         // Arrange
@@ -429,7 +472,9 @@ void main() {
         final mockOpenAIError = DioException(
           requestOptions: RequestOptions(path: '/test'),
           response: Response(
-            data: {'error': {'message': 'Service unavailable'}},
+            data: {
+              'error': {'message': 'Service unavailable'},
+            },
             statusCode: 503,
             requestOptions: RequestOptions(path: '/test'),
           ),
@@ -443,28 +488,32 @@ void main() {
               {
                 'content': {
                   'parts': [
-                    {'text': expectedResponse}
-                  ]
-                }
-              }
-            ]
+                    {'text': expectedResponse},
+                  ],
+                },
+              },
+            ],
           },
           statusCode: 200,
           requestOptions: RequestOptions(path: '/test'),
         );
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenThrow(mockOpenAIError);
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenThrow(mockOpenAIError);
 
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          queryParameters: anyNamed('queryParameters'),
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenAnswer((_) async => mockGeminiResponse);
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            queryParameters: anyNamed('queryParameters'),
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenAnswer((_) async => mockGeminiResponse);
 
         when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
         when(mockEnvConfig.isGoogleConfigured).thenReturn(true);
@@ -479,17 +528,21 @@ void main() {
 
         // Assert
         expect(result, equals(expectedResponse));
-        verify(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).called(1); // OpenAI call
-        verify(mockDio.post<Map<String, dynamic>>(
-          any,
-          queryParameters: anyNamed('queryParameters'),
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).called(1); // Gemini fallback call
+        verify(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).called(1); // OpenAI call
+        verify(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            queryParameters: anyNamed('queryParameters'),
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).called(1); // Gemini fallback call
       });
 
       test('should throw exception when no providers configured', () async {
@@ -499,78 +552,82 @@ void main() {
 
         // Act & Assert
         expect(
-          () => aiService.sendMessage(
-            message: 'test',
-            systemPrompt: 'test',
+          () => aiService.sendMessage(message: 'test', systemPrompt: 'test'),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('No AI providers configured'),
+            ),
           ),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('No AI providers configured'),
-          )),
         );
       });
     });
 
     group('Smart Agent Selection', () {
-      test('should send message with smart agent selection successfully', () async {
-        // Arrange
-        const message = 'How to plant tomatoes?';
-        const expectedResponse = 'Test response from Gardener agent';
-        
-        const mockAgent = AIAgent(
-          id: 'gardener',
-          name: 'Gardener',
-          description: 'Expert in plants and gardening',
-          systemPrompt: 'You are a gardening expert',
-          icon: '🌱',
-          color: 0xFF4CAF50,
-        );
+      test(
+        'should send message with smart agent selection successfully',
+        () async {
+          // Arrange
+          const message = 'How to plant tomatoes?';
+          const expectedResponse = 'Test response from Gardener agent';
 
-        final mockSelectionResult = AgentSelectionResult(
-          isSuccess: true,
-          agent: mockAgent,
-          confidence: 0.9,
-          isOutOfScope: false,
-        );
+          const mockAgent = AIAgent(
+            id: 'gardener',
+            name: 'Gardener',
+            description: 'Expert in plants and gardening',
+            systemPrompt: 'You are a gardening expert',
+            icon: '🌱',
+            color: 0xFF4CAF50,
+          );
 
-        final mockAIResponse = Response<Map<String, dynamic>>(
-          data: {
-            'choices': [
-              {
-                'message': {
-                  'content': expectedResponse,
-                }
-              }
-            ]
-          },
-          statusCode: 200,
-          requestOptions: RequestOptions(path: '/test'),
-        );
+          final mockSelectionResult = AgentSelectionResult(
+            isSuccess: true,
+            agent: mockAgent,
+            confidence: 0.9,
+            isOutOfScope: false,
+          );
 
-        when(mockAgentSelector.selectAgent(message)).thenAnswer((_) async => mockSelectionResult);
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenAnswer((_) async => mockAIResponse);
+          final mockAIResponse = Response<Map<String, dynamic>>(
+            data: {
+              'choices': [
+                {
+                  'message': {'content': expectedResponse},
+                },
+              ],
+            },
+            statusCode: 200,
+            requestOptions: RequestOptions(path: '/test'),
+          );
 
-        when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
-        when(mockEnvConfig.openaiApiKey).thenReturn('test-openai-key');
+          when(
+            mockAgentSelector.selectAgent(message),
+          ).thenAnswer((_) async => mockSelectionResult);
+          when(
+            mockDio.post<Map<String, dynamic>>(
+              any,
+              data: anyNamed('data'),
+              options: anyNamed('options'),
+            ),
+          ).thenAnswer((_) async => mockAIResponse);
 
-        // Act
-        final result = await aiService.sendMessageWithSmartSelection(
-          message: message,
-        );
+          when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
+          when(mockEnvConfig.openaiApiKey).thenReturn('test-openai-key');
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.message, equals(expectedResponse));
-        expect(result.agent, equals(mockAgent));
-        expect(result.confidence, equals(0.9));
-        expect(result.isOutOfScope, isFalse);
-        expect(result.isError, isFalse);
-      });
+          // Act
+          final result = await aiService.sendMessageWithSmartSelection(
+            message: message,
+          );
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.message, equals(expectedResponse));
+          expect(result.agent, equals(mockAgent));
+          expect(result.confidence, equals(0.9));
+          expect(result.isOutOfScope, isFalse);
+          expect(result.isError, isFalse);
+        },
+      );
 
       test('should handle out of scope queries', () async {
         // Arrange
@@ -585,7 +642,9 @@ void main() {
           outOfScopeMessage: outOfScopeMessage,
         );
 
-        when(mockAgentSelector.selectAgent(message)).thenAnswer((_) async => mockSelectionResult);
+        when(
+          mockAgentSelector.selectAgent(message),
+        ).thenAnswer((_) async => mockSelectionResult);
 
         // Act
         final result = await aiService.sendMessageWithSmartSelection(
@@ -611,7 +670,9 @@ void main() {
           isOutOfScope: false,
         );
 
-        when(mockAgentSelector.selectAgent(message)).thenAnswer((_) async => mockSelectionResult);
+        when(
+          mockAgentSelector.selectAgent(message),
+        ).thenAnswer((_) async => mockSelectionResult);
 
         // Act
         final result = await aiService.sendMessageWithSmartSelection(
@@ -628,7 +689,7 @@ void main() {
       test('should handle AI service errors gracefully', () async {
         // Arrange
         const message = 'Test message';
-        
+
         const mockAgent = AIAgent(
           id: 'gardener',
           name: 'Gardener',
@@ -645,12 +706,16 @@ void main() {
           isOutOfScope: false,
         );
 
-        when(mockAgentSelector.selectAgent(message)).thenAnswer((_) async => mockSelectionResult);
-        when(mockDio.post<Map<String, dynamic>>(
-          any,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        )).thenThrow(Exception('Network error'));
+        when(
+          mockAgentSelector.selectAgent(message),
+        ).thenAnswer((_) async => mockSelectionResult);
+        when(
+          mockDio.post<Map<String, dynamic>>(
+            any,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenThrow(Exception('Network error'));
 
         when(mockEnvConfig.isOpenAIConfigured).thenReturn(true);
         when(mockEnvConfig.openaiApiKey).thenReturn('test-openai-key');
@@ -664,7 +729,10 @@ void main() {
         expect(result.isSuccess, isFalse);
         expect(result.isOutOfScope, isFalse);
         expect(result.isError, isTrue);
-        expect(result.message, contains('Произошла ошибка при обработке запроса'));
+        expect(
+          result.message,
+          contains('Произошла ошибка при обработке запроса'),
+        );
       });
     });
 

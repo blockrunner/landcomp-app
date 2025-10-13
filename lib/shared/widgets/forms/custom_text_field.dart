@@ -1,5 +1,5 @@
 /// Custom text field widget following the LandComp style guide
-/// 
+///
 /// This widget implements a text field with proper styling,
 /// states, and animations according to the design system.
 library;
@@ -15,12 +15,16 @@ import 'package:landcomp_app/core/theme/design_tokens.dart';
 enum TextFieldState {
   /// Default state
   normal,
+
   /// Focused state
   focused,
+
   /// Error state
   error,
+
   /// Success state
   success,
+
   /// Disabled state
   disabled,
 }
@@ -150,13 +154,9 @@ class _CustomTextFieldState extends State<CustomTextField>
       duration: DesignTokens.animationStandard,
       vsync: this,
     );
-    _focusAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _focusAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     _focusNode = widget.focusNode ?? FocusNode();
     _controller = widget.controller ?? TextEditingController();
@@ -188,7 +188,8 @@ class _CustomTextFieldState extends State<CustomTextField>
   @override
   Widget build(BuildContext context) {
     final isEnabled = widget.enabled && widget.state != TextFieldState.disabled;
-    final hasError = widget.state == TextFieldState.error || widget.errorText != null;
+    final hasError =
+        widget.state == TextFieldState.error || widget.errorText != null;
     final hasSuccess = widget.state == TextFieldState.success;
 
     return SizedBox(
@@ -215,7 +216,7 @@ class _CustomTextFieldState extends State<CustomTextField>
             inputFormatters: widget.inputFormatters,
             textCapitalization: widget.textCapitalization,
             style: AppTypography.body.copyWith(
-              color: isEnabled 
+              color: isEnabled
                   ? Theme.of(context).colorScheme.onSurface
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -239,35 +240,45 @@ class _CustomTextFieldState extends State<CustomTextField>
               filled: true,
               fillColor: _getFillColor(isEnabled),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignTokens.inputBorderRadius),
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.inputBorderRadius,
+                ),
                 borderSide: BorderSide(
                   color: _getBorderColor(hasError, hasSuccess),
                   width: DesignTokens.inputBorderWidth,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignTokens.inputBorderRadius),
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.inputBorderRadius,
+                ),
                 borderSide: BorderSide(
                   color: _getBorderColor(hasError, hasSuccess),
                   width: DesignTokens.inputBorderWidth,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignTokens.inputBorderRadius),
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.inputBorderRadius,
+                ),
                 borderSide: BorderSide(
                   color: _getFocusedBorderColor(hasError, hasSuccess),
                   width: DesignTokens.inputBorderWidth,
                 ),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignTokens.inputBorderRadius),
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.inputBorderRadius,
+                ),
                 borderSide: const BorderSide(
                   color: AppColors.error,
                   width: DesignTokens.inputBorderWidth,
                 ),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignTokens.inputBorderRadius),
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.inputBorderRadius,
+                ),
                 borderSide: const BorderSide(
                   color: AppColors.error,
                   width: DesignTokens.inputBorderWidth,

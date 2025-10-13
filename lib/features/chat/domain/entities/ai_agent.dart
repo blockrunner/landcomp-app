@@ -1,5 +1,5 @@
 /// AI Agent entity for specialized landscape design assistance
-/// 
+///
 /// This entity represents different AI agents with their specific
 /// expertise areas and configurations.
 library;

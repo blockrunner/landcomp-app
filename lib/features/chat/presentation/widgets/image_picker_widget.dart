@@ -1,5 +1,5 @@
 /// Image picker widget for selecting and previewing images
-/// 
+///
 /// This widget allows users to select up to 5 images and preview them
 /// before sending to the AI service.
 library;
@@ -15,7 +15,8 @@ import 'package:landcomp_app/core/localization/language_provider.dart';
 class ImagePickerWidget extends StatefulWidget {
   /// Creates an image picker widget
   const ImagePickerWidget({
-    required this.onImagesSelected, super.key,
+    required this.onImagesSelected,
+    super.key,
     this.maxImages = 5,
   });
 
@@ -50,7 +51,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
 
       if (result != null && result.files.isNotEmpty) {
         final newImages = <Uint8List>[];
-        
+
         for (final file in result.files) {
           if (file.bytes != null) {
             // Compress image if it's too large
@@ -71,21 +72,29 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
         }
 
         print('📸 ImagePicker: Selected ${newImages.length} new images');
-        print('📸 ImagePicker: Total images: ${_selectedImages.length + newImages.length}');
-        print('📸 ImagePicker: Image sizes: ${newImages.map((img) => img.length).toList()}');
+        print(
+          '📸 ImagePicker: Total images: ${_selectedImages.length + newImages.length}',
+        );
+        print(
+          '📸 ImagePicker: Image sizes: ${newImages.map((img) => img.length).toList()}',
+        );
 
         setState(() {
           _selectedImages.addAll(newImages);
         });
 
         widget.onImagesSelected(_selectedImages);
-        print('📸 ImagePicker: Notified parent with ${_selectedImages.length} images');
+        print(
+          '📸 ImagePicker: Notified parent with ${_selectedImages.length} images',
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${context.read<LanguageProvider>().getString('imageSelectionError')} $e'),
+            content: Text(
+              '${context.read<LanguageProvider>().getString('imageSelectionError')} $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -122,8 +131,10 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
 
       // Encode to JPEG with quality 70% to reduce size
       final compressedBytes = img.encodeJpg(resizedImage, quality: 70);
-      
-      print('📸 Compressed image: ${imageBytes.length} -> ${compressedBytes.length} bytes');
+
+      print(
+        '📸 Compressed image: ${imageBytes.length} -> ${compressedBytes.length} bytes',
+      );
       return Uint8List.fromList(compressedBytes);
     } catch (e) {
       print('❌ Error compressing image: $e');
@@ -210,7 +221,10 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
                 builder: (context, languageProvider, child) => Text(
                   _selectedImages.isEmpty
                       ? languageProvider.getString('selectPhotos')
-                      : languageProvider.formatAddPhotosText(_selectedImages.length, widget.maxImages),
+                      : languageProvider.formatAddPhotosText(
+                          _selectedImages.length,
+                          widget.maxImages,
+                        ),
                 ),
               ),
               style: ElevatedButton.styleFrom(
@@ -223,7 +237,8 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
               TextButton(
                 onPressed: _clearImages,
                 child: Consumer<LanguageProvider>(
-                  builder: (context, languageProvider, child) => Text(languageProvider.getString('clear')),
+                  builder: (context, languageProvider, child) =>
+                      Text(languageProvider.getString('clear')),
                 ),
               ),
             ],

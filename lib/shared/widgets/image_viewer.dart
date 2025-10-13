@@ -1,5 +1,5 @@
 /// Full-screen image viewer with navigation
-/// 
+///
 /// This widget provides a full-screen image viewing experience
 /// with swipe navigation between multiple images.
 library;
@@ -13,7 +13,9 @@ import 'package:landcomp_app/core/localization/language_provider.dart';
 class ImageViewer extends StatefulWidget {
   /// Creates an image viewer
   const ImageViewer({
-    required this.attachments, required this.initialIndex, super.key,
+    required this.attachments,
+    required this.initialIndex,
+    super.key,
     this.title,
   });
 
@@ -57,51 +59,47 @@ class _ImageViewerState extends State<ImageViewer> {
           foregroundColor: Colors.white,
           automaticallyImplyLeading: false, // Remove back button
           title: Text(
-            languageProvider.formatImageCounter(_currentIndex, widget.attachments.length),
+            languageProvider.formatImageCounter(
+              _currentIndex,
+              widget.attachments.length,
+            ),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
           ),
-        actions: [
-          _buildCloseButton(),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // Clickable zones for navigation
-          _buildClickableZones(),
+          actions: [_buildCloseButton()],
+        ),
+        body: Stack(
+          children: [
+            // Clickable zones for navigation
+            _buildClickableZones(),
 
-          // Main image viewer
-          Center(
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemCount: widget.attachments.length,
-              itemBuilder: (context, index) {
-                final attachment = widget.attachments[index];
-                return _buildImageView(attachment);
-              },
+            // Main image viewer
+            Center(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                itemCount: widget.attachments.length,
+                itemBuilder: (context, index) {
+                  final attachment = widget.attachments[index];
+                  return _buildImageView(attachment);
+                },
+              ),
             ),
-          ),
 
-          // Side navigation arrows
-          if (widget.attachments.length > 1) ..._buildSideArrows(),
+            // Side navigation arrows
+            if (widget.attachments.length > 1) ..._buildSideArrows(),
 
-          // Image info overlay
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildImageInfo(),
-          ),
-        ],
-      ),
+            // Image info overlay
+            Positioned(bottom: 0, left: 0, right: 0, child: _buildImageInfo()),
+          ],
+        ),
       ),
     );
   }
@@ -149,16 +147,15 @@ class _ImageViewerState extends State<ImageViewer> {
         // Center zone (40%) - no action
         Expanded(
           flex: 4,
-          child: Container(
-            color: Colors.transparent,
-            height: double.infinity,
-          ),
+          child: Container(color: Colors.transparent, height: double.infinity),
         ),
         // Right zone (30%)
         Expanded(
           flex: 3,
           child: GestureDetector(
-            onTap: _currentIndex < widget.attachments.length - 1 ? _nextImage : null,
+            onTap: _currentIndex < widget.attachments.length - 1
+                ? _nextImage
+                : null,
             child: Container(
               color: Colors.transparent,
               height: double.infinity,
@@ -234,10 +231,7 @@ class _ImageViewerState extends State<ImageViewer> {
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          colors: [
-            Colors.black.withOpacity(0.8),
-            Colors.transparent,
-          ],
+          colors: [Colors.black.withOpacity(0.8), Colors.transparent],
         ),
       ),
       child: Column(
@@ -356,10 +350,7 @@ Future<void> showImageViewer({
 
 /// Button with hover effect
 class _HoverButton extends StatefulWidget {
-  const _HoverButton({
-    required this.onTap,
-    required this.child,
-  });
+  const _HoverButton({required this.onTap, required this.child});
 
   final VoidCallback onTap;
   final Widget child;
@@ -382,7 +373,9 @@ class _HoverButtonState extends State<_HoverButton> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _isHovered ? Colors.white.withOpacity(0.2) : Colors.transparent,
+            color: _isHovered
+                ? Colors.white.withOpacity(0.2)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
           ),
           child: widget.child,

@@ -1,5 +1,5 @@
 /// Application localizations
-/// 
+///
 /// This file contains all the localized strings for the application
 /// supporting English and Russian languages.
 library;
@@ -15,10 +15,7 @@ class AppLocalizations {
   static Locale _currentLocale = const Locale('ru');
 
   /// Supported locales
-  static const List<Locale> supportedLocales = [
-    Locale('en'),
-    Locale('ru'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('en'), Locale('ru')];
 
   /// Set current locale
   static void setLocale(Locale locale) {
@@ -30,8 +27,9 @@ class AppLocalizations {
 
   /// Check if locale is supported
   static bool isSupported(Locale locale) {
-    return supportedLocales.any((supportedLocale) => 
-        supportedLocale.languageCode == locale.languageCode);
+    return supportedLocales.any(
+      (supportedLocale) => supportedLocale.languageCode == locale.languageCode,
+    );
   }
 
   /// Get localized string
@@ -45,7 +43,7 @@ class AppLocalizations {
       // App
       'appName': 'LandComp',
       'appDescription': 'AI-powered landscape design and gardening assistant',
-      
+
       // Navigation
       'home': 'Home',
       'chat': 'Chat',
@@ -54,7 +52,7 @@ class AppLocalizations {
       'settings': 'Settings',
       'profile': 'Profile',
       'comingSoon': 'Coming soon',
-      
+
       // Chat
       'chatTitle': 'LandComp Chat',
       'welcomeTitle': 'Welcome to LandComp!',
@@ -66,9 +64,10 @@ class AppLocalizations {
       'ecoFriendly': '🌍 Discover eco-friendly solutions',
       'messageHint': 'Ask about landscape design...',
       'messageHintWithImage': 'Describe the images...',
-      'messageHintExtended': 'Ask about landscape design, gardening or construction...',
+      'messageHintExtended':
+          'Ask about landscape design, gardening or construction...',
       'sendMessage': 'Send',
-      
+
       // Settings
       'settingsTitle': 'Settings',
       'aiProvider': 'AI Provider',
@@ -91,7 +90,7 @@ class AppLocalizations {
       'version': 'Version',
       'privacyPolicy': 'Privacy Policy',
       'termsOfService': 'Terms of Service',
-      
+
       // Profile
       'profileTitle': 'Profile',
       'landcompUser': 'LandComp User',
@@ -111,28 +110,31 @@ class AppLocalizations {
       'signOut': 'Sign Out',
       'deleteAccount': 'Delete Account',
       'signOutConfirm': 'Are you sure you want to sign out?',
-      'deleteAccountConfirm': 'Are you sure you want to delete your account? This action cannot be undone.',
+      'deleteAccountConfirm':
+          'Are you sure you want to delete your account? This action cannot be undone.',
       'cancel': 'Cancel',
       'delete': 'Delete',
-      
+
       // Common
       'ok': 'OK',
       'save': 'Save',
       'loading': 'Loading...',
       'error': 'Error',
       'success': 'Success',
-      
+
       // Home Page
       'homeHeroTitle': 'Create landscape compositions easily and quickly',
-      'homeHeroSubtitle': 'Your personal AI garden designer will help create professional compositions',
+      'homeHeroSubtitle':
+          'Your personal AI garden designer will help create professional compositions',
       'quickStart': 'Quick Start',
       'newProject': 'New Project',
       'newProjectDescription': 'Create a new landscape project',
       'myProjects': 'My Projects',
       'myProjectsDescription': 'View saved projects',
       'versionNumber': 'Version 1.0.0',
-      'homeFooterDescription': 'Your AI assistant for creating landscape compositions',
-      
+      'homeFooterDescription':
+          'Your AI assistant for creating landscape compositions',
+
       // Projects
       'projects': 'Projects',
       'projectTitle': 'Project Title',
@@ -167,19 +169,19 @@ class AppLocalizations {
       'enterProjectTitle': 'Enter project title',
       'projectTitleHint': 'e.g., Garden Design for Small Yard',
       'createProject': 'Create Project',
-      
+
       // Router Error
       'pageNotFound': 'Page not found',
       'pageNotFoundDescription': 'The page could not be found.',
       'goToHome': 'Go to Home',
-      
+
       // Profile Page
       'userEmail': 'user@example.com',
-      
+
       // Settings Inline
       'russian': 'Russian',
       'english': 'English',
-      
+
       // Message Bubble
       'retry': 'Retry',
       'originalImages': 'Original Images',
@@ -190,7 +192,7 @@ class AppLocalizations {
       'images': 'Images',
       'image': 'Image',
       'loadingError': 'Loading Error',
-      
+
       // Image Picker
       'imageSelectionError': 'Error selecting images:',
       'selectPhotos': 'Select Photos',
@@ -198,17 +200,19 @@ class AppLocalizations {
       'clear': 'Clear',
       'canSelectUpTo': 'You can select up to',
       'imagesCount': 'images',
-      
+
       // Image Viewer
       'imageCounter': 'Image',
       'of': 'of',
       'failedToLoadImage': 'Failed to load image',
-      
+
       // Error Messages
-      'networkErrorMessage': 'Network connection error. Please check your internet connection.',
+      'networkErrorMessage':
+          'Network connection error. Please check your internet connection.',
       'serverErrorMessage': 'Server error. Please try again later.',
       'unknownErrorMessage': 'An unknown error occurred. Please try again.',
-      'aiServiceErrorMessage': 'AI service is temporarily unavailable. Please try again later.',
+      'aiServiceErrorMessage':
+          'AI service is temporarily unavailable. Please try again later.',
       'messageSentMessage': 'Message sent successfully',
       'settingsSavedMessage': 'Settings saved successfully',
     },
@@ -216,7 +220,7 @@ class AppLocalizations {
       // App
       'appName': 'LandComp',
       'appDescription': 'ИИ-помощник для ландшафтного дизайна и садоводства',
-      
+
       // Navigation
       'home': 'Главная',
       'chat': 'Чат',
@@ -225,7 +229,7 @@ class AppLocalizations {
       'settings': 'Настройки',
       'profile': 'Профиль',
       'comingSoon': 'Скоро',
-      
+
       // Chat
       'chatTitle': 'LandComp Чат',
       'welcomeTitle': 'Добро пожаловать в LandComp!',
@@ -237,9 +241,10 @@ class AppLocalizations {
       'ecoFriendly': '🌍 Откройте экологичные решения',
       'messageHint': 'Спросите о ландшафтном дизайне...',
       'messageHintWithImage': 'Опишите изображения...',
-      'messageHintExtended': 'Спросите о ландшафтном дизайне, садоводстве или строительстве...',
+      'messageHintExtended':
+          'Спросите о ландшафтном дизайне, садоводстве или строительстве...',
       'sendMessage': 'Отправить',
-      
+
       // Settings
       'settingsTitle': 'Настройки',
       'aiProvider': 'ИИ Провайдер',
@@ -262,7 +267,7 @@ class AppLocalizations {
       'version': 'Версия',
       'privacyPolicy': 'Политика конфиденциальности',
       'termsOfService': 'Условия использования',
-      
+
       // Profile
       'profileTitle': 'Профиль',
       'landcompUser': 'Пользователь LandComp',
@@ -282,28 +287,31 @@ class AppLocalizations {
       'signOut': 'Выйти',
       'deleteAccount': 'Удалить аккаунт',
       'signOutConfirm': 'Вы уверены, что хотите выйти?',
-      'deleteAccountConfirm': 'Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить.',
+      'deleteAccountConfirm':
+          'Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить.',
       'cancel': 'Отмена',
       'delete': 'Удалить',
-      
+
       // Common
       'ok': 'ОК',
       'save': 'Сохранить',
       'loading': 'Загрузка...',
       'error': 'Ошибка',
       'success': 'Успешно',
-      
+
       // Home Page
       'homeHeroTitle': 'Создавайте ландшафтные композиции легко и быстро',
-      'homeHeroSubtitle': 'Ваш персональный AI-дизайнер сада поможет создать профессиональные композиции',
+      'homeHeroSubtitle':
+          'Ваш персональный AI-дизайнер сада поможет создать профессиональные композиции',
       'quickStart': 'Быстрый старт',
       'newProject': 'Новый проект',
       'newProjectDescription': 'Создайте новый ландшафтный проект',
       'myProjects': 'Мои проекты',
       'myProjectsDescription': 'Просмотрите сохраненные проекты',
       'versionNumber': 'Версия 1.0.0',
-      'homeFooterDescription': 'Ваш AI-помощник для создания ландшафтных композиций',
-      
+      'homeFooterDescription':
+          'Ваш AI-помощник для создания ландшафтных композиций',
+
       // Projects
       'projects': 'Проекты',
       'projectTitle': 'Название проекта',
@@ -338,19 +346,19 @@ class AppLocalizations {
       'enterProjectTitle': 'Введите название проекта',
       'projectTitleHint': 'например, Дизайн сада для маленького двора',
       'createProject': 'Создать проект',
-      
+
       // Router Error
       'pageNotFound': 'Страница не найдена',
       'pageNotFoundDescription': 'Страница не может быть найдена.',
       'goToHome': 'На главную',
-      
+
       // Profile Page
       'userEmail': 'user@example.com',
-      
+
       // Settings Inline
       'russian': 'Русский',
       'english': 'Английский',
-      
+
       // Message Bubble
       'retry': 'Повторить',
       'originalImages': 'Исходные изображения',
@@ -361,7 +369,7 @@ class AppLocalizations {
       'images': 'Изображения',
       'image': 'Изображение',
       'loadingError': 'Ошибка загрузки',
-      
+
       // Image Picker
       'imageSelectionError': 'Ошибка при выборе изображений:',
       'selectPhotos': 'Выбрать фото',
@@ -369,17 +377,19 @@ class AppLocalizations {
       'clear': 'Очистить',
       'canSelectUpTo': 'Можно выбрать до',
       'imagesCount': 'изображений',
-      
+
       // Image Viewer
       'imageCounter': 'Изображение',
       'of': 'из',
       'failedToLoadImage': 'Не удалось загрузить изображение',
-      
+
       // Error Messages
-      'networkErrorMessage': 'Ошибка сетевого подключения. Проверьте подключение к интернету.',
+      'networkErrorMessage':
+          'Ошибка сетевого подключения. Проверьте подключение к интернету.',
       'serverErrorMessage': 'Ошибка сервера. Попробуйте позже.',
       'unknownErrorMessage': 'Произошла неизвестная ошибка. Попробуйте снова.',
-      'aiServiceErrorMessage': 'ИИ-сервис временно недоступен. Попробуйте позже.',
+      'aiServiceErrorMessage':
+          'ИИ-сервис временно недоступен. Попробуйте позже.',
       'messageSentMessage': 'Сообщение успешно отправлено',
       'settingsSavedMessage': 'Настройки успешно сохранены',
     },

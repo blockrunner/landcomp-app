@@ -105,3 +105,50 @@ docker-compose.override.yml
 # Debug and test files with sensitive data
 debug/
 test-images/
+
+# Temporary and development files
+temp_reload.txt
+flutter_*.log
+*.log
+
+# Scripts and development tools
+scripts/analyze.ps1
+scripts/build.ps1
+scripts/build.sh
+scripts/deploy.sh
+scripts/server-setup.sh
+
+# Documentation and planning files (if not needed in production)
+speckit.constitution
+speckit.plan
+speckit.specify
+commands.txt
+localization-coverage-updated.plan.md
+
+# Test coverage and analysis files
+coverage/
+*.lcov
+*.coverage
+
+# Build artifacts
+build/
+dist/
+out/
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# OS specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Package manager files
+package-lock.json
+yarn.lock

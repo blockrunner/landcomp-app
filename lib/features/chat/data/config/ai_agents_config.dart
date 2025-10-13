@@ -1,5 +1,5 @@
 /// Configuration for AI agents
-/// 
+///
 /// This file contains predefined AI agents with their configurations,
 /// system prompts, and localized content.
 library;

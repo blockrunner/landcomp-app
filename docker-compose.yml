@@ -33,6 +33,23 @@ services:
       - NODE_ENV=production
       # Proxy server URL for the app to use
       - PROXY_SERVER_URL=http://landcomp-proxy:3001
+      # AI API Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_API_KEYS_FALLBACK=${GOOGLE_API_KEYS_FALLBACK}
+      # Proxy Configuration
+      - ALL_PROXY=${ALL_PROXY}
+      - BACKUP_PROXIES=${BACKUP_PROXIES}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - NO_PROXY=${NO_PROXY}
+      # Additional API Keys
+      - STABILITY_API_KEY=${STABILITY_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      # Yandex Cloud Configuration
+      - YC_API_KEY_ID=${YC_API_KEY_ID}
+      - YC_API_KEY=${YC_API_KEY}
+      - YC_FOLDER_ID=${YC_FOLDER_ID}
     volumes:
       # Mount logs for debugging
       - ./logs:/var/log/nginx

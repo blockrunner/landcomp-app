@@ -1,5 +1,5 @@
 /// Unit tests for AI Agents
-/// 
+///
 /// Tests specialized prompts, localization, and agent selection logic
 library;
 
@@ -86,7 +86,10 @@ void main() {
       final localizedDescription = agent.getLocalizedDescription('en');
 
       // Assert
-      expect(localizedDescription, equals('Expert in landscape design and planning'));
+      expect(
+        localizedDescription,
+        equals('Expert in landscape design and planning'),
+      );
     });
 
     test('should return Russian description for Russian language', () {
@@ -106,7 +109,10 @@ void main() {
       final localizedDescription = agent.getLocalizedDescription('ru');
 
       // Assert
-      expect(localizedDescription, equals('Специалист по планированию участков и зонированию'));
+      expect(
+        localizedDescription,
+        equals('Специалист по планированию участков и зонированию'),
+      );
     });
 
     test('should return English system prompt for English language', () {
@@ -151,48 +157,73 @@ void main() {
       expect(localizedPrompt, contains('российских стандартов'));
     });
 
-    test('should return English quick start suggestions for English language', () {
-      // Arrange
-      const agent = AIAgent(
-        id: 'ecologist',
-        name: 'Ecologist',
-        description: 'Expert in environmental solutions',
-        systemPrompt: 'You are an environmental expert',
-        icon: Icons.eco,
-        primaryColor: Colors.green,
-        quickStartSuggestions: ['How to create eco-friendly garden?'],
-        expertiseAreas: ['ecology'],
-      );
+    test(
+      'should return English quick start suggestions for English language',
+      () {
+        // Arrange
+        const agent = AIAgent(
+          id: 'ecologist',
+          name: 'Ecologist',
+          description: 'Expert in environmental solutions',
+          systemPrompt: 'You are an environmental expert',
+          icon: Icons.eco,
+          primaryColor: Colors.green,
+          quickStartSuggestions: ['How to create eco-friendly garden?'],
+          expertiseAreas: ['ecology'],
+        );
 
-      // Act
-      final localizedSuggestions = agent.getLocalizedQuickStartSuggestions('en');
+        // Act
+        final localizedSuggestions = agent.getLocalizedQuickStartSuggestions(
+          'en',
+        );
 
-      // Assert
-      expect(localizedSuggestions, equals(['How to create eco-friendly garden?']));
-    });
+        // Assert
+        expect(
+          localizedSuggestions,
+          equals(['How to create eco-friendly garden?']),
+        );
+      },
+    );
 
-    test('should return Russian quick start suggestions for Russian language', () {
-      // Arrange
-      const agent = AIAgent(
-        id: 'ecologist',
-        name: 'Ecologist',
-        description: 'Expert in environmental solutions',
-        systemPrompt: 'You are an environmental expert',
-        icon: Icons.eco,
-        primaryColor: Colors.green,
-        quickStartSuggestions: ['How to create eco-friendly garden?'],
-        expertiseAreas: ['ecology'],
-      );
+    test(
+      'should return Russian quick start suggestions for Russian language',
+      () {
+        // Arrange
+        const agent = AIAgent(
+          id: 'ecologist',
+          name: 'Ecologist',
+          description: 'Expert in environmental solutions',
+          systemPrompt: 'You are an environmental expert',
+          icon: Icons.eco,
+          primaryColor: Colors.green,
+          quickStartSuggestions: ['How to create eco-friendly garden?'],
+          expertiseAreas: ['ecology'],
+        );
 
-      // Act
-      final localizedSuggestions = agent.getLocalizedQuickStartSuggestions('ru');
+        // Act
+        final localizedSuggestions = agent.getLocalizedQuickStartSuggestions(
+          'ru',
+        );
 
-      // Assert
-      expect(localizedSuggestions, contains('🌱 Как создать экологичный сад?'));
-      expect(localizedSuggestions, contains('♻️ Как перерабатывать органические отходы?'));
-      expect(localizedSuggestions, contains('💧 Как использовать дождевую воду?'));
-      expect(localizedSuggestions, contains('🌿 Какие растения улучшают экологию?'));
-    });
+        // Assert
+        expect(
+          localizedSuggestions,
+          contains('🌱 Как создать экологичный сад?'),
+        );
+        expect(
+          localizedSuggestions,
+          contains('♻️ Как перерабатывать органические отходы?'),
+        );
+        expect(
+          localizedSuggestions,
+          contains('💧 Как использовать дождевую воду?'),
+        );
+        expect(
+          localizedSuggestions,
+          contains('🌿 Какие растения улучшают экологию?'),
+        );
+      },
+    );
   });
 
   group('AIAgent Properties', () {
@@ -237,8 +268,14 @@ void main() {
       // Assert
       expect(agent.id, equals('landscape_designer'));
       expect(agent.name, equals('Landscape Designer'));
-      expect(agent.description, equals('Expert in landscape design and planning'));
-      expect(agent.systemPrompt, equals('You are a professional landscape designer'));
+      expect(
+        agent.description,
+        equals('Expert in landscape design and planning'),
+      );
+      expect(
+        agent.systemPrompt,
+        equals('You are a professional landscape designer'),
+      );
       expect(agent.icon, equals(Icons.home));
       expect(agent.primaryColor, equals(Colors.blue));
       expect(agent.quickStartSuggestions, equals(['Test suggestion']));
@@ -395,7 +432,10 @@ void main() {
       final stringRepresentation = agent.toString();
 
       // Assert
-      expect(stringRepresentation, equals('AIAgent(id: test_agent, name: Test Agent)'));
+      expect(
+        stringRepresentation,
+        equals('AIAgent(id: test_agent, name: Test Agent)'),
+      );
     });
   });
 
@@ -448,7 +488,10 @@ void main() {
 
       // Act & Assert
       expect(gardener.getLocalizedName('ru'), equals('Садовод'));
-      expect(landscapeDesigner.getLocalizedName('ru'), equals('Ландшафтный дизайнер'));
+      expect(
+        landscapeDesigner.getLocalizedName('ru'),
+        equals('Ландшафтный дизайнер'),
+      );
       expect(builder.getLocalizedName('ru'), equals('Строитель'));
       expect(ecologist.getLocalizedName('ru'), equals('Эколог'));
     });
@@ -500,10 +543,22 @@ void main() {
       );
 
       // Act & Assert
-      expect(gardener.getLocalizedDescription('ru'), equals('Эксперт по растениям, уходу и сезонным работам'));
-      expect(landscapeDesigner.getLocalizedDescription('ru'), equals('Специалист по планированию участков и зонированию'));
-      expect(builder.getLocalizedDescription('ru'), equals('Эксперт по строительству и материалам'));
-      expect(ecologist.getLocalizedDescription('ru'), equals('Специалист по экологичным решениям'));
+      expect(
+        gardener.getLocalizedDescription('ru'),
+        equals('Эксперт по растениям, уходу и сезонным работам'),
+      );
+      expect(
+        landscapeDesigner.getLocalizedDescription('ru'),
+        equals('Специалист по планированию участков и зонированию'),
+      );
+      expect(
+        builder.getLocalizedDescription('ru'),
+        equals('Эксперт по строительству и материалам'),
+      );
+      expect(
+        ecologist.getLocalizedDescription('ru'),
+        equals('Специалист по экологичным решениям'),
+      );
     });
   });
 }

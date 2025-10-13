@@ -1,5 +1,5 @@
 /// Project card widget following the LandComp style guide
-/// 
+///
 /// This widget displays project information in a card format
 /// with preview, title, date, and action buttons.
 library;
@@ -47,7 +47,8 @@ class ProjectData {
 class ProjectCard extends StatelessWidget {
   /// Creates a project card
   const ProjectCard({
-    required this.project, super.key,
+    required this.project,
+    super.key,
     this.onEdit,
     this.onDelete,
     this.onShare,
@@ -111,7 +112,9 @@ class ProjectCard extends StatelessWidget {
             color: AppColors.gray100,
             borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
           ),
-          child: project.previewImageUrl != null && project.previewImageUrl!.isNotEmpty
+          child:
+              project.previewImageUrl != null &&
+                  project.previewImageUrl!.isNotEmpty
               ? Image.network(
                   project.previewImageUrl!,
                   fit: BoxFit.cover,
@@ -144,9 +147,7 @@ class ProjectCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Превью проекта',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.gray500,
-              ),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.gray500),
             ),
           ],
         ),
@@ -272,7 +273,8 @@ class ProjectCard extends StatelessWidget {
 class CompactProjectCard extends StatelessWidget {
   /// Creates a compact project card
   const CompactProjectCard({
-    required this.project, super.key,
+    required this.project,
+    super.key,
     this.onTap,
     this.onEdit,
     this.onDelete,
@@ -299,9 +301,7 @@ class CompactProjectCard extends StatelessWidget {
         children: [
           _buildCompactPreview(context),
           const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: _buildCompactContent(context),
-          ),
+          Expanded(child: _buildCompactContent(context)),
           const SizedBox(width: AppSpacing.sm),
           _buildCompactActions(context),
         ],
@@ -320,7 +320,9 @@ class CompactProjectCard extends StatelessWidget {
           color: AppColors.gray100,
           borderRadius: BorderRadius.circular(DesignTokens.radiusSmall),
         ),
-        child: project.previewImageUrl != null && project.previewImageUrl!.isNotEmpty
+        child:
+            project.previewImageUrl != null &&
+                project.previewImageUrl!.isNotEmpty
             ? Image.network(
                 project.previewImageUrl!,
                 fit: BoxFit.cover,

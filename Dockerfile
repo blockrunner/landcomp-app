@@ -41,6 +41,23 @@ COPY --from=build /app/build/web /usr/share/nginx/html
 # Create directory for logs
 RUN mkdir -p /var/log/nginx
 
+# Create startup script to generate .env file
+RUN echo '#!/bin/sh' > /usr/local/bin/generate-env.sh && \
+    echo 'echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "GOOGLE_API_KEYS_FALLBACK=${GOOGLE_API_KEYS_FALLBACK}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "ALL_PROXY=${ALL_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "BACKUP_PROXIES=${BACKUP_PROXIES}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "HTTP_PROXY=${HTTP_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "HTTPS_PROXY=${HTTPS_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "NO_PROXY=${NO_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "STABILITY_API_KEY=${STABILITY_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "YC_API_KEY_ID=${YC_API_KEY_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "YC_API_KEY=${YC_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'echo "YC_FOLDER_ID=${YC_FOLDER_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    chmod +x /usr/local/bin/generate-env.sh
+
 # Expose port 80
 EXPOSE 80
 
@@ -49,4 +66,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost/ || exit 1
 
 # Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "-c", "/usr/local/bin/generate-env.sh && nginx -g 'daemon off;'"]

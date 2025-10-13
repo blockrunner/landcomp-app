@@ -1,5 +1,5 @@
 /// Theme provider for managing app theme
-/// 
+///
 /// This provider manages the current theme mode and notifies listeners
 /// when the theme changes. It supports light, dark, and system themes.
 library;
@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ThemeProvider extends ChangeNotifier {
   /// Current theme mode
   ThemeMode _themeMode = ThemeMode.system;
-  
+
   /// SharedPreferences key for theme mode
   static const String _themeKey = 'theme_mode';
 

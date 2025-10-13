@@ -1,5 +1,5 @@
 /// Tool Registry for managing tools in the orchestrator
-/// 
+///
 /// This registry manages the registration, discovery, and metrics
 /// of all tools in the system.
 library;
@@ -58,7 +58,11 @@ class ToolRegistry {
   /// Get tools that support specific capabilities
   List<Tool> getToolsByCapabilities(List<String> capabilities) {
     return _tools.values
-        .where((tool) => capabilities.every((cap) => tool.requiredCapabilities.contains(cap)))
+        .where(
+          (tool) => capabilities.every(
+            (cap) => tool.requiredCapabilities.contains(cap),
+          ),
+        )
         .toList();
   }
 
@@ -74,7 +78,7 @@ class ToolRegistry {
   void trackExecution(String toolId, Duration executionTime, bool success) {
     if (_executionTimes.containsKey(toolId)) {
       _executionTimes[toolId]!.add(executionTime);
-      
+
       // Keep only last 100 execution times
       if (_executionTimes[toolId]!.length > 100) {
         _executionTimes[toolId]!.removeAt(0);
@@ -110,13 +114,20 @@ class ToolRegistry {
       'errorCount': errorCount,
       'successRate': totalCount > 0 ? successCount / totalCount : 0.0,
       'averageExecutionTime': executionTimes.isNotEmpty
-          ? executionTimes.map((d) => d.inMilliseconds).reduce((a, b) => a + b) / executionTimes.length
+          ? executionTimes
+                    .map((d) => d.inMilliseconds)
+                    .reduce((a, b) => a + b) /
+                executionTimes.length
           : 0.0,
       'minExecutionTime': executionTimes.isNotEmpty
-          ? executionTimes.map((d) => d.inMilliseconds).reduce((a, b) => a < b ? a : b)
+          ? executionTimes
+                .map((d) => d.inMilliseconds)
+                .reduce((a, b) => a < b ? a : b)
           : 0,
       'maxExecutionTime': executionTimes.isNotEmpty
-          ? executionTimes.map((d) => d.inMilliseconds).reduce((a, b) => a > b ? a : b)
+          ? executionTimes
+                .map((d) => d.inMilliseconds)
+                .reduce((a, b) => a > b ? a : b)
           : 0,
     };
   }
@@ -128,7 +139,8 @@ class ToolRegistry {
       toolMetrics[toolId] = getToolMetrics(toolId);
     }
 
-    final totalExecutions = _successCounts.values.fold(0, (a, b) => a + b) +
+    final totalExecutions =
+        _successCounts.values.fold(0, (a, b) => a + b) +
         _errorCounts.values.fold(0, (a, b) => a + b);
 
     return {

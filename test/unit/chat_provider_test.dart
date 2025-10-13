@@ -1,5 +1,5 @@
 /// Unit tests for ChatProvider
-/// 
+///
 /// Tests state management, message handling, agent selection, and error handling
 library;
 
@@ -52,7 +52,10 @@ void main() {
 
       // Assert
       expect(message.id, equals('2'));
-      expect(message.content, equals('I can help you with gardening questions!'));
+      expect(
+        message.content,
+        equals('I can help you with gardening questions!'),
+      );
       expect(message.type, equals(MessageType.ai));
       expect(message.agentId, equals('gardener'));
       expect(message.isError, isFalse);
@@ -61,10 +64,7 @@ void main() {
 
     test('should create typing indicator', () {
       // Arrange & Act
-      final message = Message.typing(
-        id: '3',
-        agentId: 'gardener',
-      );
+      final message = Message.typing(id: '3', agentId: 'gardener');
 
       // Assert
       expect(message.id, equals('3'));
@@ -153,8 +153,14 @@ void main() {
       // Assert
       expect(agent.id, equals('landscape_designer'));
       expect(agent.name, equals('Landscape Designer'));
-      expect(agent.description, equals('Expert in landscape design and planning'));
-      expect(agent.systemPrompt, equals('You are a professional landscape designer'));
+      expect(
+        agent.description,
+        equals('Expert in landscape design and planning'),
+      );
+      expect(
+        agent.systemPrompt,
+        equals('You are a professional landscape designer'),
+      );
       expect(agent.icon, equals(Icons.home));
       expect(agent.primaryColor, equals(Colors.blue));
       expect(agent.quickStartSuggestions, equals(['Test suggestion']));
@@ -341,10 +347,7 @@ void main() {
         timestamp: DateTime.now(),
       );
 
-      final typingMessage = Message.typing(
-        id: '4',
-        agentId: 'gardener',
-      );
+      final typingMessage = Message.typing(id: '4', agentId: 'gardener');
 
       // Assert
       expect(userMessage.type, equals(MessageType.user));

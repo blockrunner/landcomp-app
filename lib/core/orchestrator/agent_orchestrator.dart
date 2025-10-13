@@ -1,5 +1,5 @@
 /// Agent Orchestrator - Central component for managing agents and requests
-/// 
+///
 /// This orchestrator coordinates intent classification, context management,
 /// agent selection, and request execution in the system.
 library;
@@ -66,7 +66,9 @@ class AgentOrchestrator {
     final startTime = DateTime.now();
 
     print('🎯 Processing request: $requestId');
-    print('   Message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...');
+    print(
+      '   Message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...',
+    );
     print('   History: ${conversationHistory.length} messages');
     print('   Attachments: ${attachments?.length ?? 0}');
     print('🚀 AgentOrchestrator.processRequest called!');
@@ -86,7 +88,9 @@ class AgentOrchestrator {
         context,
       );
 
-      print('   Intent: ${intent.type.name} (confidence: ${intent.confidence})');
+      print(
+        '   Intent: ${intent.type.name} (confidence: ${intent.confidence})',
+      );
       if (intent.subtype != null) {
         print('   Subtype: ${intent.subtype!.name}');
       }
@@ -98,9 +102,11 @@ class AgentOrchestrator {
         intent: intent,
         currentAttachments: attachments,
       );
-      
-      print('🖼️ Selected ${relevantImages.length} relevant images for request');
-      
+
+      print(
+        '🖼️ Selected ${relevantImages.length} relevant images for request',
+      );
+
       // Update context with selected images
       final updatedContext = context.copyWith(
         attachments: relevantImages,
@@ -130,12 +136,21 @@ class AgentOrchestrator {
 
       // 6. Track metrics
       final executionTime = DateTime.now().difference(startTime);
-      _metricsTracker.trackExecution('orchestrator', executionTime, response.isSuccess);
-      _agentRegistry.trackExecution(agent.id, executionTime, response.isSuccess);
+      _metricsTracker.trackExecution(
+        'orchestrator',
+        executionTime,
+        response.isSuccess,
+      );
+      _agentRegistry.trackExecution(
+        agent.id,
+        executionTime,
+        response.isSuccess,
+      );
 
-      print('✅ Request processed successfully in ${executionTime.inMilliseconds}ms');
+      print(
+        '✅ Request processed successfully in ${executionTime.inMilliseconds}ms',
+      );
       return response;
-
     } catch (e) {
       final executionTime = DateTime.now().difference(startTime);
       _metricsTracker.trackExecution('orchestrator', executionTime, false);
@@ -158,21 +173,26 @@ class AgentOrchestrator {
 
     // Get all agents that can handle this intent and context
     final agentScores = <Agent, double>{};
-    
+
     for (final agent in _getAllAgents()) {
       try {
-        final canHandle = await agent.canHandle(request.intent, request.context);
+        final canHandle = await agent.canHandle(
+          request.intent,
+          request.context,
+        );
         if (canHandle) {
           final score = await _calculateAgentScore(agent, request);
           agentScores[agent] = score;
           print('   ${agent.name}: score ${score.toStringAsFixed(2)}');
-          
+
           // Debug scoring breakdown
           final intentScore = _getIntentScore(agent, request.intent);
           final contextScore = _getContextScore(agent, request.context);
           final keywordScore = _getKeywordScore(agent, request.userMessage);
           final performanceScore = _getPerformanceScore(agent);
-          print('     - Intent: ${intentScore.toStringAsFixed(2)}, Context: ${contextScore.toStringAsFixed(2)}, Keywords: ${keywordScore.toStringAsFixed(2)}, Performance: ${performanceScore.toStringAsFixed(2)}');
+          print(
+            '     - Intent: ${intentScore.toStringAsFixed(2)}, Context: ${contextScore.toStringAsFixed(2)}, Keywords: ${keywordScore.toStringAsFixed(2)}, Performance: ${performanceScore.toStringAsFixed(2)}',
+          );
         }
       } catch (e) {
         print('⚠️ Agent ${agent.id} failed capability check: $e');
@@ -180,46 +200,50 @@ class AgentOrchestrator {
     }
 
     if (agentScores.isEmpty) {
-      throw Exception('No agents available to handle intent: ${request.intent.type.name}');
+      throw Exception(
+        'No agents available to handle intent: ${request.intent.type.name}',
+      );
     }
 
     // Select agent with highest score
     final sortedAgents = agentScores.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
+
     final selectedAgent = sortedAgents.first.key;
     final selectedScore = sortedAgents.first.value;
-    
-    print('   Selected: ${selectedAgent.name} (score: ${selectedScore.toStringAsFixed(2)})');
+
+    print(
+      '   Selected: ${selectedAgent.name} (score: ${selectedScore.toStringAsFixed(2)})',
+    );
     return selectedAgent;
   }
 
   /// Calculate score for agent based on intent, context, and capabilities
   Future<double> _calculateAgentScore(Agent agent, AgentRequest request) async {
     double score = 0.0;
-    
+
     // Base score for capability match
     score += 1.0;
-    
+
     // Intent-specific scoring
     score += _getIntentScore(agent, request.intent);
-    
+
     // Context-specific scoring
     score += _getContextScore(agent, request.context);
-    
+
     // Keyword matching score
     score += _getKeywordScore(agent, request.userMessage);
-    
+
     // Agent performance score (from metrics)
     score += _getPerformanceScore(agent);
-    
+
     return score;
   }
 
   /// Get score based on intent type and agent capabilities
   double _getIntentScore(Agent agent, Intent intent) {
     double score = 0.0;
-    
+
     // Base score for intent type
     switch (intent.type) {
       case IntentType.consultation:
@@ -245,12 +269,12 @@ class AgentOrchestrator {
       case IntentType.unclear:
         score += 0.5; // Lower score for unclear intents
     }
-    
+
     // Bonus score for specific subtypes
     if (intent.subtype != null) {
       score += _getSubtypeScore(agent, intent.subtype!);
     }
-    
+
     return score;
   }
 
@@ -296,22 +320,24 @@ class AgentOrchestrator {
   /// Get score based on context (images, conversation history, etc.)
   double _getContextScore(Agent agent, RequestContext context) {
     double score = 0.0;
-    
+
     // Bonus for agents that can handle images
-    if (context.hasImages && agent.capabilities.contains(AgentCapabilities.imageAnalysis)) {
+    if (context.hasImages &&
+        agent.capabilities.contains(AgentCapabilities.imageAnalysis)) {
       score += 1.5;
     }
-    
+
     // Bonus for agents that can handle recent images
-    if (context.hasRecentImagesInHistory && agent.capabilities.contains(AgentCapabilities.imageAnalysis)) {
+    if (context.hasRecentImagesInHistory &&
+        agent.capabilities.contains(AgentCapabilities.imageAnalysis)) {
       score += 1.0;
     }
-    
+
     // Bonus for conversation context
     if (context.conversationLength > 0) {
       score += 0.5;
     }
-    
+
     return score;
   }
 
@@ -319,65 +345,112 @@ class AgentOrchestrator {
   double _getKeywordScore(Agent agent, String userMessage) {
     final message = userMessage.toLowerCase();
     double score = 0.0;
-    
+
     // Landscape Designer keywords
-    if (agent.name.toLowerCase().contains('landscape') || agent.name.toLowerCase().contains('дизайн')) {
+    if (agent.name.toLowerCase().contains('landscape') ||
+        agent.name.toLowerCase().contains('дизайн')) {
       final landscapeKeywords = [
-        'участок', 'преобразовать', 'дизайн', 'планировка', 'зонирование',
-        'ландшафт', 'территория', 'площадь', 'размещение', 'организация',
-        'plot', 'transform', 'design', 'planning', 'zoning', 'landscape'
+        'участок',
+        'преобразовать',
+        'дизайн',
+        'планировка',
+        'зонирование',
+        'ландшафт',
+        'территория',
+        'площадь',
+        'размещение',
+        'организация',
+        'plot',
+        'transform',
+        'design',
+        'planning',
+        'zoning',
+        'landscape',
       ];
-      
+
       for (final keyword in landscapeKeywords) {
         if (message.contains(keyword)) {
           score += 1.0;
         }
       }
     }
-    
+
     // Gardener keywords
-    if (agent.name.toLowerCase().contains('gardener') || agent.name.toLowerCase().contains('садовник')) {
+    if (agent.name.toLowerCase().contains('gardener') ||
+        agent.name.toLowerCase().contains('садовник')) {
       final gardenerKeywords = [
-        'растение', 'цветок', 'дерево', 'сад', 'огород', 'посадка',
-        'уход', 'полив', 'удобрение', 'обрезка', 'сезон',
-        'plant', 'flower', 'tree', 'garden', 'care', 'season'
+        'растение',
+        'цветок',
+        'дерево',
+        'сад',
+        'огород',
+        'посадка',
+        'уход',
+        'полив',
+        'удобрение',
+        'обрезка',
+        'сезон',
+        'plant',
+        'flower',
+        'tree',
+        'garden',
+        'care',
+        'season',
       ];
-      
+
       for (final keyword in gardenerKeywords) {
         if (message.contains(keyword)) {
           score += 1.0;
         }
       }
     }
-    
+
     // Builder keywords
-    if (agent.name.toLowerCase().contains('builder') || agent.name.toLowerCase().contains('строитель')) {
+    if (agent.name.toLowerCase().contains('builder') ||
+        agent.name.toLowerCase().contains('строитель')) {
       final builderKeywords = [
-        'строительство', 'дом', 'фундамент', 'материалы', 'конструкция',
-        'building', 'construction', 'house', 'foundation', 'materials'
+        'строительство',
+        'дом',
+        'фундамент',
+        'материалы',
+        'конструкция',
+        'building',
+        'construction',
+        'house',
+        'foundation',
+        'materials',
       ];
-      
+
       for (final keyword in builderKeywords) {
         if (message.contains(keyword)) {
           score += 1.0;
         }
       }
     }
-    
+
     // Ecologist keywords
-    if (agent.name.toLowerCase().contains('ecologist') || agent.name.toLowerCase().contains('эколог')) {
+    if (agent.name.toLowerCase().contains('ecologist') ||
+        agent.name.toLowerCase().contains('эколог')) {
       final ecologistKeywords = [
-        'экология', 'экологичный', 'устойчивый', 'природный', 'переработка',
-        'ecology', 'ecological', 'sustainable', 'natural', 'recycling'
+        'экология',
+        'экологичный',
+        'устойчивый',
+        'природный',
+        'переработка',
+        'ecology',
+        'ecological',
+        'sustainable',
+        'natural',
+        'recycling',
       ];
-      
+
       for (final keyword in ecologistKeywords) {
         if (message.contains(keyword)) {
           score += 1.0;
         }
       }
     }
-    
+
     return score;
   }
 
@@ -385,7 +458,7 @@ class AgentOrchestrator {
   double _getPerformanceScore(Agent agent) {
     final metrics = _agentRegistry.getAgentMetrics(agent.id);
     final successRate = metrics['successRate'] as double? ?? 0.5;
-    
+
     // Convert success rate to score (0.0 to 1.0)
     return successRate;
   }
@@ -403,25 +476,25 @@ class AgentOrchestrator {
   /// Initialize agent registry with existing agents
   Future<void> _initializeAgentRegistry() async {
     print('📋 Initializing agent registry...');
-    
+
     // Register existing agents from AIAgentsConfig using adapters
     final existingAgents = AIAgentsConfig.getAllAgents();
-    
+
     for (final aiAgent in existingAgents) {
       final agent = AgentAdapter(aiAgent);
       _agentRegistry.registerAgent(agent);
     }
-    
+
     print('✅ Agent registry initialized with ${existingAgents.length} agents');
   }
 
   /// Initialize tool registry with basic tools
   Future<void> _initializeToolRegistry() async {
     print('🔧 Initializing tool registry...');
-    
+
     // TODO: In Phase 4, we'll register actual tools
     // For now, this is a placeholder
-    
+
     print('✅ Tool registry initialized (placeholder)');
   }
 

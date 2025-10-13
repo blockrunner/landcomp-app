@@ -1,5 +1,5 @@
 /// Color constants for the LandComp application
-/// 
+///
 /// This file contains all color definitions from the style guide
 /// including light theme, dark theme, and semantic colors.
 library;
@@ -13,7 +13,9 @@ class AppColors {
 
   // Primary Green Colors
   static const Color primaryGreen = Color(0xFF8EB533); // RGB: 142, 181, 51
-  static const Color primaryGreenLight = Color(0xFFECF5CE); // RGB: 236, 245, 206
+  static const Color primaryGreenLight = Color(
+    0xFFECF5CE,
+  ); // RGB: 236, 245, 206
   static const Color primaryGreenDark = Color(0xFF6B8A26); // RGB: 107, 138, 38
 
   // Dark Teal Colors

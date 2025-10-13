@@ -1,5 +1,5 @@
 /// Language provider for managing app language
-/// 
+///
 /// This provider manages the current language and notifies listeners
 /// when the language changes.
 library;

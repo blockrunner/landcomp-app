@@ -1,5 +1,5 @@
 /// Widget tests for MessageBubble component
-/// 
+///
 /// Tests the visual rendering and behavior of message bubbles
 /// including user messages, AI messages, typing indicators, and error states.
 library;
@@ -56,7 +56,11 @@ void main() {
       );
     });
 
-    Widget createTestWidget(Message message, {VoidCallback? onRetry, bool showTimestamp = true}) {
+    Widget createTestWidget(
+      Message message, {
+      VoidCallback? onRetry,
+      bool showTimestamp = true,
+    }) {
       return MaterialApp(
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -71,15 +75,18 @@ void main() {
       );
     }
 
-    testWidgets('should display user message correctly', (WidgetTester tester) async {
+    testWidgets('should display user message correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget(userMessage));
 
       // Check if message content is displayed
       expect(find.text('Hello, how are you?'), findsOneWidget);
 
       // Check if timestamp is displayed (could be "Just now" or "ago")
-      final hasTimestamp = find.textContaining('ago').evaluate().isNotEmpty || 
-                          find.text('Just now').evaluate().isNotEmpty;
+      final hasTimestamp =
+          find.textContaining('ago').evaluate().isNotEmpty ||
+          find.text('Just now').evaluate().isNotEmpty;
       expect(hasTimestamp, isTrue);
 
       // Check if message bubble has correct alignment (right side for user)
@@ -87,7 +94,9 @@ void main() {
       expect(messageBubble, findsOneWidget);
     });
 
-    testWidgets('should display AI message with agent header', (WidgetTester tester) async {
+    testWidgets('should display AI message with agent header', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget(aiMessage));
 
       // Check if message content is displayed
@@ -100,13 +109,14 @@ void main() {
       expect(find.text('Gardener'), findsOneWidget);
     });
 
-    testWidgets('should display error message with retry button', (WidgetTester tester) async {
+    testWidgets('should display error message with retry button', (
+      WidgetTester tester,
+    ) async {
       var retryPressed = false;
-      
-      await tester.pumpWidget(createTestWidget(
-        errorMessage,
-        onRetry: () => retryPressed = true,
-      ));
+
+      await tester.pumpWidget(
+        createTestWidget(errorMessage, onRetry: () => retryPressed = true),
+      );
 
       // Check if error message is displayed
       expect(find.text('Error occurred'), findsOneWidget);
@@ -131,23 +141,32 @@ void main() {
       expect(find.byIcon(Icons.local_florist), findsOneWidget);
     });
 
-    testWidgets('should display system message centered', (WidgetTester tester) async {
+    testWidgets('should display system message centered', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget(systemMessage));
 
       // Check if system message is displayed
       expect(find.text('System message'), findsOneWidget);
     });
 
-    testWidgets('should hide timestamp when showTimestamp is false', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(userMessage, showTimestamp: false));
+    testWidgets('should hide timestamp when showTimestamp is false', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(userMessage, showTimestamp: false),
+      );
 
       // Check if timestamp is not displayed
-      final hasTimestamp = find.textContaining('ago').evaluate().isNotEmpty || 
-                          find.text('Just now').evaluate().isNotEmpty;
+      final hasTimestamp =
+          find.textContaining('ago').evaluate().isNotEmpty ||
+          find.text('Just now').evaluate().isNotEmpty;
       expect(hasTimestamp, isFalse);
     });
 
-    testWidgets('should handle message without agent gracefully', (WidgetTester tester) async {
+    testWidgets('should handle message without agent gracefully', (
+      WidgetTester tester,
+    ) async {
       final messageWithoutAgent = Message(
         id: '6',
         content: 'Message without agent',
@@ -161,7 +180,9 @@ void main() {
       expect(find.text('Message without agent'), findsOneWidget);
     });
 
-    testWidgets('should handle unknown agent gracefully', (WidgetTester tester) async {
+    testWidgets('should handle unknown agent gracefully', (
+      WidgetTester tester,
+    ) async {
       final messageWithUnknownAgent = Message(
         id: '7',
         content: 'Message with unknown agent',
@@ -176,37 +197,48 @@ void main() {
       expect(find.text('Message with unknown agent'), findsOneWidget);
     });
 
-    testWidgets('should display correct bubble colors for different message types', (WidgetTester tester) async {
-      // Test user message color
-      await tester.pumpWidget(createTestWidget(userMessage));
-      await tester.pump();
-      
-      // Test AI message color
-      await tester.pumpWidget(createTestWidget(aiMessage));
-      await tester.pump();
-      
-      // Test error message color
-      await tester.pumpWidget(createTestWidget(errorMessage));
-      await tester.pump();
-      
-      // All should render without errors
-      expect(find.byType(MessageBubble), findsOneWidget);
-    });
+    testWidgets(
+      'should display correct bubble colors for different message types',
+      (WidgetTester tester) async {
+        // Test user message color
+        await tester.pumpWidget(createTestWidget(userMessage));
+        await tester.pump();
 
-    testWidgets('should handle long messages with proper constraints', (WidgetTester tester) async {
+        // Test AI message color
+        await tester.pumpWidget(createTestWidget(aiMessage));
+        await tester.pump();
+
+        // Test error message color
+        await tester.pumpWidget(createTestWidget(errorMessage));
+        await tester.pump();
+
+        // All should render without errors
+        expect(find.byType(MessageBubble), findsOneWidget);
+      },
+    );
+
+    testWidgets('should handle long messages with proper constraints', (
+      WidgetTester tester,
+    ) async {
       final longMessage = Message.user(
         id: '8',
-        content: 'This is a very long message that should be properly constrained and wrapped to fit within the screen boundaries without overflowing or causing layout issues.',
+        content:
+            'This is a very long message that should be properly constrained and wrapped to fit within the screen boundaries without overflowing or causing layout issues.',
         timestamp: DateTime.now(),
       );
 
       await tester.pumpWidget(createTestWidget(longMessage));
 
       // Should display long message without overflow
-      expect(find.textContaining('This is a very long message'), findsOneWidget);
+      expect(
+        find.textContaining('This is a very long message'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('should display proper border radius for user messages', (WidgetTester tester) async {
+    testWidgets('should display proper border radius for user messages', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget(userMessage));
 
       // Find the message bubble container with decoration
@@ -214,7 +246,7 @@ void main() {
         of: find.byType(MessageBubble),
         matching: find.byType(Container),
       );
-      
+
       // Check if at least one container has decoration
       var foundDecoration = false;
       for (var i = 0; i < containers.evaluate().length; i++) {
@@ -229,7 +261,9 @@ void main() {
       expect(foundDecoration, isTrue);
     });
 
-    testWidgets('should display proper border radius for AI messages', (WidgetTester tester) async {
+    testWidgets('should display proper border radius for AI messages', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget(aiMessage));
 
       // Find the message bubble container with decoration
@@ -237,7 +271,7 @@ void main() {
         of: find.byType(MessageBubble),
         matching: find.byType(Container),
       );
-      
+
       // Check if at least one container has decoration
       var foundDecoration = false;
       for (var i = 0; i < containers.evaluate().length; i++) {
@@ -252,7 +286,9 @@ void main() {
       expect(foundDecoration, isTrue);
     });
 
-    testWidgets('should handle empty message content', (WidgetTester tester) async {
+    testWidgets('should handle empty message content', (
+      WidgetTester tester,
+    ) async {
       final emptyMessage = Message.user(
         id: '9',
         content: '',
@@ -265,7 +301,9 @@ void main() {
       expect(find.byType(MessageBubble), findsOneWidget);
     });
 
-    testWidgets('should display shadow for message bubbles', (WidgetTester tester) async {
+    testWidgets('should display shadow for message bubbles', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget(userMessage));
 
       // Find the message bubble container with decoration
@@ -273,14 +311,15 @@ void main() {
         of: find.byType(MessageBubble),
         matching: find.byType(Container),
       );
-      
+
       // Check if at least one container has decoration with shadow
       var foundShadow = false;
       for (var i = 0; i < containers.evaluate().length; i++) {
         final container = tester.widget<Container>(containers.at(i));
         if (container.decoration is BoxDecoration) {
           final decoration = container.decoration! as BoxDecoration;
-          if (decoration.boxShadow != null && decoration.boxShadow!.isNotEmpty) {
+          if (decoration.boxShadow != null &&
+              decoration.boxShadow!.isNotEmpty) {
             foundShadow = true;
             break;
           }

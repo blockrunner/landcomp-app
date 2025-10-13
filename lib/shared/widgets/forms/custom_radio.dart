@@ -1,5 +1,5 @@
 /// Custom radio button widget following the LandComp style guide
-/// 
+///
 /// This widget implements a radio button with proper styling,
 /// animations, and accessibility according to the design system.
 library;
@@ -14,7 +14,10 @@ import 'package:landcomp_app/core/theme/design_tokens.dart';
 class CustomRadio<T> extends StatefulWidget {
   /// Creates a custom radio button
   const CustomRadio({
-    required this.value, required this.groupValue, required this.onChanged, super.key,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+    super.key,
     this.label,
     this.activeColor,
     this.focusColor,
@@ -72,21 +75,13 @@ class _CustomRadioState<T> extends State<CustomRadio<T>>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 1,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1, end: 1.1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
-    _dotAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _dotAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     if (widget.value == widget.groupValue) {
       _animationController.value = 1.0;
@@ -96,9 +91,11 @@ class _CustomRadioState<T> extends State<CustomRadio<T>>
   @override
   void didUpdateWidget(CustomRadio<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.value == widget.groupValue && oldWidget.value != oldWidget.groupValue) {
+    if (widget.value == widget.groupValue &&
+        oldWidget.value != oldWidget.groupValue) {
       _animationController.forward();
-    } else if (widget.value != widget.groupValue && oldWidget.value == oldWidget.groupValue) {
+    } else if (widget.value != widget.groupValue &&
+        oldWidget.value == oldWidget.groupValue) {
       _animationController.reverse();
     }
   }
@@ -137,8 +134,8 @@ class _CustomRadioState<T> extends State<CustomRadio<T>>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected 
-                              ? activeColor 
+                          color: isSelected
+                              ? activeColor
                               : Theme.of(context).colorScheme.outline,
                           width: 2,
                         ),
@@ -173,7 +170,7 @@ class _CustomRadioState<T> extends State<CustomRadio<T>>
                   child: Text(
                     widget.label!,
                     style: AppTypography.body.copyWith(
-                      color: isEnabled 
+                      color: isEnabled
                           ? Theme.of(context).colorScheme.onSurface
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -192,7 +189,11 @@ class _CustomRadioState<T> extends State<CustomRadio<T>>
 class RadioWithLabel<T> extends StatelessWidget {
   /// Creates a radio button with label
   const RadioWithLabel({
-    required this.value, required this.groupValue, required this.onChanged, required this.label, super.key,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+    required this.label,
+    super.key,
     this.activeColor,
     this.semanticLabel,
   });

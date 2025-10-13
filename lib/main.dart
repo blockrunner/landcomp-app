@@ -1,5 +1,5 @@
 /// Main entry point for the Landscape AI App
-/// 
+///
 /// This file initializes the application and sets up the main app widget.
 library;
 
@@ -13,17 +13,17 @@ import 'package:landcomp_app/features/projects/presentation/providers/project_pr
 /// Main entry point
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize the application
   await AppInitializer.initialize();
-  
+
   // Initialize providers
   final themeProvider = ThemeProvider();
   await themeProvider.initialize();
-  
+
   final projectProvider = ProjectProvider();
   await projectProvider.initialize();
-  
+
   runApp(
     MultiProvider(
       providers: [

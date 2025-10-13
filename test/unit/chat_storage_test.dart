@@ -1,5 +1,5 @@
 /// Unit tests for ChatStorage
-/// 
+///
 /// Tests Hive storage functionality, message persistence,
 /// session management, and error recovery
 library;
@@ -154,10 +154,7 @@ void main() {
   group('Message Factory Methods', () {
     test('should create user message using factory', () {
       // Arrange & Act
-      final message = Message.user(
-        id: '1',
-        content: 'Hello world',
-      );
+      final message = Message.user(id: '1', content: 'Hello world');
 
       // Assert
       expect(message.id, equals('1'));
@@ -187,10 +184,7 @@ void main() {
 
     test('should create system message using factory', () {
       // Arrange & Act
-      final message = Message.system(
-        id: '3',
-        content: 'System notification',
-      );
+      final message = Message.system(id: '3', content: 'System notification');
 
       // Assert
       expect(message.id, equals('3'));
@@ -220,10 +214,7 @@ void main() {
 
     test('should create typing message using factory', () {
       // Arrange & Act
-      final message = Message.typing(
-        id: '5',
-        agentId: 'gardener',
-      );
+      final message = Message.typing(id: '5', agentId: 'gardener');
 
       // Assert
       expect(message.id, equals('5'));
@@ -381,7 +372,8 @@ void main() {
 
     test('should truncate long content in toString', () {
       // Arrange
-      const longContent = 'This is a very long message that should be truncated in the string representation';
+      const longContent =
+          'This is a very long message that should be truncated in the string representation';
       final message = Message(
         id: '1',
         content: longContent,
@@ -395,7 +387,12 @@ void main() {
       // Assert
       expect(stringRepresentation, contains('Message(id: 1'));
       expect(stringRepresentation, contains('type: MessageType.user'));
-      expect(stringRepresentation, contains('content: This is a very long message that should be truncat...'));
+      expect(
+        stringRepresentation,
+        contains(
+          'content: This is a very long message that should be truncat...',
+        ),
+      );
     });
   });
 
@@ -410,9 +407,18 @@ void main() {
 
     test('should parse enum from string', () {
       // Assert
-      expect(MessageType.values.firstWhere((e) => e.name == 'user'), equals(MessageType.user));
-      expect(MessageType.values.firstWhere((e) => e.name == 'ai'), equals(MessageType.ai));
-      expect(MessageType.values.firstWhere((e) => e.name == 'system'), equals(MessageType.system));
+      expect(
+        MessageType.values.firstWhere((e) => e.name == 'user'),
+        equals(MessageType.user),
+      );
+      expect(
+        MessageType.values.firstWhere((e) => e.name == 'ai'),
+        equals(MessageType.ai),
+      );
+      expect(
+        MessageType.values.firstWhere((e) => e.name == 'system'),
+        equals(MessageType.system),
+      );
     });
   });
 }

@@ -1,5 +1,5 @@
 /// Integration tests for proxy handling functionality
-/// 
+///
 /// Tests switching between proxies, fallback to backup proxies,
 /// and proxy configuration management.
 library;
@@ -25,15 +25,17 @@ void main() {
       return MultiProvider(
         providers: [
           ChangeNotifierProvider<ChatProvider>.value(value: chatProvider),
-          ChangeNotifierProvider<LanguageProvider>.value(value: languageProvider),
+          ChangeNotifierProvider<LanguageProvider>.value(
+            value: languageProvider,
+          ),
         ],
-        child: const MaterialApp(
-          home: ChatPage(),
-        ),
+        child: const MaterialApp(home: ChatPage()),
       );
     }
 
-    testWidgets('should handle proxy configuration changes', (WidgetTester tester) async {
+    testWidgets('should handle proxy configuration changes', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -47,12 +49,17 @@ void main() {
       expect(find.text('Proxy config test'), findsOneWidget);
     });
 
-    testWidgets('should handle primary proxy failure', (WidgetTester tester) async {
+    testWidgets('should handle primary proxy failure', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
       // Send a message
-      await tester.enterText(find.byType(TextField), 'Primary proxy failure test');
+      await tester.enterText(
+        find.byType(TextField),
+        'Primary proxy failure test',
+      );
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 
@@ -61,7 +68,9 @@ void main() {
       expect(find.text('Primary proxy failure test'), findsOneWidget);
     });
 
-    testWidgets('should fallback to backup proxy when primary fails', (WidgetTester tester) async {
+    testWidgets('should fallback to backup proxy when primary fails', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -75,7 +84,9 @@ void main() {
       expect(find.text('Backup proxy test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy authentication failures', (WidgetTester tester) async {
+    testWidgets('should handle proxy authentication failures', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -89,7 +100,9 @@ void main() {
       expect(find.text('Proxy auth failure test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy connection timeouts', (WidgetTester tester) async {
+    testWidgets('should handle proxy connection timeouts', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -103,7 +116,9 @@ void main() {
       expect(find.text('Proxy timeout test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy connection refused', (WidgetTester tester) async {
+    testWidgets('should handle proxy connection refused', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -117,7 +132,9 @@ void main() {
       expect(find.text('Proxy refused test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy DNS resolution failures', (WidgetTester tester) async {
+    testWidgets('should handle proxy DNS resolution failures', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -131,7 +148,9 @@ void main() {
       expect(find.text('Proxy DNS test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy SSL/TLS errors', (WidgetTester tester) async {
+    testWidgets('should handle proxy SSL/TLS errors', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -145,7 +164,9 @@ void main() {
       expect(find.text('Proxy SSL test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy bandwidth limitations', (WidgetTester tester) async {
+    testWidgets('should handle proxy bandwidth limitations', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -159,13 +180,18 @@ void main() {
       expect(find.text('Proxy bandwidth test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy rate limiting', (WidgetTester tester) async {
+    testWidgets('should handle proxy rate limiting', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
       // Send multiple messages rapidly to trigger proxy rate limiting
       for (var i = 0; i < 5; i++) {
-        await tester.enterText(find.byType(TextField), 'Proxy rate limit test $i');
+        await tester.enterText(
+          find.byType(TextField),
+          'Proxy rate limit test $i',
+        );
         await tester.tap(find.byType(FloatingActionButton));
         await tester.pump();
       }
@@ -177,7 +203,9 @@ void main() {
       expect(find.text('Proxy rate limit test 4'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy geographic restrictions', (WidgetTester tester) async {
+    testWidgets('should handle proxy geographic restrictions', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -191,7 +219,9 @@ void main() {
       expect(find.text('Proxy geo test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy protocol mismatches', (WidgetTester tester) async {
+    testWidgets('should handle proxy protocol mismatches', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -205,7 +235,9 @@ void main() {
       expect(find.text('Proxy protocol test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy server overload', (WidgetTester tester) async {
+    testWidgets('should handle proxy server overload', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -219,7 +251,9 @@ void main() {
       expect(find.text('Proxy overload test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy maintenance windows', (WidgetTester tester) async {
+    testWidgets('should handle proxy maintenance windows', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -233,7 +267,9 @@ void main() {
       expect(find.text('Proxy maintenance test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy configuration corruption', (WidgetTester tester) async {
+    testWidgets('should handle proxy configuration corruption', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -247,7 +283,9 @@ void main() {
       expect(find.text('Proxy corruption test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy credential expiration', (WidgetTester tester) async {
+    testWidgets('should handle proxy credential expiration', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -261,7 +299,9 @@ void main() {
       expect(find.text('Proxy credential test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy server restarts', (WidgetTester tester) async {
+    testWidgets('should handle proxy server restarts', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -275,7 +315,9 @@ void main() {
       expect(find.text('Proxy restart test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy network interface changes', (WidgetTester tester) async {
+    testWidgets('should handle proxy network interface changes', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -289,7 +331,9 @@ void main() {
       expect(find.text('Proxy interface test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy load balancing failures', (WidgetTester tester) async {
+    testWidgets('should handle proxy load balancing failures', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 
@@ -303,7 +347,9 @@ void main() {
       expect(find.text('Proxy load balance test'), findsOneWidget);
     });
 
-    testWidgets('should handle proxy health check failures', (WidgetTester tester) async {
+    testWidgets('should handle proxy health check failures', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
 

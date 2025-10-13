@@ -1,5 +1,5 @@
 /// Widget tests for AgentSelector component
-/// 
+///
 /// Tests the visual rendering and behavior of agent selection widgets
 /// including grid layout, list layout, and compact selector.
 library;
@@ -46,11 +46,15 @@ void main() {
       );
     }
 
-    testWidgets('should display all agents in grid layout', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should display all agents in grid layout', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Check if all agents are displayed
       expect(find.text('Gardener'), findsOneWidget);
@@ -65,12 +69,16 @@ void main() {
       expect(find.byIcon(Icons.eco), findsOneWidget);
     });
 
-    testWidgets('should display all agents in list layout', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-        showAsGrid: false,
-      ));
+    testWidgets('should display all agents in list layout', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+          showAsGrid: false,
+        ),
+      );
 
       // Check if all agents are displayed in list format
       expect(find.text('Gardener'), findsOneWidget);
@@ -82,11 +90,15 @@ void main() {
       expect(find.byType(GridView), findsNothing);
     });
 
-    testWidgets('should highlight selected agent in grid layout', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: landscapeAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should highlight selected agent in grid layout', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: landscapeAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Find the selected agent card
       final selectedCard = find.ancestor(
@@ -101,12 +113,16 @@ void main() {
       expect(card.elevation, greaterThan(1));
     });
 
-    testWidgets('should highlight selected agent in list layout', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: builderAgent,
-        onAgentSelected: (agent) {},
-        showAsGrid: false,
-      ));
+    testWidgets('should highlight selected agent in list layout', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: builderAgent,
+          onAgentSelected: (agent) {},
+          showAsGrid: false,
+        ),
+      );
 
       // Find the selected agent card
       final selectedCard = find.ancestor(
@@ -121,13 +137,17 @@ void main() {
       expect(card.elevation, greaterThan(1));
     });
 
-    testWidgets('should call onAgentSelected when agent is tapped in grid', (WidgetTester tester) async {
+    testWidgets('should call onAgentSelected when agent is tapped in grid', (
+      WidgetTester tester,
+    ) async {
       AIAgent? selectedAgent;
-      
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) => selectedAgent = agent,
-      ));
+
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) => selectedAgent = agent,
+        ),
+      );
 
       // Tap on landscape designer agent
       await tester.tap(find.text('Landscape Designer'));
@@ -136,14 +156,18 @@ void main() {
       expect(selectedAgent, equals(landscapeAgent));
     });
 
-    testWidgets('should call onAgentSelected when agent is tapped in list', (WidgetTester tester) async {
+    testWidgets('should call onAgentSelected when agent is tapped in list', (
+      WidgetTester tester,
+    ) async {
       AIAgent? selectedAgent;
-      
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) => selectedAgent = agent,
-        showAsGrid: false,
-      ));
+
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) => selectedAgent = agent,
+          showAsGrid: false,
+        ),
+      );
 
       // Tap on ecologist agent
       await tester.tap(find.text('Ecologist'));
@@ -152,37 +176,52 @@ void main() {
       expect(selectedAgent, equals(ecologistAgent));
     });
 
-    testWidgets('should display agent descriptions', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should display agent descriptions', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Check if descriptions are displayed (using actual descriptions from config)
       expect(find.textContaining('Expert in plants'), findsOneWidget);
-      expect(find.textContaining('Specialist in site planning'), findsOneWidget);
+      expect(
+        find.textContaining('Specialist in site planning'),
+        findsOneWidget,
+      );
       expect(find.textContaining('Expert in construction'), findsOneWidget);
       expect(find.textContaining('Specialist in eco-friendly'), findsOneWidget);
     });
 
-    testWidgets('should display check icon for selected agent in list layout', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: ecologistAgent,
-        onAgentSelected: (agent) {},
-        showAsGrid: false,
-      ));
+    testWidgets('should display check icon for selected agent in list layout', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: ecologistAgent,
+          onAgentSelected: (agent) {},
+          showAsGrid: false,
+        ),
+      );
 
       // Check if check icon is displayed for selected agent
       expect(find.byIcon(Icons.check_circle), findsOneWidget);
     });
 
-    testWidgets('should handle agent selection with different agents', (WidgetTester tester) async {
+    testWidgets('should handle agent selection with different agents', (
+      WidgetTester tester,
+    ) async {
       AIAgent? selectedAgent;
-      
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) => selectedAgent = agent,
-      ));
+
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) => selectedAgent = agent,
+        ),
+      );
 
       // Test selecting different agents
       await tester.tap(find.text('Builder'));
@@ -194,23 +233,31 @@ void main() {
       expect(selectedAgent, equals(ecologistAgent));
     });
 
-    testWidgets('should display proper agent colors', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should display proper agent colors', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // All agent cards should be displayed with their respective colors
       expect(find.byType(Card), findsNWidgets(4));
     });
 
-    testWidgets('should handle rapid agent selection', (WidgetTester tester) async {
+    testWidgets('should handle rapid agent selection', (
+      WidgetTester tester,
+    ) async {
       var selectionCount = 0;
-      
-      await tester.pumpWidget(createTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) => selectionCount++,
-      ));
+
+      await tester.pumpWidget(
+        createTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) => selectionCount++,
+        ),
+      );
 
       // Rapidly tap different agents
       await tester.tap(find.text('Landscape Designer'));
@@ -250,11 +297,15 @@ void main() {
       );
     }
 
-    testWidgets('should display current agent in compact selector', (WidgetTester tester) async {
-      await tester.pumpWidget(createCompactTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should display current agent in compact selector', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createCompactTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Check if current agent name is displayed
       expect(find.text('Gardener'), findsOneWidget);
@@ -266,11 +317,15 @@ void main() {
       expect(find.byIcon(Icons.arrow_drop_down), findsOneWidget);
     });
 
-    testWidgets('should open popup menu when tapped', (WidgetTester tester) async {
-      await tester.pumpWidget(createCompactTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should open popup menu when tapped', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createCompactTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Tap on the compact selector
       await tester.tap(find.byType(PopupMenuButton<AIAgent>));
@@ -280,11 +335,15 @@ void main() {
       expect(find.byType(PopupMenuItem<AIAgent>), findsNWidgets(4));
     });
 
-    testWidgets('should display all agents in popup menu', (WidgetTester tester) async {
-      await tester.pumpWidget(createCompactTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should display all agents in popup menu', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createCompactTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Open popup menu
       await tester.tap(find.byType(PopupMenuButton<AIAgent>));
@@ -297,30 +356,39 @@ void main() {
       expect(find.text('Ecologist'), findsOneWidget);
     });
 
-    testWidgets('should call onAgentSelected when agent is selected from popup', (WidgetTester tester) async {
-      AIAgent? selectedAgent;
-      
-      await tester.pumpWidget(createCompactTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) => selectedAgent = agent,
-      ));
+    testWidgets(
+      'should call onAgentSelected when agent is selected from popup',
+      (WidgetTester tester) async {
+        AIAgent? selectedAgent;
 
-      // Open popup menu
-      await tester.tap(find.byType(PopupMenuButton<AIAgent>));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          createCompactTestWidget(
+            currentAgent: gardenerAgent,
+            onAgentSelected: (agent) => selectedAgent = agent,
+          ),
+        );
 
-      // Select landscape designer
-      await tester.tap(find.text('Landscape Designer'));
-      await tester.pumpAndSettle();
+        // Open popup menu
+        await tester.tap(find.byType(PopupMenuButton<AIAgent>));
+        await tester.pumpAndSettle();
 
-      expect(selectedAgent, equals(AIAgentsConfig.landscapeDesignerAgent));
-    });
+        // Select landscape designer
+        await tester.tap(find.text('Landscape Designer'));
+        await tester.pumpAndSettle();
 
-    testWidgets('should show check icon for selected agent in popup', (WidgetTester tester) async {
-      await tester.pumpWidget(createCompactTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+        expect(selectedAgent, equals(AIAgentsConfig.landscapeDesignerAgent));
+      },
+    );
+
+    testWidgets('should show check icon for selected agent in popup', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createCompactTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Open popup menu
       await tester.tap(find.byType(PopupMenuButton<AIAgent>));
@@ -330,11 +398,15 @@ void main() {
       expect(find.byIcon(Icons.check), findsOneWidget);
     });
 
-    testWidgets('should display agent icons in popup menu', (WidgetTester tester) async {
-      await tester.pumpWidget(createCompactTestWidget(
-        currentAgent: gardenerAgent,
-        onAgentSelected: (agent) {},
-      ));
+    testWidgets('should display agent icons in popup menu', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createCompactTestWidget(
+          currentAgent: gardenerAgent,
+          onAgentSelected: (agent) {},
+        ),
+      );
 
       // Open popup menu
       await tester.tap(find.byType(PopupMenuButton<AIAgent>));

@@ -1,5 +1,5 @@
 /// Custom checkbox widget following the LandComp style guide
-/// 
+///
 /// This widget implements a checkbox with proper styling,
 /// animations, and accessibility according to the design system.
 library;
@@ -14,7 +14,9 @@ import 'package:landcomp_app/core/theme/design_tokens.dart';
 class CustomCheckbox extends StatefulWidget {
   /// Creates a custom checkbox
   const CustomCheckbox({
-    required this.value, required this.onChanged, super.key,
+    required this.value,
+    required this.onChanged,
+    super.key,
     this.label,
     this.tristate = false,
     this.activeColor,
@@ -76,14 +78,9 @@ class _CustomCheckboxState extends State<CustomCheckbox>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 1,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
+    _scaleAnimation = Tween<double>(begin: 1, end: 1.1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     if (widget.value ?? false) {
       _animationController.value = 1.0;
@@ -118,7 +115,9 @@ class _CustomCheckboxState extends State<CustomCheckbox>
       label: widget.semanticLabel ?? widget.label,
       checked: widget.value ?? false,
       child: InkWell(
-        onTap: isEnabled ? () => widget.onChanged?.call(!(widget.value ?? false)) : null,
+        onTap: isEnabled
+            ? () => widget.onChanged?.call(!(widget.value ?? false))
+            : null,
         borderRadius: BorderRadius.circular(DesignTokens.radiusSmall),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xs),
@@ -134,23 +133,19 @@ class _CustomCheckboxState extends State<CustomCheckbox>
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: widget.value ?? false 
-                            ? activeColor 
+                        color: widget.value ?? false
+                            ? activeColor
                             : Colors.transparent,
                         border: Border.all(
-                          color: widget.value ?? false 
-                              ? activeColor 
+                          color: widget.value ?? false
+                              ? activeColor
                               : Theme.of(context).colorScheme.outline,
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: widget.value ?? false
-                          ? Icon(
-                              Icons.check,
-                              size: 14,
-                              color: checkColor,
-                            )
+                          ? Icon(Icons.check, size: 14, color: checkColor)
                           : null,
                     ),
                   );
@@ -162,7 +157,7 @@ class _CustomCheckboxState extends State<CustomCheckbox>
                   child: Text(
                     widget.label!,
                     style: AppTypography.body.copyWith(
-                      color: isEnabled 
+                      color: isEnabled
                           ? Theme.of(context).colorScheme.onSurface
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -181,7 +176,10 @@ class _CustomCheckboxState extends State<CustomCheckbox>
 class CheckboxWithLabel extends StatelessWidget {
   /// Creates a checkbox with label
   const CheckboxWithLabel({
-    required this.value, required this.onChanged, required this.label, super.key,
+    required this.value,
+    required this.onChanged,
+    required this.label,
+    super.key,
     this.tristate = false,
     this.activeColor,
     this.checkColor,

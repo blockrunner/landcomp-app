@@ -1,5 +1,5 @@
 /// Secondary button widget following the LandComp style guide
-/// 
+///
 /// This widget implements the secondary button with light background
 /// and green border, following the design system specifications.
 library;
@@ -15,7 +15,9 @@ import 'package:landcomp_app/shared/widgets/buttons/primary_button.dart';
 class SecondaryButton extends StatefulWidget {
   /// Creates a secondary button
   const SecondaryButton({
-    required this.onPressed, required this.child, super.key,
+    required this.onPressed,
+    required this.child,
+    super.key,
     this.size = ButtonSize.medium,
     this.isLoading = false,
     this.isDisabled = false,
@@ -60,13 +62,9 @@ class _SecondaryButtonState extends State<SecondaryButton>
       duration: DesignTokens.animationFast,
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1,
-      end: 0.98,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1, end: 0.98).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -77,9 +75,8 @@ class _SecondaryButtonState extends State<SecondaryButton>
 
   @override
   Widget build(BuildContext context) {
-    final isEnabled = widget.onPressed != null && 
-                          !widget.isDisabled && 
-                          !widget.isLoading;
+    final isEnabled =
+        widget.onPressed != null && !widget.isDisabled && !widget.isLoading;
 
     return AnimatedBuilder(
       animation: _scaleAnimation,
@@ -89,19 +86,19 @@ class _SecondaryButtonState extends State<SecondaryButton>
           child: GestureDetector(
             onTapDown: isEnabled ? (_) => _animationController.forward() : null,
             onTapUp: isEnabled ? (_) => _animationController.reverse() : null,
-            onTapCancel: isEnabled ? () => _animationController.reverse() : null,
+            onTapCancel: isEnabled
+                ? () => _animationController.reverse()
+                : null,
             onTap: isEnabled ? widget.onPressed : null,
             child: Container(
               width: widget.width ?? _getButtonWidth(),
               height: _getButtonHeight(),
               decoration: BoxDecoration(
-                color: isEnabled 
-                    ? AppColors.primaryGreenLight 
+                color: isEnabled
+                    ? AppColors.primaryGreenLight
                     : AppColors.gray100,
                 border: Border.all(
-                  color: isEnabled 
-                      ? AppColors.primaryGreen 
-                      : AppColors.gray500,
+                  color: isEnabled ? AppColors.primaryGreen : AppColors.gray500,
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
@@ -110,7 +107,9 @@ class _SecondaryButtonState extends State<SecondaryButton>
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: isEnabled ? widget.onPressed : null,
-                  borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
+                  borderRadius: BorderRadius.circular(
+                    DesignTokens.radiusMedium,
+                  ),
                   child: Container(
                     padding: _getButtonPadding(),
                     child: _buildButtonContent(),
@@ -199,18 +198,14 @@ class _SecondaryButtonState extends State<SecondaryButton>
           height: 16,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.darkTeal,
-            ),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.darkTeal),
           ),
         ),
         if (widget.size != ButtonSize.icon) ...[
           const SizedBox(width: AppSpacing.sm),
           Text(
             'Loading...',
-            style: _getTextStyle().copyWith(
-              color: AppColors.darkTeal,
-            ),
+            style: _getTextStyle().copyWith(color: AppColors.darkTeal),
           ),
         ],
       ],
@@ -241,9 +236,7 @@ class _SecondaryButtonState extends State<SecondaryButton>
           const SizedBox(width: AppSpacing.sm),
         ],
         DefaultTextStyle(
-          style: _getTextStyle().copyWith(
-            color: AppColors.darkTeal,
-          ),
+          style: _getTextStyle().copyWith(color: AppColors.darkTeal),
           child: widget.child,
         ),
       ],
@@ -268,7 +261,9 @@ class _SecondaryButtonState extends State<SecondaryButton>
 /// Convenience constructors for different button sizes
 class SecondaryButtonLarge extends SecondaryButton {
   const SecondaryButtonLarge({
-    required super.onPressed, required super.child, super.key,
+    required super.onPressed,
+    required super.child,
+    super.key,
     super.isLoading,
     super.isDisabled,
     super.width,
@@ -278,7 +273,9 @@ class SecondaryButtonLarge extends SecondaryButton {
 
 class SecondaryButtonSmall extends SecondaryButton {
   const SecondaryButtonSmall({
-    required super.onPressed, required super.child, super.key,
+    required super.onPressed,
+    required super.child,
+    super.key,
     super.isLoading,
     super.isDisabled,
     super.width,
@@ -288,11 +285,10 @@ class SecondaryButtonSmall extends SecondaryButton {
 
 class SecondaryButtonIcon extends SecondaryButton {
   const SecondaryButtonIcon({
-    required super.onPressed, required super.icon, super.key,
+    required super.onPressed,
+    required super.icon,
+    super.key,
     super.isLoading,
     super.isDisabled,
-  }) : super(
-          size: ButtonSize.icon,
-          child: const SizedBox.shrink(),
-        );
+  }) : super(size: ButtonSize.icon, child: const SizedBox.shrink());
 }

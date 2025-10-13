@@ -1,5 +1,5 @@
 /// Project provider for managing project state
-/// 
+///
 /// This provider manages the projects list, current project,
 /// and project operations like creation, switching, and deletion.
 library;
@@ -44,16 +44,16 @@ class ProjectProvider extends ChangeNotifier {
     try {
       // Initialize chat storage
       await _chatStorage.initialize();
-      
+
       // Check if migration is needed and perform it
       if (await _migrationHelper.isMigrationNeeded()) {
         print('🔄 Migration needed, performing migration...');
         await _migrationHelper.performCompleteMigration();
       }
-      
+
       // Load existing projects
       await _loadProjects();
-      
+
       // Create new project if none exist
       if (_projects.isEmpty) {
         await createNewProject();
@@ -61,7 +61,7 @@ class ProjectProvider extends ChangeNotifier {
         // Use the most recent project
         _currentProject = _projects.first;
       }
-      
+
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
@@ -69,7 +69,7 @@ class ProjectProvider extends ChangeNotifier {
       _setError('Failed to initialize projects: ${e.toString()}');
     }
   }
-  
+
   /// Load projects from storage
   Future<void> _loadProjects() async {
     try {
@@ -97,7 +97,7 @@ class ProjectProvider extends ChangeNotifier {
 
       final projectId = _uuid.v4();
       final projectTitle = title ?? _getDefaultProjectTitle();
-      
+
       final project = Project(
         id: projectId,
         title: projectTitle,
@@ -110,11 +110,11 @@ class ProjectProvider extends ChangeNotifier {
 
       // Save to storage
       await _chatStorage.saveProject(project);
-      
+
       // Add to local list
       _projects.insert(0, project);
       _currentProject = project;
-      
+
       print('✅ Created new project: ${project.title}');
       notifyListeners();
     } catch (e) {
@@ -150,10 +150,10 @@ class ProjectProvider extends ChangeNotifier {
 
       // Remove from storage
       await _chatStorage.deleteProject(projectId);
-      
+
       // Remove from local list
       _projects.removeWhere((p) => p.id == projectId);
-      
+
       // If we deleted the current project, switch to another or create new
       if (_currentProject?.id == projectId) {
         if (_projects.isNotEmpty) {
@@ -181,12 +181,12 @@ class ProjectProvider extends ChangeNotifier {
 
       // Update in storage
       await _chatStorage.updateProjectTitle(projectId, newTitle);
-      
+
       // Update in local list
       final projectIndex = _projects.indexWhere((p) => p.id == projectId);
       if (projectIndex >= 0) {
         _projects[projectIndex] = _projects[projectIndex].updateTitle(newTitle);
-        
+
         // Update current project if it's the one being renamed
         if (_currentProject?.id == projectId) {
           _currentProject = _projects[projectIndex];
@@ -210,15 +210,15 @@ class ProjectProvider extends ChangeNotifier {
       if (projectIndex >= 0) {
         final updatedProject = _projects[projectIndex].toggleFavorite();
         _projects[projectIndex] = updatedProject;
-        
+
         // Update current project if it's the one being toggled
         if (_currentProject?.id == projectId) {
           _currentProject = updatedProject;
         }
-        
+
         // Save to storage
         await _chatStorage.saveProject(updatedProject);
-        
+
         print('⭐ Toggled favorite for project: ${updatedProject.title}');
         notifyListeners();
       }
@@ -234,9 +234,11 @@ class ProjectProvider extends ChangeNotifier {
       if (_currentProject?.id != updatedProject.id) return;
 
       _currentProject = updatedProject;
-      
+
       // Update in local list
-      final projectIndex = _projects.indexWhere((p) => p.id == updatedProject.id);
+      final projectIndex = _projects.indexWhere(
+        (p) => p.id == updatedProject.id,
+      );
       if (projectIndex >= 0) {
         _projects[projectIndex] = updatedProject;
       } else {
@@ -245,7 +247,7 @@ class ProjectProvider extends ChangeNotifier {
 
       // Save to storage
       await _chatStorage.saveProject(updatedProject);
-      
+
       notifyListeners();
     } catch (e) {
       print('❌ Error updating project with message: $e');
@@ -254,9 +256,11 @@ class ProjectProvider extends ChangeNotifier {
   }
 
   /// Get projects sorted by different criteria
-  List<Project> getProjectsSortedBy({ProjectSortBy sortBy = ProjectSortBy.lastModified}) {
+  List<Project> getProjectsSortedBy({
+    ProjectSortBy sortBy = ProjectSortBy.lastModified,
+  }) {
     final sortedProjects = List<Project>.from(_projects);
-    
+
     switch (sortBy) {
       case ProjectSortBy.lastModified:
         sortedProjects.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
@@ -265,7 +269,9 @@ class ProjectProvider extends ChangeNotifier {
         sortedProjects.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         break;
       case ProjectSortBy.title:
-        sortedProjects.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        sortedProjects.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
         break;
       case ProjectSortBy.favorites:
         sortedProjects.sort((a, b) {
@@ -275,18 +281,19 @@ class ProjectProvider extends ChangeNotifier {
         });
         break;
     }
-    
+
     return sortedProjects;
   }
 
   /// Search projects by title or content
   List<Project> searchProjects(String query) {
     if (query.trim().isEmpty) return _projects;
-    
+
     final lowercaseQuery = query.toLowerCase();
     return _projects.where((project) {
       return project.title.toLowerCase().contains(lowercaseQuery) ||
-             (project.previewText?.toLowerCase().contains(lowercaseQuery) ?? false);
+          (project.previewText?.toLowerCase().contains(lowercaseQuery) ??
+              false);
     }).toList();
   }
 
@@ -297,7 +304,9 @@ class ProjectProvider extends ChangeNotifier {
 
   /// Get recent projects (last 5)
   List<Project> get recentProjects {
-    return getProjectsSortedBy(sortBy: ProjectSortBy.lastModified).take(5).toList();
+    return getProjectsSortedBy(
+      sortBy: ProjectSortBy.lastModified,
+    ).take(5).toList();
   }
 
   /// Clear all projects
@@ -359,9 +368,4 @@ class ProjectProvider extends ChangeNotifier {
 }
 
 /// Project sorting options
-enum ProjectSortBy {
-  lastModified,
-  created,
-  title,
-  favorites,
-}
+enum ProjectSortBy { lastModified, created, title, favorites }

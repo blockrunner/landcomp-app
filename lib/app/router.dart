@@ -1,5 +1,5 @@
 /// Application routing configuration
-/// 
+///
 /// This file contains the routing setup using go_router
 /// for navigation throughout the app.
 library;
@@ -71,11 +71,7 @@ class AppRouter {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red,
-              ),
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
               const SizedBox(height: 16),
               Text(
                 languageProvider.getString('pageNotFound'),

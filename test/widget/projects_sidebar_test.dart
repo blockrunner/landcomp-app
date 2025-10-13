@@ -1,5 +1,5 @@
 /// Widget tests for ProjectsSidebar
-/// 
+///
 /// This file contains widget tests for the ProjectsSidebar widget
 /// to ensure proper UI functionality and user interactions.
 library;
@@ -26,7 +26,7 @@ void main() {
     setUp(() {
       mockProjectProvider = MockProjectProvider();
       mockLanguageProvider = MockLanguageProvider();
-      
+
       // Setup default mock responses
       when(mockLanguageProvider.currentLocale).thenReturn(const Locale('en'));
       when(mockLanguageProvider.getString(any)).thenAnswer((invocation) {
@@ -43,17 +43,21 @@ void main() {
       return MaterialApp(
         home: MultiProvider(
           providers: [
-            ChangeNotifierProvider<ProjectProvider>.value(value: mockProjectProvider),
-            ChangeNotifierProvider<LanguageProvider>.value(value: mockLanguageProvider),
+            ChangeNotifierProvider<ProjectProvider>.value(
+              value: mockProjectProvider,
+            ),
+            ChangeNotifierProvider<LanguageProvider>.value(
+              value: mockLanguageProvider,
+            ),
           ],
-          child: const Scaffold(
-            drawer: ProjectsSidebar(),
-          ),
+          child: const Scaffold(drawer: ProjectsSidebar()),
         ),
       );
     }
 
-    testWidgets('should display empty state when no projects exist', (WidgetTester tester) async {
+    testWidgets('should display empty state when no projects exist', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       when(mockProjectProvider.hasProjects).thenReturn(false);
 
@@ -73,7 +77,9 @@ void main() {
       expect(find.text('createFirstProject'), findsOneWidget);
     });
 
-    testWidgets('should display projects list when projects exist', (WidgetTester tester) async {
+    testWidgets('should display projects list when projects exist', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final projects = [
         Project(
@@ -130,7 +136,9 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('should show loading indicator when loading', (WidgetTester tester) async {
+    testWidgets('should show loading indicator when loading', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       when(mockProjectProvider.isLoading).thenReturn(true);
 
@@ -149,7 +157,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('should display project with favorite indicator', (WidgetTester tester) async {
+    testWidgets('should display project with favorite indicator', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final project = Project(
         id: '1',
@@ -179,7 +189,9 @@ void main() {
       expect(find.byIcon(Icons.star), findsOneWidget);
     });
 
-    testWidgets('should show close button in header', (WidgetTester tester) async {
+    testWidgets('should show close button in header', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
@@ -195,7 +207,9 @@ void main() {
       expect(find.byIcon(Icons.close), findsOneWidget);
     });
 
-    testWidgets('should display projects header with icon', (WidgetTester tester) async {
+    testWidgets('should display projects header with icon', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();

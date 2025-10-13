@@ -1,5 +1,5 @@
 /// Feature card widget following the LandComp style guide
-/// 
+///
 /// This widget displays feature information in a card format
 /// with icon, title, description, and availability indicator.
 library;
@@ -46,7 +46,8 @@ class FeatureData {
 class FeatureCard extends StatelessWidget {
   /// Creates a feature card
   const FeatureCard({
-    required this.feature, super.key,
+    required this.feature,
+    super.key,
     this.width,
     this.height,
   });
@@ -113,9 +114,7 @@ class FeatureCard extends StatelessWidget {
       children: [
         Text(
           feature.title,
-          style: AppTypography.h6.copyWith(
-            color: _getTextColor(context),
-          ),
+          style: AppTypography.h6.copyWith(color: _getTextColor(context)),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -265,9 +264,7 @@ class FeatureCard extends StatelessWidget {
 /// Compact feature card for lists
 class CompactFeatureCard extends StatelessWidget {
   /// Creates a compact feature card
-  const CompactFeatureCard({
-    required this.feature, super.key,
-  });
+  const CompactFeatureCard({required this.feature, super.key});
 
   /// Feature data
   final FeatureData feature;

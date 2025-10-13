@@ -1,5 +1,5 @@
 /// Base Tool interface for orchestrator
-/// 
+///
 /// This interface defines the contract for all tools in the system,
 /// including capability checking and execution.
 library;

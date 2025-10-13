@@ -1,5 +1,5 @@
 /// AI Service for OpenAI and Google Gemini integration
-/// 
+///
 /// This service handles AI API calls with proxy support,
 /// fallback mechanisms, and error handling.
 library;
@@ -35,18 +35,22 @@ class AIService {
   /// Initialize the AI service
   Future<void> initialize() async {
     print('🔧 Initializing AIService...');
-    
+
     _currentProxy = EnvConfig.getCurrentProxy();
     _currentGoogleApiKey = EnvConfig.googleApiKey;
     _currentOpenAIApiKey = EnvConfig.openaiApiKey;
 
     print('   Proxy configured: ${_currentProxy.isNotEmpty ? '✅' : '❌'}');
-    print('   Google API key configured: ${_currentGoogleApiKey.isNotEmpty ? '✅' : '❌'}');
-    print('   OpenAI API key configured: ${EnvConfig.isOpenAIConfigured ? '✅' : '❌'}');
+    print(
+      '   Google API key configured: ${_currentGoogleApiKey.isNotEmpty ? '✅' : '❌'}',
+    );
+    print(
+      '   OpenAI API key configured: ${EnvConfig.isOpenAIConfigured ? '✅' : '❌'}',
+    );
     print('   Platform: ${kIsWeb ? 'Web' : 'Native'}');
 
     _dio = Dio();
-    
+
     // Configure proxy if available
     if (_currentProxy.isNotEmpty) {
       print('   Configuring proxy...');
@@ -66,7 +70,7 @@ class AIService {
     // Add interceptors
     _dio.interceptors.add(_createLoggingInterceptor());
     _dio.interceptors.add(_createRetryInterceptor());
-    
+
     print('✅ AIService initialized successfully');
   }
 
@@ -83,12 +87,12 @@ class AIService {
     try {
       // Parse proxy URL
       final proxyUri = Uri.parse(_currentProxy);
-      
+
       if (kIsWeb) {
         // For web platform, we cannot use IOHttpClientAdapter
         // Instead, we'll use BrowserHttpClientAdapter and handle proxy differently
         _dio.httpClientAdapter = BrowserHttpClientAdapter();
-        
+
         // For web, we need to use a proxy server or CORS proxy
         // Add proxy prefix to base URLs
         _configureWebProxy(proxyUri);
@@ -96,25 +100,28 @@ class AIService {
         // For native platforms, use IOHttpClientAdapter with proxy
         // Reset baseUrl for native platforms
         _dio.options.baseUrl = '';
-        
+
         (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
           final client = HttpClient();
           client.findProxy = (uri) {
             return 'PROXY ${proxyUri.host}:${proxyUri.port}';
           };
-          
+
           // Handle authentication if present
           if (proxyUri.userInfo.isNotEmpty) {
             final credentials = proxyUri.userInfo.split(':');
             if (credentials.length == 2) {
               client.authenticate = (uri, scheme, realm) async {
-                client.addCredentials(uri, scheme, 
-                  HttpClientBasicCredentials(credentials[0], credentials[1]));
+                client.addCredentials(
+                  uri,
+                  scheme,
+                  HttpClientBasicCredentials(credentials[0], credentials[1]),
+                );
                 return true;
               };
             }
           }
-          
+
           return client;
         };
       }
@@ -132,12 +139,12 @@ class AIService {
     // For web, we'll use a local proxy server
     // The proxy server will handle the SOCKS5 proxy connection
     _dio.options.baseUrl = 'http://localhost:3001';
-    
+
     // Add proxy information to headers for the proxy server
     _dio.options.headers['X-Proxy-URL'] = _currentProxy;
     _dio.options.headers['X-Proxy-Host'] = proxyUri.host;
     _dio.options.headers['X-Proxy-Port'] = proxyUri.port.toString();
-    
+
     if (proxyUri.userInfo.isNotEmpty) {
       final credentials = proxyUri.userInfo.split(':');
       if (credentials.length == 2) {
@@ -175,7 +182,9 @@ class AIService {
           if (await _tryBackupProxy()) {
             // Retry the request
             try {
-              final response = await _dio.fetch<Map<String, dynamic>>(error.requestOptions);
+              final response = await _dio.fetch<Map<String, dynamic>>(
+                error.requestOptions,
+              );
               handler.resolve(response);
               return;
             } catch (e) {
@@ -183,7 +192,7 @@ class AIService {
             }
           }
         }
-        
+
         handler.next(error);
       },
     );
@@ -204,7 +213,8 @@ class AIService {
   Future<String> sendToOpenAI({
     required String message,
     required String systemPrompt,
-    String model = 'gpt-4o', // Changed from 'gpt-4' to 'gpt-4o' for Vision API support
+    String model =
+        'gpt-4o', // Changed from 'gpt-4' to 'gpt-4o' for Vision API support
     List<Message>? conversationHistory,
     int maxHistoryMessages = 20,
     List<Attachment>? selectedImages,
@@ -214,8 +224,10 @@ class AIService {
     }
 
     try {
-      const url = kIsWeb ? '/proxy/openai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-      
+      const url = kIsWeb
+          ? '/proxy/openai/v1/chat/completions'
+          : 'https://api.openai.com/v1/chat/completions';
+
       final response = await _dio.post<Map<String, dynamic>>(
         url,
         options: Options(
@@ -227,7 +239,13 @@ class AIService {
         ),
         data: {
           'model': model,
-          'messages': await _buildOpenAIMessages(systemPrompt, message, conversationHistory, maxHistoryMessages, selectedImages: selectedImages),
+          'messages': await _buildOpenAIMessages(
+            systemPrompt,
+            message,
+            conversationHistory,
+            maxHistoryMessages,
+            selectedImages: selectedImages,
+          ),
           'max_tokens': 4000, // Increased for detailed responses
           'temperature': 0.7,
           'stream': false,
@@ -248,7 +266,9 @@ class AIService {
       } else {
         final errorData = response.data;
         final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
-        throw Exception('OpenAI API error (${response.statusCode}): $errorMessage');
+        throw Exception(
+          'OpenAI API error (${response.statusCode}): $errorMessage',
+        );
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 429) {
@@ -256,15 +276,21 @@ class AIService {
       } else if (e.response?.statusCode == 401) {
         throw Exception('OpenAI API key is invalid or expired.');
       } else if (e.response?.statusCode == 403) {
-        throw Exception('OpenAI API access forbidden. Check your API key permissions.');
+        throw Exception(
+          'OpenAI API access forbidden. Check your API key permissions.',
+        );
       } else if (e.response?.statusCode == 400) {
         final errorData = e.response?.data as Map<String, dynamic>?;
         final errorMessage = errorData?['error']?['message'] ?? 'Bad request';
         throw Exception('OpenAI API bad request: $errorMessage');
       } else if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout. Please check your internet connection.');
+        throw Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
       } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Request timeout. The server took too long to respond.');
+        throw Exception(
+          'Request timeout. The server took too long to respond.',
+        );
       } else {
         throw Exception('OpenAI API error: ${e.message}');
       }
@@ -276,16 +302,20 @@ class AIService {
     String systemPrompt,
     String message,
     List<Message>? conversationHistory,
-    int maxHistoryMessages,
-    {List<Attachment>? selectedImages}
-  ) async {
+    int maxHistoryMessages, {
+    List<Attachment>? selectedImages,
+  }) async {
     // Detect user language and enhance system prompt
-    final enhancedSystemPrompt = _enhanceSystemPromptWithLanguage(systemPrompt, message, conversationHistory);
-    
+    final enhancedSystemPrompt = _enhanceSystemPromptWithLanguage(
+      systemPrompt,
+      message,
+      conversationHistory,
+    );
+
     final messages = <Map<String, dynamic>>[
       {'role': 'system', 'content': enhancedSystemPrompt},
     ];
-    
+
     // Add conversation history WITHOUT images (text only)
     if (conversationHistory != null) {
       final relevantHistory = conversationHistory
@@ -295,7 +325,7 @@ class AIService {
           .take(maxHistoryMessages)
           .toList()
           .reversed;
-      
+
       for (final msg in relevantHistory) {
         messages.add({
           'role': msg.type == MessageType.user ? 'user' : 'assistant',
@@ -303,41 +333,39 @@ class AIService {
         });
       }
     }
-    
+
     // Build current message with selected images
     if (selectedImages != null && selectedImages.isNotEmpty) {
       final contentParts = <Map<String, dynamic>>[];
-      
+
       // Add text
       contentParts.add({'type': 'text', 'text': message});
-      
+
       // Add selected images (up to 5)
       final imagesToSend = selectedImages.take(5).toList();
       print('📸 Adding ${imagesToSend.length} selected images to request');
-      
+
       for (final attachment in imagesToSend) {
         if (attachment.data != null) {
           final compressedData = await _compressImage(
-            attachment.data!, 
-            maxSizeKb: 25
+            attachment.data!,
+            maxSizeKb: 25,
           );
           final base64Image = base64Encode(compressedData);
-          
+
           contentParts.add({
             'type': 'image_url',
-            'image_url': {
-              'url': 'data:image/jpeg;base64,$base64Image',
-            },
+            'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
           });
         }
       }
-      
+
       messages.add({'role': 'user', 'content': contentParts});
     } else {
       // Text-only message
       messages.add({'role': 'user', 'content': message});
     }
-    
+
     return messages;
   }
 
@@ -348,8 +376,11 @@ class AIService {
     List<Message>? conversationHistory,
   ) {
     // Detect language from current message and conversation history
-    final detectedLanguage = _detectUserLanguage(currentMessage, conversationHistory);
-    
+    final detectedLanguage = _detectUserLanguage(
+      currentMessage,
+      conversationHistory,
+    );
+
     if (detectedLanguage == 'ru') {
       // Add Russian language instruction
       return '''$systemPrompt
@@ -372,12 +403,15 @@ IMPORTANT:
   }
 
   /// Detect user language from message content
-  String _detectUserLanguage(String message, List<Message>? conversationHistory) {
+  String _detectUserLanguage(
+    String message,
+    List<Message>? conversationHistory,
+  ) {
     // Check current message for Russian text
     if (_containsRussianText(message)) {
       return 'ru';
     }
-    
+
     // Check conversation history for Russian text
     if (conversationHistory != null) {
       for (final msg in conversationHistory) {
@@ -386,7 +420,7 @@ IMPORTANT:
         }
       }
     }
-    
+
     return 'en'; // Default to English
   }
 
@@ -398,7 +432,10 @@ IMPORTANT:
 
   /// Compress image to reduce size for API requests
   /// Targets max 100KB per image for OpenAI compatibility
-  Future<Uint8List> _compressImage(Uint8List imageData, {int maxSizeKb = 100}) async {
+  Future<Uint8List> _compressImage(
+    Uint8List imageData, {
+    int maxSizeKb = 100,
+  }) async {
     try {
       final image = img.decodeImage(imageData);
       if (image == null) {
@@ -407,7 +444,9 @@ IMPORTANT:
       }
 
       final originalSizeKb = imageData.length / 1024;
-      print('📸 Original image: ${image.width}x${image.height}, ${originalSizeKb.toStringAsFixed(1)}KB');
+      print(
+        '📸 Original image: ${image.width}x${image.height}, ${originalSizeKb.toStringAsFixed(1)}KB',
+      );
 
       // If already small enough, return as-is
       if (originalSizeKb <= maxSizeKb) {
@@ -417,10 +456,11 @@ IMPORTANT:
 
       // Calculate resize ratio to target size
       // Assuming JPEG compression ratio of ~10:1
-      final targetPixels = (maxSizeKb * 1024 * 10) / 3; // RGB = 3 bytes per pixel
+      final targetPixels =
+          (maxSizeKb * 1024 * 10) / 3; // RGB = 3 bytes per pixel
       final currentPixels = image.width * image.height;
       final ratio = sqrt(targetPixels / currentPixels);
-      
+
       final newWidth = (image.width * ratio).toInt();
       final newHeight = (image.height * ratio).toInt();
 
@@ -428,11 +468,15 @@ IMPORTANT:
       final resized = img.copyResize(image, width: newWidth, height: newHeight);
 
       // Encode as JPEG with quality 85
-      final compressed = Uint8List.fromList(img.encodeJpg(resized, quality: 85));
+      final compressed = Uint8List.fromList(
+        img.encodeJpg(resized, quality: 85),
+      );
       final compressedSizeKb = compressed.length / 1024;
 
-      print('✅ Compressed: ${compressedSizeKb.toStringAsFixed(1)}KB (${((1 - compressedSizeKb / originalSizeKb) * 100).toStringAsFixed(1)}% reduction)');
-      
+      print(
+        '✅ Compressed: ${compressedSizeKb.toStringAsFixed(1)}KB (${((1 - compressedSizeKb / originalSizeKb) * 100).toStringAsFixed(1)}% reduction)',
+      );
+
       return compressed;
     } catch (e) {
       print('⚠️ Image compression failed: $e, returning original');
@@ -454,27 +498,26 @@ IMPORTANT:
     }
 
     try {
-      final url = kIsWeb 
-        ? '/proxy/gemini/v1beta/models/$model:generateContent'
-        : 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent';
-      
+      final url = kIsWeb
+          ? '/proxy/gemini/v1beta/models/$model:generateContent'
+          : 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent';
+
       final response = await _dio.post<Map<String, dynamic>>(
         url,
-        queryParameters: {
-          'key': _currentGoogleApiKey,
-        },
+        queryParameters: {'key': _currentGoogleApiKey},
         options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           validateStatus: (status) => status != null && status < 500,
         ),
         data: {
-          'contents': _buildGeminiContents(systemPrompt, message, conversationHistory, maxHistoryMessages, selectedImages: selectedImages),
-          'generationConfig': {
-            'temperature': 0.7,
-            'maxOutputTokens': 1000,
-          },
+          'contents': _buildGeminiContents(
+            systemPrompt,
+            message,
+            conversationHistory,
+            maxHistoryMessages,
+            selectedImages: selectedImages,
+          ),
+          'generationConfig': {'temperature': 0.7, 'maxOutputTokens': 1000},
         },
       );
 
@@ -498,7 +541,9 @@ IMPORTANT:
       } else {
         final errorData = response.data;
         final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
-        throw Exception('Google Gemini API error (${response.statusCode}): $errorMessage');
+        throw Exception(
+          'Google Gemini API error (${response.statusCode}): $errorMessage',
+        );
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 429) {
@@ -510,11 +555,15 @@ IMPORTANT:
             model: model,
           );
         }
-        throw Exception('Google Gemini rate limit exceeded. Please try again later.');
+        throw Exception(
+          'Google Gemini rate limit exceeded. Please try again later.',
+        );
       } else if (e.response?.statusCode == 400) {
         final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage = errorData?['error']?['message'] as String? ?? 'Bad request';
-        if (errorMessage.contains('RESOURCE_EXHAUSTED') || errorMessage.contains('QUOTA_EXCEEDED')) {
+        final errorMessage =
+            errorData?['error']?['message'] as String? ?? 'Bad request';
+        if (errorMessage.contains('RESOURCE_EXHAUSTED') ||
+            errorMessage.contains('QUOTA_EXCEEDED')) {
           // Try with fallback key
           if (await _tryFallbackGoogleKey()) {
             return sendToGemini(
@@ -528,11 +577,17 @@ IMPORTANT:
       } else if (e.response?.statusCode == 401) {
         throw Exception('Google Gemini API key is invalid or expired.');
       } else if (e.response?.statusCode == 403) {
-        throw Exception('Google Gemini API access forbidden. Check your API key permissions.');
+        throw Exception(
+          'Google Gemini API access forbidden. Check your API key permissions.',
+        );
       } else if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout. Please check your internet connection.');
+        throw Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
       } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Request timeout. The server took too long to respond.');
+        throw Exception(
+          'Request timeout. The server took too long to respond.',
+        );
       } else {
         throw Exception('Google Gemini API error: ${e.message}');
       }
@@ -544,14 +599,18 @@ IMPORTANT:
     String systemPrompt,
     String message,
     List<Message>? conversationHistory,
-    int maxHistoryMessages,
-    {List<Attachment>? selectedImages}
-  ) {
+    int maxHistoryMessages, {
+    List<Attachment>? selectedImages,
+  }) {
     // Detect user language and enhance system prompt
-    final enhancedSystemPrompt = _enhanceSystemPromptWithLanguage(systemPrompt, message, conversationHistory);
-    
+    final enhancedSystemPrompt = _enhanceSystemPromptWithLanguage(
+      systemPrompt,
+      message,
+      conversationHistory,
+    );
+
     final contents = <Map<String, dynamic>>[];
-    
+
     // Add conversation history
     if (conversationHistory != null) {
       final relevantHistory = conversationHistory
@@ -561,44 +620,42 @@ IMPORTANT:
           .take(maxHistoryMessages)
           .toList()
           .reversed;
-      
+
       for (final msg in relevantHistory) {
         contents.add({
           'role': msg.type == MessageType.user ? 'user' : 'model',
-          'parts': [{'text': msg.content}],
+          'parts': [
+            {'text': msg.content},
+          ],
         });
       }
     }
-    
+
     // Add current message with enhanced system prompt and selected images
     final parts = <Map<String, dynamic>>[];
-    
+
     // Add text with enhanced system prompt
     parts.add({'text': '$enhancedSystemPrompt\n\nUser: $message'});
-    
+
     // Add selected images if any
     if (selectedImages != null && selectedImages.isNotEmpty) {
       final imagesToSend = selectedImages.take(5).toList();
-      print('📸 Adding ${imagesToSend.length} selected images to Gemini request');
-      
+      print(
+        '📸 Adding ${imagesToSend.length} selected images to Gemini request',
+      );
+
       for (final attachment in imagesToSend) {
         if (attachment.data != null) {
           final base64Image = base64Encode(attachment.data!);
           parts.add({
-            'inline_data': {
-              'mime_type': 'image/jpeg',
-              'data': base64Image,
-            },
+            'inline_data': {'mime_type': 'image/jpeg', 'data': base64Image},
           });
         }
       }
     }
-    
-    contents.add({
-      'role': 'user',
-      'parts': parts,
-    });
-    
+
+    contents.add({'role': 'user', 'parts': parts});
+
     return contents;
   }
 
@@ -637,10 +694,7 @@ IMPORTANT:
 
       // Prepare content with images
       final content = <Map<String, dynamic>>[
-        {
-          'type': 'text',
-          'text': prompt,
-        }
+        {'type': 'text', 'text': prompt},
       ];
 
       // Add images as base64
@@ -648,9 +702,7 @@ IMPORTANT:
         final base64Image = base64Encode(imageBytes);
         content.add({
           'type': 'image_url',
-          'image_url': {
-            'url': 'data:image/jpeg;base64,$base64Image',
-          },
+          'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
         });
       }
 
@@ -666,10 +718,7 @@ IMPORTANT:
         data: {
           'model': model,
           'messages': [
-            {
-              'role': 'user',
-              'content': content,
-            }
+            {'role': 'user', 'content': content},
           ],
           'max_tokens': 1000,
           'temperature': 0.7,
@@ -691,23 +740,32 @@ IMPORTANT:
       } else {
         final errorData = response.data;
         final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
-        throw Exception('OpenAI API error (${response.statusCode}): $errorMessage');
+        throw Exception(
+          'OpenAI API error (${response.statusCode}): $errorMessage',
+        );
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 429) {
         throw Exception('OpenAI rate limit exceeded. Please try again later.');
       } else if (e.response?.statusCode == 400) {
         final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage = errorData?['error']?['message'] as String? ?? 'Bad request';
+        final errorMessage =
+            errorData?['error']?['message'] as String? ?? 'Bad request';
         throw Exception('OpenAI API bad request: $errorMessage');
       } else if (e.response?.statusCode == 401) {
         throw Exception('OpenAI API key is invalid or expired.');
       } else if (e.response?.statusCode == 403) {
-        throw Exception('OpenAI API access forbidden. Check your API key permissions.');
+        throw Exception(
+          'OpenAI API access forbidden. Check your API key permissions.',
+        );
       } else if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout. Please check your internet connection.');
+        throw Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
       } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Request timeout. The server took too long to respond.');
+        throw Exception(
+          'Request timeout. The server took too long to respond.',
+        );
       } else {
         throw Exception('OpenAI API error: ${e.message}');
       }
@@ -733,48 +791,35 @@ IMPORTANT:
     }
 
     try {
-      final url = kIsWeb 
-        ? '/proxy/gemini/v1beta/models/$model:generateContent'
-        : 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent';
-      
+      final url = kIsWeb
+          ? '/proxy/gemini/v1beta/models/$model:generateContent'
+          : 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent';
+
       // Prepare content parts
       final parts = <Map<String, dynamic>>[
-        {'text': prompt}
+        {'text': prompt},
       ];
 
       // Add images as base64
       for (final imageBytes in images) {
         final base64Image = base64Encode(imageBytes);
         parts.add({
-          'inline_data': {
-            'mime_type': 'image/jpeg',
-            'data': base64Image,
-          }
+          'inline_data': {'mime_type': 'image/jpeg', 'data': base64Image},
         });
       }
 
       final response = await _dio.post<Map<String, dynamic>>(
         url,
-        queryParameters: {
-          'key': _currentGoogleApiKey,
-        },
+        queryParameters: {'key': _currentGoogleApiKey},
         options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           validateStatus: (status) => status != null && status < 500,
         ),
         data: {
           'contents': [
-            {
-              'role': 'user',
-              'parts': parts,
-            },
+            {'role': 'user', 'parts': parts},
           ],
-          'generationConfig': {
-            'temperature': 0.7,
-            'maxOutputTokens': 1000,
-          },
+          'generationConfig': {'temperature': 0.7, 'maxOutputTokens': 1000},
         },
       );
 
@@ -798,7 +843,9 @@ IMPORTANT:
       } else {
         final errorData = response.data;
         final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
-        throw Exception('Google Gemini API error (${response.statusCode}): $errorMessage');
+        throw Exception(
+          'Google Gemini API error (${response.statusCode}): $errorMessage',
+        );
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 429) {
@@ -810,11 +857,15 @@ IMPORTANT:
             model: model,
           );
         }
-        throw Exception('Google Gemini rate limit exceeded. Please try again later.');
+        throw Exception(
+          'Google Gemini rate limit exceeded. Please try again later.',
+        );
       } else if (e.response?.statusCode == 400) {
         final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage = errorData?['error']?['message'] as String? ?? 'Bad request';
-        if (errorMessage.contains('RESOURCE_EXHAUSTED') || errorMessage.contains('QUOTA_EXCEEDED')) {
+        final errorMessage =
+            errorData?['error']?['message'] as String? ?? 'Bad request';
+        if (errorMessage.contains('RESOURCE_EXHAUSTED') ||
+            errorMessage.contains('QUOTA_EXCEEDED')) {
           // Try with fallback key
           if (await _tryFallbackGoogleKey()) {
             return sendImageToGemini(
@@ -828,11 +879,17 @@ IMPORTANT:
       } else if (e.response?.statusCode == 401) {
         throw Exception('Google Gemini API key is invalid or expired.');
       } else if (e.response?.statusCode == 403) {
-        throw Exception('Google Gemini API access forbidden. Check your API key permissions.');
+        throw Exception(
+          'Google Gemini API access forbidden. Check your API key permissions.',
+        );
       } else if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout. Please check your internet connection.');
+        throw Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
       } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Request timeout. The server took too long to respond.');
+        throw Exception(
+          'Request timeout. The server took too long to respond.',
+        );
       } else {
         throw Exception('Google Gemini API error: ${e.message}');
       }
@@ -858,23 +915,20 @@ IMPORTANT:
     }
 
     try {
-      final url = kIsWeb 
-        ? '/proxy/gemini/v1beta/models/$model:generateContent'
-        : 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent';
-      
+      final url = kIsWeb
+          ? '/proxy/gemini/v1beta/models/$model:generateContent'
+          : 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent';
+
       // Prepare content parts - start with text prompt
       final parts = <Map<String, dynamic>>[
-        {'text': prompt}
+        {'text': prompt},
       ];
 
       // Add input images as base64
       for (final imageBytes in images) {
         final base64Image = base64Encode(imageBytes);
         parts.add({
-          'inline_data': {
-            'mime_type': 'image/jpeg',
-            'data': base64Image,
-          }
+          'inline_data': {'mime_type': 'image/jpeg', 'data': base64Image},
         });
       }
 
@@ -885,20 +939,14 @@ IMPORTANT:
 
       final response = await _dio.post<Map<String, dynamic>>(
         url,
-        queryParameters: {
-          'key': _currentGoogleApiKey,
-        },
+        queryParameters: {'key': _currentGoogleApiKey},
         options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           validateStatus: (status) => status != null && status < 500,
         ),
         data: {
           'contents': [
-            {
-              'parts': parts,
-            },
+            {'parts': parts},
           ],
           'generationConfig': {
             'temperature': 0.7,
@@ -910,7 +958,7 @@ IMPORTANT:
       if (response.statusCode == 200) {
         final data = response.data!;
         print('🎨 Received response from Gemini image generation');
-        
+
         final candidates = data['candidates'] as List<dynamic>?;
         if (candidates == null || candidates.isEmpty) {
           throw Exception('No candidates in response');
@@ -936,30 +984,36 @@ IMPORTANT:
 
         for (var i = 0; i < responseParts.length; i++) {
           final part = responseParts[i] as Map<String, dynamic>;
-          
+
           if (part['text'] != null) {
             // Text response
             final text = part['text'] as String;
             textParts.add(text);
             print('🎨 Text part ${i + 1}: ${text.length} characters');
-          } else if (part['inline_data'] != null || part['inlineData'] != null) {
+          } else if (part['inline_data'] != null ||
+              part['inlineData'] != null) {
             // Generated image
-            final inlineData = (part['inline_data'] ?? part['inlineData']) as Map<String, dynamic>;
+            final inlineData =
+                (part['inline_data'] ?? part['inlineData'])
+                    as Map<String, dynamic>;
             final imageData = inlineData['data'] as String;
-            final mimeType = (inlineData['mime_type'] ?? inlineData['mimeType']) as String;
-            
+            final mimeType =
+                (inlineData['mime_type'] ?? inlineData['mimeType']) as String;
+
             // Decode base64 image
             final imageBytes = base64Decode(imageData);
             generatedImages.add(imageBytes);
             imageMimeTypes.add(mimeType);
-            
-            print('🎨 Generated image ${i + 1}: ${imageBytes.length} bytes, type: $mimeType');
+
+            print(
+              '🎨 Generated image ${i + 1}: ${imageBytes.length} bytes, type: $mimeType',
+            );
           }
         }
 
         // Combine text parts
         final fullTextResponse = textParts.join('\n\n');
-        
+
         print('🎨 Generation complete:');
         print('🎨   - Text response: ${fullTextResponse.length} characters');
         print('🎨   - Generated images: ${generatedImages.length}');
@@ -969,11 +1023,12 @@ IMPORTANT:
           images: generatedImages,
           mimeTypes: imageMimeTypes,
         );
-
       } else {
         final errorData = response.data;
         final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
-        throw Exception('Google Gemini API error (${response.statusCode}): $errorMessage');
+        throw Exception(
+          'Google Gemini API error (${response.statusCode}): $errorMessage',
+        );
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 429) {
@@ -985,11 +1040,15 @@ IMPORTANT:
             model: model,
           );
         }
-        throw Exception('Google Gemini rate limit exceeded. Please try again later.');
+        throw Exception(
+          'Google Gemini rate limit exceeded. Please try again later.',
+        );
       } else if (e.response?.statusCode == 400) {
         final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage = errorData?['error']?['message'] as String? ?? 'Bad request';
-        if (errorMessage.contains('RESOURCE_EXHAUSTED') || errorMessage.contains('QUOTA_EXCEEDED')) {
+        final errorMessage =
+            errorData?['error']?['message'] as String? ?? 'Bad request';
+        if (errorMessage.contains('RESOURCE_EXHAUSTED') ||
+            errorMessage.contains('QUOTA_EXCEEDED')) {
           // Try with fallback key
           if (await _tryFallbackGoogleKey()) {
             return sendImageGenerationToGemini(
@@ -1003,11 +1062,17 @@ IMPORTANT:
       } else if (e.response?.statusCode == 401) {
         throw Exception('Google Gemini API key is invalid or expired.');
       } else if (e.response?.statusCode == 403) {
-        throw Exception('Google Gemini API access forbidden. Check your API key permissions.');
+        throw Exception(
+          'Google Gemini API access forbidden. Check your API key permissions.',
+        );
       } else if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout. Please check your internet connection.');
+        throw Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
       } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Request timeout. The server took too long to respond.');
+        throw Exception(
+          'Request timeout. The server took too long to respond.',
+        );
       } else {
         throw Exception('Google Gemini API error: ${e.message}');
       }
@@ -1030,7 +1095,8 @@ IMPORTANT:
           conversationHistory: conversationHistory,
           selectedImages: selectedImages,
         );
-      } else if (preferredProvider == 'gemini' && EnvConfig.isGoogleConfigured) {
+      } else if (preferredProvider == 'gemini' &&
+          EnvConfig.isGoogleConfigured) {
         return await sendToGemini(
           message: message,
           systemPrompt: systemPrompt,
@@ -1065,7 +1131,8 @@ IMPORTANT:
           systemPrompt: systemPrompt,
           conversationHistory: conversationHistory,
         );
-      } else if (preferredProvider == 'gemini' && EnvConfig.isOpenAIConfigured) {
+      } else if (preferredProvider == 'gemini' &&
+          EnvConfig.isOpenAIConfigured) {
         return sendToOpenAI(
           message: message,
           systemPrompt: systemPrompt,
@@ -1087,20 +1154,20 @@ IMPORTANT:
     try {
       // First, analyze the message to select appropriate agent
       final selectionResult = await AgentSelector.instance.selectAgent(message);
-      
+
       if (selectionResult.isOutOfScope) {
         return SmartAIResponse.outOfScope(
           message: selectionResult.outOfScopeMessage!,
         );
       }
-      
+
       if (!selectionResult.isSuccess || selectionResult.agent == null) {
         throw Exception('Failed to select appropriate agent');
       }
-      
+
       final selectedAgent = selectionResult.agent!;
       final systemPrompt = selectedAgent.systemPrompt;
-      
+
       // Send message to AI with selected agent's system prompt
       final aiResponse = await sendMessage(
         message: message,
@@ -1109,13 +1176,12 @@ IMPORTANT:
         conversationHistory: conversationHistory,
         selectedImages: selectedImages,
       );
-      
+
       return SmartAIResponse.success(
         message: aiResponse,
         agent: selectedAgent,
         confidence: selectionResult.confidence ?? 0.5,
       );
-      
     } catch (e) {
       return SmartAIResponse.error(
         message: 'Произошла ошибка при обработке запроса: ${e}',
@@ -1131,10 +1197,11 @@ IMPORTANT:
     List<Message>? conversationHistory,
   }) async {
     print('🔍🎯 Analyzing image and detecting intent...');
-    
+
     final contextSummary = _buildConversationSummary(conversationHistory);
-    
-    final analysisPrompt = '''
+
+    final analysisPrompt =
+        '''
 Проанализируй загруженное изображение и определи намерение пользователя.
 
 КОНТЕКСТ РАЗГОВОРА:
@@ -1170,9 +1237,7 @@ $userQuestion
         final base64Image = base64Encode(imageData);
         return {
           'type': 'image_url',
-          'image_url': {
-            'url': 'data:image/jpeg;base64,$base64Image',
-          },
+          'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
         };
       }).toList();
 
@@ -1191,8 +1256,10 @@ $userQuestion
       Response<Map<String, dynamic>>? response;
       String? usedModel;
 
-      const url = kIsWeb ? '/proxy/openai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-      
+      const url = kIsWeb
+          ? '/proxy/openai/v1/chat/completions'
+          : 'https://api.openai.com/v1/chat/completions';
+
       for (final model in models) {
         try {
           final requestBody = {
@@ -1213,11 +1280,10 @@ $userQuestion
               },
             ),
           );
-          
+
           usedModel = model;
           print('✅ AI Response: ${response.statusCode} with model: $model');
           break; // Success, exit the loop
-          
         } catch (e) {
           print('❌ Model $model failed: $e');
           if (model == models.last) {
@@ -1230,25 +1296,27 @@ $userQuestion
       if (response == null) {
         throw Exception('All Vision models failed');
       }
-      
+
       if (response.statusCode == 200) {
         final responseData = response.data as Map<String, dynamic>;
         final choices = responseData['choices'] as List<dynamic>;
-        
+
         if (choices.isNotEmpty) {
           final choice = choices.first as Map<String, dynamic>;
           final message = choice['message'] as Map<String, dynamic>;
           final content = message['content'] as String;
-          
-          print('🔍 Vision analysis received: ${content.length} characters using model: $usedModel');
-          
+
+          print(
+            '🔍 Vision analysis received: ${content.length} characters using model: $usedModel',
+          );
+
           // Clean and parse JSON response (remove markdown formatting)
           final cleanedContent = _cleanJsonResponse(content);
           print('🧹 Cleaned JSON: ${cleanedContent.length} characters');
-          
+
           // Parse JSON response
           final jsonData = jsonDecode(cleanedContent) as Map<String, dynamic>;
-          
+
           // ИСПОЛЬЗУЕМ СУЩЕСТВУЮЩУЮ МОДЕЛЬ с новыми полями!
           return ImageGenerationResponse.fromAnalysis(
             imageAnalysis: jsonData['image_analysis'] as String,
@@ -1262,26 +1330,30 @@ $userQuestion
           );
         }
       }
-      
+
       throw Exception('Invalid response from OpenAI Vision API');
     } catch (e) {
       print('❌ Error in analyzeImageWithVision: $e');
-      
+
       // Fallback: Provide basic analysis without image processing
       print('🔄 Falling back to basic text analysis...');
-      
+
       return ImageGenerationResponse.fromAnalysis(
-        imageAnalysis: 'Изображение участка получено, но детальный анализ недоступен из-за технических ограничений.',
+        imageAnalysis:
+            'Изображение участка получено, но детальный анализ недоступен из-за технических ограничений.',
         userIntent: 'unclear',
         intentConfidence: 0.3,
-        intentReasoning: 'Не удалось проанализировать изображение, намерение пользователя неясно.',
-        suitability: 'Требуется дополнительная информация для оценки пригодности участка.',
+        intentReasoning:
+            'Не удалось проанализировать изображение, намерение пользователя неясно.',
+        suitability:
+            'Требуется дополнительная информация для оценки пригодности участка.',
         recommendations: [
           'Опишите участок подробнее: освещение, тип почвы, размеры',
           'Укажите какие растения вас интересуют',
-          'Расскажите о ваших предпочтениях и целях'
+          'Расскажите о ваших предпочтениях и целях',
         ],
-        textResponse: 'К сожалению, не удалось проанализировать изображение. Пожалуйста, опишите ваш участок подробнее, и я смогу дать рекомендации по посадке растений.',
+        textResponse:
+            'К сожалению, не удалось проанализировать изображение. Пожалуйста, опишите ваш участок подробнее, и я смогу дать рекомендации по посадке растений.',
       );
     }
   }
@@ -1290,32 +1362,32 @@ $userQuestion
   String _cleanJsonResponse(String content) {
     // Remove markdown code blocks
     String cleaned = content.trim();
-    
+
     // Remove ```json and ``` markers
     if (cleaned.startsWith('```json')) {
       cleaned = cleaned.substring(7);
     } else if (cleaned.startsWith('```')) {
       cleaned = cleaned.substring(3);
     }
-    
+
     if (cleaned.endsWith('```')) {
       cleaned = cleaned.substring(0, cleaned.length - 3);
     }
-    
+
     // Remove any leading/trailing whitespace
     cleaned = cleaned.trim();
-    
+
     // If still not valid JSON, try to extract JSON from the content
     if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
       // Look for JSON object in the content
       final jsonStart = cleaned.indexOf('{');
       final jsonEnd = cleaned.lastIndexOf('}');
-      
+
       if (jsonStart != -1 && jsonEnd != -1 && jsonEnd > jsonStart) {
         cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
       }
     }
-    
+
     return cleaned;
   }
 
@@ -1324,7 +1396,7 @@ $userQuestion
     if (history == null || history.isEmpty) {
       return 'Начало нового разговора';
     }
-    
+
     final summary = StringBuffer();
     final recentMessages = history
         .where((m) => !m.isTyping && !m.isError)
@@ -1333,17 +1405,17 @@ $userQuestion
         .take(5)
         .toList()
         .reversed;
-    
+
     for (final msg in recentMessages) {
       final role = msg.type == MessageType.user ? 'Пользователь' : 'AI';
       summary.writeln('$role: ${msg.content}');
-      
+
       // Добавить анализ изображений если есть
       if (msg.imageAnalysis != null) {
         summary.writeln('[Изображение: ${msg.imageAnalysis}]');
       }
     }
-    
+
     return summary.toString();
   }
 
@@ -1369,7 +1441,7 @@ class SmartAIResponse {
     this.agent,
     this.confidence,
   });
-  
+
   /// Create successful response
   factory SmartAIResponse.success({
     required String message,
@@ -1385,11 +1457,9 @@ class SmartAIResponse {
       confidence: confidence,
     );
   }
-  
+
   /// Create out-of-scope response
-  factory SmartAIResponse.outOfScope({
-    required String message,
-  }) {
+  factory SmartAIResponse.outOfScope({required String message}) {
     return SmartAIResponse._(
       isSuccess: false,
       isOutOfScope: true,
@@ -1397,11 +1467,9 @@ class SmartAIResponse {
       message: message,
     );
   }
-  
+
   /// Create error response
-  factory SmartAIResponse.error({
-    required String message,
-  }) {
+  factory SmartAIResponse.error({required String message}) {
     return SmartAIResponse._(
       isSuccess: false,
       isOutOfScope: false,
@@ -1409,22 +1477,22 @@ class SmartAIResponse {
       message: message,
     );
   }
-  
+
   /// Whether the response is successful
   final bool isSuccess;
-  
+
   /// Whether the query was out of scope
   final bool isOutOfScope;
-  
+
   /// Whether there was an error
   final bool isError;
-  
+
   /// Response message
   final String? message;
-  
+
   /// Selected agent (if successful)
   final AIAgent? agent;
-  
+
   /// Confidence level (0.0 to 1.0)
   final double? confidence;
 }

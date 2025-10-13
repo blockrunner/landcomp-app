@@ -1,5 +1,5 @@
 /// Image generation response entity
-/// 
+///
 /// This entity represents the response from Gemini image generation API
 /// containing both generated images and text response.
 library;
@@ -9,7 +9,6 @@ import 'package:equatable/equatable.dart';
 
 /// Response from image generation API
 class ImageGenerationResponse extends Equatable {
-
   /// Create response with only text (no images)
   factory ImageGenerationResponse.textOnly(String text) {
     return ImageGenerationResponse(
@@ -68,11 +67,12 @@ class ImageGenerationResponse extends Equatable {
       intentConfidence: (json['intentConfidence'] as num?)?.toDouble(),
       intentReasoning: json['intentReasoning'] as String?,
       suitability: json['suitability'] as String?,
-      recommendations: json['recommendations'] != null 
+      recommendations: json['recommendations'] != null
           ? (json['recommendations'] as List).cast<String>()
           : null,
     );
   }
+
   /// Creates an image generation response
   const ImageGenerationResponse({
     required this.textResponse,
@@ -123,7 +123,8 @@ class ImageGenerationResponse extends Equatable {
   bool get isConsultation => userIntent == 'consultation';
 
   /// Check if this is visualization response (images generated)
-  bool get isVisualization => userIntent == 'visualization' || hasGeneratedImages;
+  bool get isVisualization =>
+      userIntent == 'visualization' || hasGeneratedImages;
 
   /// Check if intent is unclear
   bool get isUnclear => userIntent == 'unclear';
@@ -170,16 +171,16 @@ class ImageGenerationResponse extends Equatable {
 
   @override
   List<Object?> get props => [
-        textResponse,
-        generatedImages,
-        imageMimeTypes,
-        imageAnalysis,
-        userIntent,
-        intentConfidence,
-        intentReasoning,
-        suitability,
-        recommendations,
-      ];
+    textResponse,
+    generatedImages,
+    imageMimeTypes,
+    imageAnalysis,
+    userIntent,
+    intentConfidence,
+    intentReasoning,
+    suitability,
+    recommendations,
+  ];
 
   @override
   String toString() {

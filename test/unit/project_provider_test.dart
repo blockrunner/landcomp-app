@@ -1,5 +1,5 @@
 /// Unit tests for ProjectProvider
-/// 
+///
 /// This file contains unit tests for the ProjectProvider class
 /// to ensure proper project management functionality.
 library;
@@ -28,12 +28,14 @@ void main() {
       mockChatStorage = MockChatStorage();
       mockMigrationHelper = MockMigrationHelper();
       mockLanguageProvider = MockLanguageProvider();
-      
+
       // Setup default mock responses
       when(mockLanguageProvider.currentLocale).thenReturn(const Locale('en'));
       when(mockChatStorage.initialize()).thenAnswer((_) async {});
       when(mockChatStorage.loadAllProjects()).thenAnswer((_) async => []);
-      when(mockMigrationHelper.isMigrationNeeded()).thenAnswer((_) async => false);
+      when(
+        mockMigrationHelper.isMigrationNeeded(),
+      ).thenAnswer((_) async => false);
     });
 
     test('should initialize with empty projects list', () async {
@@ -82,7 +84,9 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      when(mockChatStorage.loadAllProjects()).thenAnswer((_) async => [project1, project2]);
+      when(
+        mockChatStorage.loadAllProjects(),
+      ).thenAnswer((_) async => [project1, project2]);
       when(mockChatStorage.saveProject(any)).thenAnswer((_) async {});
 
       // Act
@@ -105,7 +109,9 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      when(mockChatStorage.loadAllProjects()).thenAnswer((_) async => [project]);
+      when(
+        mockChatStorage.loadAllProjects(),
+      ).thenAnswer((_) async => [project]);
       when(mockChatStorage.deleteProject(any)).thenAnswer((_) async {});
       when(mockChatStorage.saveProject(any)).thenAnswer((_) async {});
 
@@ -129,7 +135,9 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      when(mockChatStorage.loadAllProjects()).thenAnswer((_) async => [project]);
+      when(
+        mockChatStorage.loadAllProjects(),
+      ).thenAnswer((_) async => [project]);
       when(mockChatStorage.loadProject(any)).thenAnswer((_) async => project);
       when(mockChatStorage.saveProject(any)).thenAnswer((_) async {});
 
@@ -153,7 +161,9 @@ void main() {
         isFavorite: false,
       );
 
-      when(mockChatStorage.loadAllProjects()).thenAnswer((_) async => [project]);
+      when(
+        mockChatStorage.loadAllProjects(),
+      ).thenAnswer((_) async => [project]);
       when(mockChatStorage.saveProject(any)).thenAnswer((_) async {});
 
       // Act
@@ -228,9 +238,13 @@ void main() {
       // Act
       projectProvider = ProjectProvider();
       await projectProvider.initialize();
-      
-      final sortedByTitle = projectProvider.getProjectsSortedBy(sortBy: ProjectSortBy.title);
-      final sortedByLastModified = projectProvider.getProjectsSortedBy(sortBy: ProjectSortBy.lastModified);
+
+      final sortedByTitle = projectProvider.getProjectsSortedBy(
+        sortBy: ProjectSortBy.title,
+      );
+      final sortedByLastModified = projectProvider.getProjectsSortedBy(
+        sortBy: ProjectSortBy.lastModified,
+      );
 
       // Assert
       expect(sortedByTitle.first.title, equals('A Project'));
@@ -239,8 +253,12 @@ void main() {
 
     test('should handle migration when needed', () async {
       // Arrange
-      when(mockMigrationHelper.isMigrationNeeded()).thenAnswer((_) async => true);
-      when(mockMigrationHelper.performCompleteMigration()).thenAnswer((_) async => true);
+      when(
+        mockMigrationHelper.isMigrationNeeded(),
+      ).thenAnswer((_) async => true);
+      when(
+        mockMigrationHelper.performCompleteMigration(),
+      ).thenAnswer((_) async => true);
       when(mockChatStorage.loadAllProjects()).thenAnswer((_) async => []);
 
       // Act

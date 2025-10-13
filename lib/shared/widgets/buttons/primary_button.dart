@@ -1,5 +1,5 @@
 /// Primary button widget following the LandComp style guide
-/// 
+///
 /// This widget implements the primary button with gradient background,
 /// multiple sizes, and proper states according to the design system.
 library;
@@ -14,10 +14,13 @@ import 'package:landcomp_app/core/theme/design_tokens.dart';
 enum ButtonSize {
   /// Large button - 56px height
   large,
+
   /// Medium button - 48px height (default)
   medium,
+
   /// Small button - 40px height
   small,
+
   /// Icon button - 48px square
   icon,
 }
@@ -26,7 +29,9 @@ enum ButtonSize {
 class PrimaryButton extends StatefulWidget {
   /// Creates a primary button
   const PrimaryButton({
-    required this.onPressed, required this.child, super.key,
+    required this.onPressed,
+    required this.child,
+    super.key,
     this.size = ButtonSize.medium,
     this.isLoading = false,
     this.isDisabled = false,
@@ -71,13 +76,9 @@ class _PrimaryButtonState extends State<PrimaryButton>
       duration: DesignTokens.animationFast,
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1,
-      end: 0.98,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1, end: 0.98).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -88,9 +89,8 @@ class _PrimaryButtonState extends State<PrimaryButton>
 
   @override
   Widget build(BuildContext context) {
-    final isEnabled = widget.onPressed != null && 
-                          !widget.isDisabled && 
-                          !widget.isLoading;
+    final isEnabled =
+        widget.onPressed != null && !widget.isDisabled && !widget.isLoading;
 
     return AnimatedBuilder(
       animation: _scaleAnimation,
@@ -100,19 +100,18 @@ class _PrimaryButtonState extends State<PrimaryButton>
           child: GestureDetector(
             onTapDown: isEnabled ? (_) => _animationController.forward() : null,
             onTapUp: isEnabled ? (_) => _animationController.reverse() : null,
-            onTapCancel: isEnabled ? () => _animationController.reverse() : null,
+            onTapCancel: isEnabled
+                ? () => _animationController.reverse()
+                : null,
             onTap: isEnabled ? widget.onPressed : null,
             child: Container(
               width: widget.width ?? _getButtonWidth(),
               height: _getButtonHeight(),
               decoration: BoxDecoration(
-                gradient: isEnabled 
-                    ? AppGradients.primary 
+                gradient: isEnabled
+                    ? AppGradients.primary
                     : const LinearGradient(
-                        colors: [
-                          AppColors.gray500,
-                          AppColors.gray500,
-                        ],
+                        colors: [AppColors.gray500, AppColors.gray500],
                       ),
                 borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
                 boxShadow: isEnabled ? DesignTokens.buttonShadow : null,
@@ -121,7 +120,9 @@ class _PrimaryButtonState extends State<PrimaryButton>
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: isEnabled ? widget.onPressed : null,
-                  borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
+                  borderRadius: BorderRadius.circular(
+                    DesignTokens.radiusMedium,
+                  ),
                   child: Container(
                     padding: _getButtonPadding(),
                     child: _buildButtonContent(),
@@ -279,7 +280,9 @@ class _PrimaryButtonState extends State<PrimaryButton>
 /// Convenience constructors for different button sizes
 class PrimaryButtonLarge extends PrimaryButton {
   const PrimaryButtonLarge({
-    required super.onPressed, required super.child, super.key,
+    required super.onPressed,
+    required super.child,
+    super.key,
     super.isLoading,
     super.isDisabled,
     super.width,
@@ -289,7 +292,9 @@ class PrimaryButtonLarge extends PrimaryButton {
 
 class PrimaryButtonSmall extends PrimaryButton {
   const PrimaryButtonSmall({
-    required super.onPressed, required super.child, super.key,
+    required super.onPressed,
+    required super.child,
+    super.key,
     super.isLoading,
     super.isDisabled,
     super.width,
@@ -299,11 +304,10 @@ class PrimaryButtonSmall extends PrimaryButton {
 
 class PrimaryButtonIcon extends PrimaryButton {
   const PrimaryButtonIcon({
-    required super.onPressed, required super.icon, super.key,
+    required super.onPressed,
+    required super.icon,
+    super.key,
     super.isLoading,
     super.isDisabled,
-  }) : super(
-          size: ButtonSize.icon,
-          child: const SizedBox.shrink(),
-        );
+  }) : super(size: ButtonSize.icon, child: const SizedBox.shrink());
 }

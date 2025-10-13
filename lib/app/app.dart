@@ -1,5 +1,5 @@
 /// Main application widget for Landscape AI App
-/// 
+///
 /// This file contains the root application widget that sets up the
 /// overall app structure, theme, and routing.
 library;
@@ -39,9 +39,9 @@ class LandscapeAIApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             builder: (context, child) {
               return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.noScaling,
-                ),
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: TextScaler.noScaling),
                 child: child!,
               );
             },
@@ -64,13 +64,13 @@ class AppInitializer {
       print('⚠️ Failed to load .env file: $e');
       // Continue without .env file
     }
-    
+
     // Initialize Hive
     await Hive.initFlutter();
-    
+
     // Initialize dependency injection
     await configureDependencies();
-    
+
     // Initialize AI Service
     try {
       await AIService.instance.initialize();
@@ -79,7 +79,7 @@ class AppInitializer {
       print('❌ Failed to initialize AIService: $e');
       // Don't throw here to allow app to start even if AI service fails
     }
-    
+
     // Initialize Chat Storage
     try {
       await ChatStorage.instance.initialize();
@@ -88,7 +88,7 @@ class AppInitializer {
       print('❌ Failed to initialize ChatStorage: $e');
       // Don't throw here to allow app to start even if chat storage fails
     }
-    
+
     // Initialize other services
     // TODO: Add other initialization logic
   }

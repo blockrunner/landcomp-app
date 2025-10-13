@@ -1,5 +1,5 @@
 /// Environment configuration for API keys and proxy settings
-/// 
+///
 /// This file manages environment variables for AI services,
 /// proxy configuration, and fallback mechanisms.
 library;
@@ -19,12 +19,12 @@ class EnvConfig {
       if (kIsWeb) {
         return dotenv.env[key] ?? '';
       }
-      
+
       // For mobile/desktop, try dotenv first, then Platform.environment
       if (dotenv.env.containsKey(key)) {
         return dotenv.env[key] ?? '';
       }
-      
+
       // Fallback to Platform.environment (for mobile/desktop)
       return Platform.environment[key] ?? '';
     } catch (e) {
@@ -46,7 +46,7 @@ class EnvConfig {
 
   // Google API Configuration
   static String get googleApiKey => _getEnvVar('GOOGLE_API_KEY');
-  
+
   static List<String> get googleApiKeysFallback {
     final fallbackKeys = _getEnvVar('GOOGLE_API_KEYS_FALLBACK');
     return fallbackKeys.split(',').where((key) => key.isNotEmpty).toList();
@@ -54,7 +54,7 @@ class EnvConfig {
 
   // Proxy Configuration
   static String get allProxy => _getEnvVar('ALL_PROXY');
-  
+
   static List<String> get backupProxies {
     final backupProxies = _getEnvVar('BACKUP_PROXIES');
     return backupProxies.split(',').where((proxy) => proxy.isNotEmpty).toList();
@@ -62,14 +62,14 @@ class EnvConfig {
 
   // Yandex Cloud Configuration (if needed)
   static String get ycApiKeyId => _getEnvVar('YC_API_KEY_ID');
-  
+
   static String get ycApiKey => _getEnvVar('YC_API_KEY');
-  
+
   static String get ycFolderId => _getEnvVar('YC_FOLDER_ID');
 
   // Other API Keys
   static String get stabilityApiKey => _getEnvVar('STABILITY_API_KEY');
-  
+
   static String get huggingfaceApiKey => _getEnvVar('HUGGINGFACE_API_KEY');
 
   // Validation
@@ -103,7 +103,7 @@ class EnvConfig {
   static String? getNextGoogleApiKey(String currentKey) {
     final fallbackKeys = googleApiKeysFallback;
     if (fallbackKeys.isEmpty) return null;
-    
+
     final currentIndex = fallbackKeys.indexOf(currentKey);
     if (currentIndex >= 0 && currentIndex < fallbackKeys.length - 1) {
       return fallbackKeys[currentIndex + 1];

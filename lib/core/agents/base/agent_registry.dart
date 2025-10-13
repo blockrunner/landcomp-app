@@ -1,5 +1,5 @@
 /// Agent Registry for managing agents in the orchestrator
-/// 
+///
 /// This registry manages the registration, discovery, and metrics
 /// of all agents in the system.
 library;
@@ -58,14 +58,21 @@ class AgentRegistry {
   /// Get agents that can handle specific capabilities
   List<Agent> getAgentsByCapabilities(List<String> capabilities) {
     return _agents.values
-        .where((agent) => capabilities.every((cap) => agent.capabilities.contains(cap)))
+        .where(
+          (agent) =>
+              capabilities.every((cap) => agent.capabilities.contains(cap)),
+        )
         .toList();
   }
 
   /// Get agents that can handle any of the specified capabilities
   List<Agent> getCapableAgents(List<String> requiredCapabilities) {
     return _agents.values
-        .where((agent) => requiredCapabilities.any((cap) => agent.capabilities.contains(cap)))
+        .where(
+          (agent) => requiredCapabilities.any(
+            (cap) => agent.capabilities.contains(cap),
+          ),
+        )
         .toList();
   }
 
@@ -86,7 +93,7 @@ class AgentRegistry {
   void trackExecution(String agentId, Duration executionTime, bool success) {
     if (_executionTimes.containsKey(agentId)) {
       _executionTimes[agentId]!.add(executionTime);
-      
+
       // Keep only last 100 execution times
       if (_executionTimes[agentId]!.length > 100) {
         _executionTimes[agentId]!.removeAt(0);
@@ -121,13 +128,20 @@ class AgentRegistry {
       'errorCount': errorCount,
       'successRate': totalCount > 0 ? successCount / totalCount : 0.0,
       'averageExecutionTime': executionTimes.isNotEmpty
-          ? executionTimes.map((d) => d.inMilliseconds).reduce((a, b) => a + b) / executionTimes.length
+          ? executionTimes
+                    .map((d) => d.inMilliseconds)
+                    .reduce((a, b) => a + b) /
+                executionTimes.length
           : 0.0,
       'minExecutionTime': executionTimes.isNotEmpty
-          ? executionTimes.map((d) => d.inMilliseconds).reduce((a, b) => a < b ? a : b)
+          ? executionTimes
+                .map((d) => d.inMilliseconds)
+                .reduce((a, b) => a < b ? a : b)
           : 0,
       'maxExecutionTime': executionTimes.isNotEmpty
-          ? executionTimes.map((d) => d.inMilliseconds).reduce((a, b) => a > b ? a : b)
+          ? executionTimes
+                .map((d) => d.inMilliseconds)
+                .reduce((a, b) => a > b ? a : b)
           : 0,
     };
   }
@@ -139,7 +153,8 @@ class AgentRegistry {
       agentMetrics[agentId] = getAgentMetrics(agentId);
     }
 
-    final totalExecutions = _successCounts.values.fold(0, (a, b) => a + b) +
+    final totalExecutions =
+        _successCounts.values.fold(0, (a, b) => a + b) +
         _errorCounts.values.fold(0, (a, b) => a + b);
 
     return {

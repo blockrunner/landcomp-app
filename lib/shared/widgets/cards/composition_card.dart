@@ -1,5 +1,5 @@
 /// Composition card widget following the LandComp style guide
-/// 
+///
 /// This widget displays composition information in a card format
 /// with preview, title, description, and metadata.
 library;
@@ -59,7 +59,8 @@ class CompositionData {
 class CompositionCard extends StatelessWidget {
   /// Creates a composition card
   const CompositionCard({
-    required this.composition, super.key,
+    required this.composition,
+    super.key,
     this.onTap,
     this.onEdit,
     this.onDelete,
@@ -166,7 +167,9 @@ class CompositionCard extends StatelessWidget {
             color: AppColors.gray100,
             borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
           ),
-          child: composition.previewImageUrl != null && composition.previewImageUrl!.isNotEmpty
+          child:
+              composition.previewImageUrl != null &&
+                  composition.previewImageUrl!.isNotEmpty
               ? Image.network(
                   composition.previewImageUrl!,
                   fit: BoxFit.cover,
@@ -199,9 +202,7 @@ class CompositionCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Превью композиции',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.gray500,
-              ),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.gray500),
             ),
           ],
         ),
@@ -252,11 +253,7 @@ class CompositionCard extends StatelessWidget {
   }
 
   /// Build metadata item
-  Widget _buildMetadataItem(
-    BuildContext context,
-    IconData icon,
-    String text,
-  ) {
+  Widget _buildMetadataItem(BuildContext context, IconData icon, String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -287,15 +284,9 @@ class CompositionCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        ButtonFactory.secondaryIcon(
-          onPressed: onShare,
-          icon: Icons.share,
-        ),
+        ButtonFactory.secondaryIcon(onPressed: onShare, icon: Icons.share),
         const SizedBox(width: AppSpacing.sm),
-        ButtonFactory.secondaryIcon(
-          onPressed: onDelete,
-          icon: Icons.delete,
-        ),
+        ButtonFactory.secondaryIcon(onPressed: onDelete, icon: Icons.delete),
       ],
     );
   }
@@ -305,7 +296,8 @@ class CompositionCard extends StatelessWidget {
 class CompactCompositionCard extends StatelessWidget {
   /// Creates a compact composition card
   const CompactCompositionCard({
-    required this.composition, super.key,
+    required this.composition,
+    super.key,
     this.onTap,
     this.onEdit,
     this.onDelete,
@@ -336,9 +328,7 @@ class CompactCompositionCard extends StatelessWidget {
         children: [
           _buildCompactPreview(context),
           const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: _buildCompactContent(context),
-          ),
+          Expanded(child: _buildCompactContent(context)),
           const SizedBox(width: AppSpacing.sm),
           _buildCompactActions(context),
         ],
@@ -357,7 +347,9 @@ class CompactCompositionCard extends StatelessWidget {
           color: AppColors.gray100,
           borderRadius: BorderRadius.circular(DesignTokens.radiusSmall),
         ),
-        child: composition.previewImageUrl != null && composition.previewImageUrl!.isNotEmpty
+        child:
+            composition.previewImageUrl != null &&
+                composition.previewImageUrl!.isNotEmpty
             ? Image.network(
                 composition.previewImageUrl!,
                 fit: BoxFit.cover,

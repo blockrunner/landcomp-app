@@ -1,5 +1,5 @@
 /// Message bubble widget for displaying chat messages
-/// 
+///
 /// This widget displays different types of messages with
 /// appropriate styling and animations.
 library;
@@ -16,7 +16,8 @@ import 'package:landcomp_app/core/localization/language_provider.dart';
 class MessageBubble extends StatelessWidget {
   /// Creates a message bubble
   const MessageBubble({
-    required this.message, super.key,
+    required this.message,
+    super.key,
     this.onRetry,
     this.onDelete,
     this.showTimestamp = true,
@@ -103,7 +104,8 @@ class MessageBubble extends StatelessWidget {
             const SizedBox(height: 8),
           ],
           // Show attachments if present
-          if (message.attachments != null && message.attachments!.isNotEmpty) ...[
+          if (message.attachments != null &&
+              message.attachments!.isNotEmpty) ...[
             _buildAttachments(context),
             if (message.content.isNotEmpty) const SizedBox(height: 8),
           ],
@@ -133,11 +135,7 @@ class MessageBubble extends StatelessWidget {
             color: agent.primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            agent.icon,
-            size: 16,
-            color: agent.primaryColor,
-          ),
+          child: Icon(agent.icon, size: 16, color: agent.primaryColor),
         ),
         const SizedBox(width: 8),
         Text(
@@ -173,7 +171,8 @@ class MessageBubble extends StatelessWidget {
         onPressed: onRetry,
         icon: const Icon(Icons.refresh, size: 16),
         label: Consumer<LanguageProvider>(
-          builder: (context, languageProvider, child) => Text(languageProvider.getString('retry')),
+          builder: (context, languageProvider, child) =>
+              Text(languageProvider.getString('retry')),
         ),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -204,11 +203,7 @@ class MessageBubble extends StatelessWidget {
               color: agent.primaryColor.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              agent.icon,
-              size: 16,
-              color: agent.primaryColor,
-            ),
+            child: Icon(agent.icon, size: 16, color: agent.primaryColor),
           ),
           const SizedBox(width: 12),
           _buildTypingDots(context, agent.primaryColor),
@@ -232,7 +227,7 @@ class MessageBubble extends StatelessWidget {
               final delay = index * 0.2;
               final animationValue = (value - delay).clamp(0.0, 1.0);
               final scale = 0.5 + (0.5 * animationValue);
-              
+
               return Transform.scale(
                 scale: scale,
                 child: Container(
@@ -267,30 +262,30 @@ class MessageBubble extends StatelessWidget {
   /// Get bubble color based on message type
   Color _getBubbleColor(BuildContext context, bool isUser, bool isError) {
     final theme = Theme.of(context);
-    
+
     if (isError) {
       return theme.colorScheme.errorContainer;
     }
-    
+
     if (isUser) {
       return theme.colorScheme.primary;
     }
-    
+
     return theme.colorScheme.surfaceContainerHighest;
   }
 
   /// Get text color based on message type
   Color _getTextColor(BuildContext context, bool isUser, bool isError) {
     final theme = Theme.of(context);
-    
+
     if (isError) {
       return theme.colorScheme.onErrorContainer;
     }
-    
+
     if (isUser) {
       return theme.colorScheme.onPrimary;
     }
-    
+
     return theme.colorScheme.onSurfaceVariant;
   }
 
@@ -319,46 +314,70 @@ class MessageBubble extends StatelessWidget {
     print('📎 Message type: ${message.type}');
     print('📎 Attachments: ${message.attachments?.length ?? 0}');
     if (message.attachments != null && message.attachments!.isNotEmpty) {
-      print('📎 Attachment types: ${message.attachments!.map((a) => a.type.name).toList()}');
+      print(
+        '📎 Attachment types: ${message.attachments!.map((a) => a.type.name).toList()}',
+      );
     }
-    
+
     if (message.attachments == null || message.attachments!.isEmpty) {
       print('📎 No attachments to display');
       return const SizedBox.shrink();
     }
 
-    final imageAttachments = message.attachments!.where((a) => a.isImage).toList();
-    final otherAttachments = message.attachments!.where((a) => !a.isImage).toList();
-    
+    final imageAttachments = message.attachments!
+        .where((a) => a.isImage)
+        .toList();
+    final otherAttachments = message.attachments!
+        .where((a) => !a.isImage)
+        .toList();
+
     // Separate original and generated images
-    final originalImages = imageAttachments.where((a) => a.name.startsWith('image_')).toList();
-    final generatedImages = imageAttachments.where((a) => a.name.startsWith('generated_')).toList();
+    final originalImages = imageAttachments
+        .where((a) => a.name.startsWith('image_'))
+        .toList();
+    final generatedImages = imageAttachments
+        .where((a) => a.name.startsWith('generated_'))
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Show original images (from user)
         if (originalImages.isNotEmpty) ...[
-          _buildImageSection(context, originalImages, context.read<LanguageProvider>().getString('originalImages')),
+          _buildImageSection(
+            context,
+            originalImages,
+            context.read<LanguageProvider>().getString('originalImages'),
+          ),
         ],
-        
+
         // Show generated images (from AI)
         if (generatedImages.isNotEmpty) ...[
           if (originalImages.isNotEmpty) const SizedBox(height: 16),
-          _buildImageSection(context, generatedImages, context.read<LanguageProvider>().getString('generatedVariants')),
+          _buildImageSection(
+            context,
+            generatedImages,
+            context.read<LanguageProvider>().getString('generatedVariants'),
+          ),
         ],
-        
+
         // Show other attachments
         if (otherAttachments.isNotEmpty) ...[
           if (imageAttachments.isNotEmpty) const SizedBox(height: 8),
-          ...otherAttachments.map((attachment) => _buildFileAttachment(context, attachment)),
+          ...otherAttachments.map(
+            (attachment) => _buildFileAttachment(context, attachment),
+          ),
         ],
       ],
     );
   }
 
   /// Build image section with title
-  Widget _buildImageSection(BuildContext context, List<Attachment> images, String title) {
+  Widget _buildImageSection(
+    BuildContext context,
+    List<Attachment> images,
+    String title,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -378,7 +397,7 @@ class MessageBubble extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        
+
         // Images
         if (images.length == 1) ...[
           // Single image
@@ -400,20 +419,26 @@ class MessageBubble extends StatelessWidget {
   }
 
   /// Build single image attachment
-  Widget _buildImageAttachment(BuildContext context, Attachment attachment, List<Attachment> allImages) {
+  Widget _buildImageAttachment(
+    BuildContext context,
+    Attachment attachment,
+    List<Attachment> allImages,
+  ) {
     return _buildImageWithHover(
       context: context,
       attachment: attachment,
       allImages: allImages,
-      constraints: const BoxConstraints(
-        maxWidth: 250,
-        maxHeight: 250,
-      ),
+      constraints: const BoxConstraints(maxWidth: 250, maxHeight: 250),
     );
   }
 
   /// Build image thumbnail
-  Widget _buildImageThumbnail(BuildContext context, Attachment attachment, List<Attachment> allImages, int index) {
+  Widget _buildImageThumbnail(
+    BuildContext context,
+    Attachment attachment,
+    List<Attachment> allImages,
+    int index,
+  ) {
     return _buildImageWithHover(
       context: context,
       attachment: attachment,
@@ -449,9 +474,9 @@ class MessageBubble extends StatelessWidget {
               children: [
                 Text(
                   attachment.name,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -469,7 +494,6 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-
   /// Get file icon based on MIME type
   IconData _getFileIcon(String mimeType) {
     if (mimeType.startsWith('image/')) return Icons.image;
@@ -477,8 +501,10 @@ class MessageBubble extends StatelessWidget {
     if (mimeType.startsWith('audio/')) return Icons.audio_file;
     if (mimeType.contains('pdf')) return Icons.picture_as_pdf;
     if (mimeType.contains('word')) return Icons.description;
-    if (mimeType.contains('excel') || mimeType.contains('spreadsheet')) return Icons.table_chart;
-    if (mimeType.contains('zip') || mimeType.contains('rar')) return Icons.archive;
+    if (mimeType.contains('excel') || mimeType.contains('spreadsheet'))
+      return Icons.table_chart;
+    if (mimeType.contains('zip') || mimeType.contains('rar'))
+      return Icons.archive;
     return Icons.attach_file;
   }
 
@@ -499,12 +525,18 @@ class MessageBubble extends StatelessWidget {
   }
 
   /// Open image viewer
-  void _openImageViewer(BuildContext context, List<Attachment> images, int initialIndex) {
+  void _openImageViewer(
+    BuildContext context,
+    List<Attachment> images,
+    int initialIndex,
+  ) {
     showImageViewer(
       context: context,
       attachments: images,
       initialIndex: initialIndex,
-      title: images.length > 1 ? context.read<LanguageProvider>().getString('images') : context.read<LanguageProvider>().getString('image'),
+      title: images.length > 1
+          ? context.read<LanguageProvider>().getString('images')
+          : context.read<LanguageProvider>().getString('image'),
     );
   }
 
@@ -519,7 +551,8 @@ class MessageBubble extends StatelessWidget {
       attachment: attachment,
       allImages: allImages,
       constraints: constraints,
-      onTap: () => _openImageViewer(context, allImages, allImages.indexOf(attachment)),
+      onTap: () =>
+          _openImageViewer(context, allImages, allImages.indexOf(attachment)),
     );
   }
 }
@@ -562,8 +595,12 @@ class _ImageWithHoverState extends State<_ImageWithHover> {
                 if (widget.attachment.hasData)
                   _buildImageWithAspectRatio()
                 else
-                  _buildImageError(context, widget.constraints.maxWidth, widget.constraints.maxHeight),
-                
+                  _buildImageError(
+                    context,
+                    widget.constraints.maxWidth,
+                    widget.constraints.maxHeight,
+                  ),
+
                 // Hover overlay with gradient
                 Positioned.fill(
                   child: IgnorePointer(
@@ -596,7 +633,11 @@ class _ImageWithHoverState extends State<_ImageWithHover> {
   /// Build image with proper aspect ratio
   Widget _buildImageWithAspectRatio() {
     if (!widget.attachment.hasData) {
-      return _buildImageError(context, widget.constraints.maxWidth, widget.constraints.maxHeight);
+      return _buildImageError(
+        context,
+        widget.constraints.maxWidth,
+        widget.constraints.maxHeight,
+      );
     }
 
     // Calculate aspect ratio from image dimensions
@@ -611,7 +652,11 @@ class _ImageWithHoverState extends State<_ImageWithHover> {
         widget.attachment.data!,
         fit: BoxFit.cover, // Use cover to fill the aspect ratio container
         errorBuilder: (context, error, stackTrace) {
-          return _buildImageError(context, widget.constraints.maxWidth, widget.constraints.maxHeight);
+          return _buildImageError(
+            context,
+            widget.constraints.maxWidth,
+            widget.constraints.maxHeight,
+          );
         },
       ),
     );
@@ -629,10 +674,7 @@ class _ImageWithHoverState extends State<_ImageWithHover> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.broken_image,
-            size: width > 150 ? 32 : 24,
-          ),
+          Icon(Icons.broken_image, size: width > 150 ? 32 : 24),
           const SizedBox(height: 8),
           Text(
             context.read<LanguageProvider>().getString('loadingError'),

@@ -1,5 +1,5 @@
 /// Attachment entity for chat messages
-/// 
+///
 /// This entity represents an attachment (image, file, etc.) in a chat message
 /// with proper metadata and data handling.
 library;
@@ -11,17 +11,19 @@ import 'package:equatable/equatable.dart';
 enum AttachmentType {
   /// Image attachment
   image,
+
   /// File attachment
   file,
+
   /// Video attachment
   video,
+
   /// Audio attachment
   audio,
 }
 
 /// Attachment entity
 class Attachment extends Equatable {
-
   /// Create an image attachment
   factory Attachment.image({
     required String id,
@@ -96,13 +98,18 @@ class Attachment extends Equatable {
       name: json['name'] as String,
       size: json['size'] as int,
       mimeType: json['mimeType'] as String,
-      data: json['data'] != null ? Uint8List.fromList((json['data'] as List).cast<int>()) : null,
+      data: json['data'] != null
+          ? Uint8List.fromList((json['data'] as List).cast<int>())
+          : null,
       url: json['url'] as String?,
-      thumbnailData: json['thumbnailData'] != null ? Uint8List.fromList((json['thumbnailData'] as List).cast<int>()) : null,
+      thumbnailData: json['thumbnailData'] != null
+          ? Uint8List.fromList((json['thumbnailData'] as List).cast<int>())
+          : null,
       width: json['width'] as int?,
       height: json['height'] as int?,
     );
   }
+
   /// Creates an attachment
   const Attachment({
     required this.id,
@@ -208,17 +215,17 @@ class Attachment extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        type,
-        name,
-        size,
-        mimeType,
-        data,
-        url,
-        thumbnailData,
-        width,
-        height,
-      ];
+    id,
+    type,
+    name,
+    size,
+    mimeType,
+    data,
+    url,
+    thumbnailData,
+    width,
+    height,
+  ];
 
   @override
   String toString() {

@@ -1,5 +1,5 @@
 /// New project dialog widget
-/// 
+///
 /// This widget displays a dialog for creating a new project
 /// with optional custom title input.
 library;
@@ -12,10 +12,7 @@ import '../../../../core/localization/language_provider.dart';
 /// New project dialog widget
 class NewProjectDialog extends StatefulWidget {
   /// Creates a new project dialog
-  const NewProjectDialog({
-    super.key,
-    required this.onProjectCreated,
-  });
+  const NewProjectDialog({super.key, required this.onProjectCreated});
 
   /// Callback when a project is created
   final void Function(String? title) onProjectCreated;
@@ -68,14 +65,16 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               child: Text(languageProvider.getString('cancel')),
             ),
             ElevatedButton(
-              onPressed: _isCreating ? null : () => _createProject(languageProvider),
+              onPressed: _isCreating
+                  ? null
+                  : () => _createProject(languageProvider),
               child: _isCreating
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(languageProvider.getString('createProject')),
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(languageProvider.getString('createProject')),
             ),
           ],
         );
@@ -86,7 +85,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   /// Creates a new project
   void _createProject(LanguageProvider languageProvider) {
     final title = _controller.text.trim();
-    
+
     setState(() {
       _isCreating = true;
     });

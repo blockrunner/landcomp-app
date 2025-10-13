@@ -1,5 +1,5 @@
 /// Simplified unit tests for AI Service
-/// 
+///
 /// Tests core functionality without complex mocking
 library;
 
@@ -34,13 +34,16 @@ void main() {
         final status = aiService.getStatus();
 
         // Assert
-        expect(status.keys, containsAll([
-          'openai_configured',
-          'google_configured', 
-          'proxy_configured',
-          'current_proxy',
-          'current_google_key',
-        ]));
+        expect(
+          status.keys,
+          containsAll([
+            'openai_configured',
+            'google_configured',
+            'proxy_configured',
+            'current_proxy',
+            'current_google_key',
+          ]),
+        );
       });
     });
 
@@ -167,10 +170,7 @@ void main() {
       test('should handle OpenAI not configured error', () async {
         // Act & Assert
         expect(
-          () => aiService.sendToOpenAI(
-            message: 'test',
-            systemPrompt: 'test',
-          ),
+          () => aiService.sendToOpenAI(message: 'test', systemPrompt: 'test'),
           throwsA(isA<Exception>()),
         );
       });
@@ -178,10 +178,7 @@ void main() {
       test('should handle Google Gemini not configured error', () async {
         // Act & Assert
         expect(
-          () => aiService.sendToGemini(
-            message: 'test',
-            systemPrompt: 'test',
-          ),
+          () => aiService.sendToGemini(message: 'test', systemPrompt: 'test'),
           throwsA(isA<Exception>()),
         );
       });
@@ -189,10 +186,7 @@ void main() {
       test('should handle no providers configured error', () async {
         // Act & Assert
         expect(
-          () => aiService.sendMessage(
-            message: 'test',
-            systemPrompt: 'test',
-          ),
+          () => aiService.sendMessage(message: 'test', systemPrompt: 'test'),
           throwsA(isA<Exception>()),
         );
       });
@@ -201,10 +195,7 @@ void main() {
     group('Initialization', () {
       test('should initialize without throwing', () async {
         // Act & Assert
-        expect(
-          () => aiService.initialize(),
-          returnsNormally,
-        );
+        expect(() => aiService.initialize(), returnsNormally);
       });
     });
   });

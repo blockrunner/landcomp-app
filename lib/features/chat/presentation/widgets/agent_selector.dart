@@ -1,5 +1,5 @@
 /// Agent selector widget for choosing AI agents
-/// 
+///
 /// This widget displays available AI agents and allows
 /// users to switch between them.
 library;
@@ -13,7 +13,9 @@ import 'package:landcomp_app/core/localization/language_provider.dart';
 class AgentSelector extends StatelessWidget {
   /// Creates an agent selector
   const AgentSelector({
-    required this.currentAgent, required this.onAgentSelected, super.key,
+    required this.currentAgent,
+    required this.onAgentSelected,
+    super.key,
     this.languageProvider,
     this.showAsGrid = true,
   });
@@ -79,7 +81,7 @@ class AgentSelector extends StatelessWidget {
 
     return Card(
       elevation: isSelected ? 4 : 1,
-      color: isSelected 
+      color: isSelected
           ? agent.primaryColor.withOpacity(0.1)
           : theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
@@ -115,7 +117,7 @@ class AgentSelector extends StatelessWidget {
 
     return Card(
       elevation: isSelected ? 2 : 1,
-      color: isSelected 
+      color: isSelected
           ? agent.primaryColor.withOpacity(0.1)
           : theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
@@ -144,11 +146,7 @@ class AgentSelector extends StatelessWidget {
                 ),
               ),
               if (isSelected)
-                Icon(
-                  Icons.check_circle,
-                  color: agent.primaryColor,
-                  size: 20,
-                ),
+                Icon(Icons.check_circle, color: agent.primaryColor, size: 20),
             ],
           ),
         ),
@@ -184,9 +182,7 @@ class AgentSelector extends StatelessWidget {
       child: Icon(
         agent.icon,
         size: size * 0.6,
-        color: isSelected
-            ? Colors.white
-            : agent.primaryColor,
+        color: isSelected ? Colors.white : agent.primaryColor,
       ),
     );
   }
@@ -227,7 +223,9 @@ class AgentSelector extends StatelessWidget {
   /// Get localized agent name
   String _getLocalizedAgentName(AIAgent agent) {
     if (languageProvider != null) {
-      return agent.getLocalizedName(languageProvider!.currentLocale.languageCode);
+      return agent.getLocalizedName(
+        languageProvider!.currentLocale.languageCode,
+      );
     }
     return agent.name;
   }
@@ -235,7 +233,9 @@ class AgentSelector extends StatelessWidget {
   /// Get localized agent description
   String _getLocalizedAgentDescription(AIAgent agent) {
     if (languageProvider != null) {
-      return agent.getLocalizedDescription(languageProvider!.currentLocale.languageCode);
+      return agent.getLocalizedDescription(
+        languageProvider!.currentLocale.languageCode,
+      );
     }
     return agent.description;
   }
@@ -245,7 +245,9 @@ class AgentSelector extends StatelessWidget {
 class CompactAgentSelector extends StatelessWidget {
   /// Creates a compact agent selector
   const CompactAgentSelector({
-    required this.currentAgent, required this.onAgentSelected, super.key,
+    required this.currentAgent,
+    required this.onAgentSelected,
+    super.key,
     this.languageProvider,
   });
 
@@ -300,22 +302,12 @@ class CompactAgentSelector extends StatelessWidget {
                     color: agent.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    agent.icon,
-                    size: 12,
-                    color: agent.primaryColor,
-                  ),
+                  child: Icon(agent.icon, size: 12, color: agent.primaryColor),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Text(_getLocalizedAgentName(agent)),
-                ),
+                Expanded(child: Text(_getLocalizedAgentName(agent))),
                 if (agent.id == currentAgent.id)
-                  Icon(
-                    Icons.check,
-                    color: agent.primaryColor,
-                    size: 16,
-                  ),
+                  Icon(Icons.check, color: agent.primaryColor, size: 16),
               ],
             ),
           );
@@ -328,7 +320,9 @@ class CompactAgentSelector extends StatelessWidget {
   /// Get localized agent name
   String _getLocalizedAgentName(AIAgent agent) {
     if (languageProvider != null) {
-      return agent.getLocalizedName(languageProvider!.currentLocale.languageCode);
+      return agent.getLocalizedName(
+        languageProvider!.currentLocale.languageCode,
+      );
     }
     return agent.name;
   }

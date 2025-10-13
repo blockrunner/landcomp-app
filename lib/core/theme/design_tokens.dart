@@ -1,5 +1,5 @@
 /// Design tokens for the LandComp application
-/// 
+///
 /// This file contains all design tokens including colors, spacing,
 /// typography, shadows, and animations following the style guide.
 library;
@@ -12,7 +12,7 @@ class DesignTokens {
   DesignTokens._();
 
   // Colors - use classes directly
-  // Spacing - use classes directly  
+  // Spacing - use classes directly
   // Typography - use classes directly
 
   // Border radius
@@ -114,22 +114,22 @@ class AnimationUtils {
 
   /// Standard transition duration
   static const Duration standardDuration = DesignTokens.animationStandard;
-  
+
   /// Fast transition duration
   static const Duration fastDuration = DesignTokens.animationFast;
-  
+
   /// Slow transition duration
   static const Duration slowDuration = DesignTokens.animationSlow;
 
   /// Standard curve
   static const Curve standardCurve = DesignTokens.curveStandard;
-  
+
   /// Decelerate curve
   static const Curve decelerateCurve = DesignTokens.curveDecelerate;
-  
+
   /// Accelerate curve
   static const Curve accelerateCurve = DesignTokens.curveAccelerate;
-  
+
   /// Sharp curve
   static const Curve sharpCurve = DesignTokens.curveSharp;
 
@@ -170,11 +170,13 @@ class ResponsiveUtils {
   static bool isMobile(double width) => width < DesignTokens.breakpointTablet;
 
   /// Check if screen is tablet
-  static bool isTablet(double width) => 
-      width >= DesignTokens.breakpointTablet && width < DesignTokens.breakpointDesktop;
+  static bool isTablet(double width) =>
+      width >= DesignTokens.breakpointTablet &&
+      width < DesignTokens.breakpointDesktop;
 
   /// Check if screen is desktop
-  static bool isDesktop(double width) => width >= DesignTokens.breakpointDesktop;
+  static bool isDesktop(double width) =>
+      width >= DesignTokens.breakpointDesktop;
 
   /// Get responsive value based on screen width
   static T responsive<T>({
@@ -220,7 +222,7 @@ class AccessibilityUtils {
     if (currentSize >= minTouchTarget) {
       return EdgeInsets.zero;
     }
-    
+
     final padding = (minTouchTarget - currentSize) / 2;
     return EdgeInsets.all(padding);
   }

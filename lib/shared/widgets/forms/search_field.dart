@@ -1,5 +1,5 @@
 /// Search field widget following the LandComp style guide
-/// 
+///
 /// This widget implements a search field with search icon,
 /// clear button, and autocomplete functionality.
 library;
@@ -106,9 +106,10 @@ class _SearchFieldState extends State<SearchField> {
 
   void _onFocusChanged() {
     setState(() {
-      _showSuggestions = _focusNode.hasFocus && 
-                        widget.suggestions.isNotEmpty && 
-                        _controller.text.isNotEmpty;
+      _showSuggestions =
+          _focusNode.hasFocus &&
+          widget.suggestions.isNotEmpty &&
+          _controller.text.isNotEmpty;
     });
   }
 
@@ -142,9 +143,10 @@ class _SearchFieldState extends State<SearchField> {
           suffixIcon: _showClearButton ? Icons.clear : null,
           onChanged: (value) {
             setState(() {
-              _showSuggestions = _focusNode.hasFocus && 
-                                widget.suggestions.isNotEmpty && 
-                                value.isNotEmpty;
+              _showSuggestions =
+                  _focusNode.hasFocus &&
+                  widget.suggestions.isNotEmpty &&
+                  value.isNotEmpty;
             });
             widget.onChanged?.call(value);
           },
@@ -174,8 +176,10 @@ class _SearchFieldState extends State<SearchField> {
   /// Build suggestions list
   Widget _buildSuggestionsList() {
     final filteredSuggestions = widget.suggestions
-        .where((suggestion) => 
-            suggestion.toLowerCase().contains(_controller.text.toLowerCase()))
+        .where(
+          (suggestion) =>
+              suggestion.toLowerCase().contains(_controller.text.toLowerCase()),
+        )
         .take(5)
         .toList();
 
@@ -188,9 +192,7 @@ class _SearchFieldState extends State<SearchField> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(DesignTokens.radiusMedium),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         boxShadow: DesignTokens.shadowMedium,
       ),
       child: Column(
