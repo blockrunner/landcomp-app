@@ -101,3 +101,7 @@ lib/**/*.config.dart
 
 # Deployment specific
 docker-compose.override.yml
+
+# Debug and test files with sensitive data
+debug/
+test-images/
