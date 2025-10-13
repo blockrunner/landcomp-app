@@ -56,7 +56,7 @@ class ProjectListItem extends StatelessWidget {
                   : Border.all(
                       color: Theme.of(
                         context,
-                      ).colorScheme.outline.withOpacity(0.2),
+                      ).colorScheme.outline.withValues(alpha: 0.2),
                     ),
             ),
             child: Column(
@@ -97,7 +97,7 @@ class ProjectListItem extends StatelessWidget {
                       color: isActive
                           ? Theme.of(
                               context,
-                            ).colorScheme.onPrimaryContainer.withOpacity(0.8)
+                            ).colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 2,
@@ -117,7 +117,7 @@ class ProjectListItem extends StatelessWidget {
                         color: isActive
                             ? Theme.of(
                                 context,
-                              ).colorScheme.onPrimaryContainer.withOpacity(0.7)
+                              ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
                             : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 4),
@@ -126,7 +126,7 @@ class ProjectListItem extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isActive
                               ? Theme.of(context).colorScheme.onPrimaryContainer
-                                    .withOpacity(0.7)
+                                    .withValues(alpha: 0.7)
                               : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
@@ -140,7 +140,7 @@ class ProjectListItem extends StatelessWidget {
                       color: isActive
                           ? Theme.of(
                               context,
-                            ).colorScheme.onPrimaryContainer.withOpacity(0.7)
+                            ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 4),
@@ -150,7 +150,7 @@ class ProjectListItem extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isActive
                               ? Theme.of(context).colorScheme.onPrimaryContainer
-                                    .withOpacity(0.7)
+                                    .withValues(alpha: 0.7)
                               : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,

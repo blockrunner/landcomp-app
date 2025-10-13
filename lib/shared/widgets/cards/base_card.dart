@@ -116,13 +116,13 @@ class _BaseCardState extends State<BaseCard>
               border: widget.border,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   offset: const Offset(0, 2),
                   blurRadius: 12,
                 ),
                 if (_elevationAnimation.value > 0)
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
+                    color: Colors.black.withValues(alpha: 0.12),
                     offset: const Offset(0, 8),
                     blurRadius: 24,
                   ),

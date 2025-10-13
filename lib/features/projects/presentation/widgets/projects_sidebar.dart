@@ -169,14 +169,14 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
         icon,
         color: enabled
             ? Theme.of(context).colorScheme.onSurface
-            : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
       ),
       title: Text(
         title,
         style: TextStyle(
           color: enabled
               ? Theme.of(context).colorScheme.onSurface
-              : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
         ),
       ),
       subtitle: subtitle != null
@@ -301,7 +301,7 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
             size: 48,
             color: Theme.of(
               context,
-            ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 12),
           Text(

@@ -188,7 +188,7 @@ class FeatureCard extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: AppColors.warning.withOpacity(0.1),
+          color: AppColors.warning.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(DesignTokens.radiusSmall),
         ),
         child: Text(
@@ -206,7 +206,7 @@ class FeatureCard extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: AppColors.gray500.withOpacity(0.1),
+          color: AppColors.gray500.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(DesignTokens.radiusSmall),
         ),
         child: Text(
@@ -228,7 +228,7 @@ class FeatureCard extends StatelessWidget {
       return AppColors.gray100;
     }
     if (feature.isComingSoon) {
-      return AppColors.warning.withOpacity(0.1);
+      return AppColors.warning.withValues(alpha: 0.1);
     }
     return AppColors.primaryGreenLight;
   }
@@ -352,7 +352,7 @@ class CompactFeatureCard extends StatelessWidget {
       return AppColors.gray100;
     }
     if (feature.isComingSoon) {
-      return AppColors.warning.withOpacity(0.1);
+      return AppColors.warning.withValues(alpha: 0.1);
     }
     return AppColors.primaryGreenLight;
   }
