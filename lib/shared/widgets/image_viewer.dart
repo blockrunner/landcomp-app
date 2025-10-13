@@ -55,7 +55,7 @@ class _ImageViewerState extends State<ImageViewer> {
       builder: (context, languageProvider, child) => Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          backgroundColor: Colors.black.withOpacity(0.8),
+          backgroundColor: Colors.black.withValues(alpha: 0.8),
           foregroundColor: Colors.white,
           automaticallyImplyLeading: false, // Remove back button
           title: Text(
@@ -231,7 +231,7 @@ class _ImageViewerState extends State<ImageViewer> {
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+          colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
         ),
       ),
       child: Column(
@@ -250,7 +250,7 @@ class _ImageViewerState extends State<ImageViewer> {
           Text(
             '${attachment.displaySize} • ${attachment.mimeType}',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               fontSize: 12,
             ),
             textAlign: TextAlign.center,
@@ -260,7 +260,7 @@ class _ImageViewerState extends State<ImageViewer> {
             Text(
               '${attachment.width} × ${attachment.height}',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
               textAlign: TextAlign.center,
@@ -281,14 +281,14 @@ class _ImageViewerState extends State<ImageViewer> {
           Icon(
             Icons.broken_image,
             size: 64,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Consumer<LanguageProvider>(
             builder: (context, languageProvider, child) => Text(
               languageProvider.getString('failedToLoadImage'),
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 16,
               ),
               textAlign: TextAlign.center,
@@ -298,7 +298,7 @@ class _ImageViewerState extends State<ImageViewer> {
           Text(
             imageName,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               fontSize: 12,
             ),
             textAlign: TextAlign.center,
@@ -374,7 +374,7 @@ class _HoverButtonState extends State<_HoverButton> {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: _isHovered
-                ? Colors.white.withOpacity(0.2)
+                ? Colors.white.withValues(alpha: 0.2)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
           ),
