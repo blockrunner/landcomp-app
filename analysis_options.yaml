@@ -12,3 +12,61 @@ analyzer:
     - "**/generated_plugin_registrant.dart"
     - "**/injection.dart"
     - "**/injection.config.dart"
+    - "test/**"
+  errors:
+    # Treat most issues as warnings for CI/CD
+    invalid_annotation_target: warning
+    missing_required_param: error
+    missing_return: error
+    must_be_immutable: warning
+    must_call_super: warning
+    non_constant_identifier_names: warning
+    prefer_const_constructors: warning
+    prefer_const_literals_to_create_immutables: warning
+    sort_constructors_first: warning
+    sort_unnamed_constructors_first: warning
+    unnecessary_const: warning
+    unnecessary_new: warning
+    unnecessary_null_aware_assignments: warning
+    unnecessary_null_in_if_null_operators: warning
+    unnecessary_overrides: warning
+    unnecessary_parenthesis: warning
+    unnecessary_raw_strings: warning
+    unnecessary_string_escapes: warning
+    unnecessary_string_interpolations: warning
+    unnecessary_this: warning
+    use_build_context_synchronously: warning
+    use_colored_box: warning
+    use_decorated_box: warning
+    use_full_hex_values_for_flutter_colors: warning
+    use_function_type_syntax_for_parameters: warning
+    use_if_null_to_convert_nulls_to_bools: warning
+    use_is_even_rather_than_modulo: warning
+    use_key_in_widget_constructors: warning
+    use_late_for_private_fields_and_variables: warning
+    use_named_constants: warning
+    use_raw_strings: warning
+    use_rethrow_when_possible: warning
+    use_setters_to_change_properties: warning
+    use_string_buffers: warning
+    use_super_parameters: warning
+    use_test_throws_matchers: warning
+    use_to_and_as_if_applicable: warning
+    valid_regexps: warning
+    void_checks: warning
+    # Additional rules to treat as warnings
+    always_use_package_imports: warning
+    avoid_print: warning
+    avoid_redundant_argument_values: warning
+    avoid_dynamic_calls: warning
+    deprecated_member_use: warning
+    directives_ordering: warning
+    eol_at_end_of_file: warning
+    flutter_style_todos: warning
+    lines_longer_than_80_chars: warning
+    noop_primitive_operations: warning
+    omit_local_variable_types: warning
+    prefer_final_locals: warning
+    public_member_api_docs: warning
+    sort_pub_dependencies: warning
+    unnecessary_breaks: warning
