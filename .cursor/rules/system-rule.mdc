@@ -1,0 +1,403 @@
+---
+alwaysApply: true
+---
+# LandComp - AI-powered Landscape Design App
+# Cursor Rules for Flutter Development
+
+## Project Overview
+LandComp is a Flutter application for AI-powered landscape design and gardening assistance. The app uses Clean Architecture with feature-based organization, supports multiple AI providers (OpenAI, Google Gemini), and includes comprehensive theming and localization.
+
+## Core Technologies
+- **Framework**: Flutter 3.9.2+
+- **State Management**: Provider
+- **Dependency Injection**: GetIt + Injectable
+- **Navigation**: GoRouter
+- **Networking**: Dio with proxy support
+- **Storage**: Hive + SharedPreferences
+- **Code Quality**: Very Good Analysis + Flutter Lints
+
+## Architecture Rules
+
+### 1. Clean Architecture Structure
+```
+lib/
+├── core/           # Shared utilities, constants, themes
+├── features/       # Feature modules (chat, profile, settings)
+├── shared/         # Reusable widgets and utilities
+├── di/            # Dependency injection
+└── app/           # App configuration and routing
+```
+
+### 2. Feature Module Structure
+Each feature MUST follow this structure:
+```
+features/[feature_name]/
+├── data/
+│   ├── datasources/    # API and local data sources
+│   ├── models/         # Data models
+│   └── repositories/   # Repository implementations
+├── domain/
+│   ├── entities/       # Business entities
+│   ├── repositories/   # Repository interfaces
+│   └── usecases/       # Business logic
+└── presentation/
+    ├── pages/          # UI pages
+    ├── providers/      # State management
+    └── widgets/        # Feature-specific widgets
+```
+
+### 3. Naming Conventions
+- **Files**: snake_case (e.g., `chat_page.dart`, `ai_service.dart`)
+- **Classes**: PascalCase (e.g., `ChatProvider`, `AIService`)
+- **Variables/Functions**: camelCase (e.g., `currentAgent`, `sendMessage`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `APP_NAME`, `MAX_TOKENS`)
+- **Private members**: Leading underscore (e.g., `_currentProxy`, `_buildChatContent`)
+
+## Flutter-Specific Rules
+
+### 1. Widget Development
+- ALWAYS use `const` constructors when possible
+- Prefer `StatelessWidget` over `StatefulWidget` when state is not needed
+- Use `Consumer` and `Provider` for state management
+- Implement proper `dispose()` methods for controllers and streams
+- Use `WidgetsBinding.instance.addPostFrameCallback()` for post-build operations
+
+### 2. State Management
+- Use `Provider` for global state
+- Use `ChangeNotifier` for complex state objects
+- Implement proper error handling in providers
+- Use `Consumer` widgets to listen to state changes
+- Avoid direct `setState` in favor of provider-based state management
+
+### 3. Theme and Styling
+- Use `Theme.of(context)` for accessing theme data
+- Follow Material Design 3 guidelines
+- Use design tokens from `lib/core/theme/`
+- Implement both light and dark themes
+- Use semantic color names (e.g., `primary`, `onPrimary`)
+
+### 4. Navigation
+- Use `GoRouter` for navigation
+- Define routes in `lib/app/router.dart`
+- Use `context.go()` for navigation
+- Implement proper route guards and error handling
+
+## AI Integration Rules
+
+### 1. AI Service Usage
+- Use `AIService.instance` for all AI API calls
+- Implement proper error handling for API failures
+- Use fallback mechanisms between OpenAI and Gemini
+- Handle rate limiting and quota exceeded errors
+- Implement retry logic with exponential backoff
+
+### 2. Proxy Configuration
+- Support SOCKS5 proxy for API requests
+- Handle proxy authentication
+- Implement backup proxy fallback
+- Use different configurations for web and native platforms
+
+### 3. Message Handling
+- Validate message length before sending
+- Implement proper loading states
+- Handle streaming responses when available
+- Store chat history in local storage
+
+## Code Quality Rules
+
+### 1. Documentation
+- ALWAYS add library-level documentation for public APIs
+- Use `///` for documentation comments
+- Document complex business logic
+- Include examples for public methods
+- Document error conditions and exceptions
+
+### 2. Error Handling
+- Use specific exception types
+- Implement proper error messages
+- Handle network errors gracefully
+- Provide user-friendly error messages
+- Log errors for debugging
+
+### 3. Testing
+- Write unit tests for business logic
+- Write widget tests for UI components
+- Write integration tests for user flows
+- Maintain test coverage above 80%
+- Use mocks for external dependencies
+
+### 4. Performance
+- Use `const` constructors to avoid unnecessary rebuilds
+- Implement proper list virtualization for large datasets
+- Use `ListView.builder` for dynamic lists
+- Optimize image loading and caching
+- Implement proper memory management
+
+## File Organization Rules
+
+### 1. Import Order
+```dart
+// Dart SDK imports
+import 'dart:io';
+
+// Flutter imports
+import 'package:flutter/material.dart';
+
+// Third-party package imports
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+
+// Project imports
+import '../core/constants/app_constants.dart';
+import '../shared/widgets/logo_widget.dart';
+```
+
+### 2. File Structure
+- One class per file (except for related classes)
+- Use `library;` directive at the top
+- Group related functionality together
+- Keep files under 300 lines when possible
+
+### 3. Asset Management
+- Store assets in `assets/` directory
+- Use proper asset paths in `pubspec.yaml`
+- Optimize images for different screen densities
+- Use vector graphics when possible
+
+## Environment and Configuration
+
+### 1. Environment Variables
+- Use `.env` file for configuration
+- Never commit API keys to version control
+- Use `EnvConfig` class for accessing environment variables
+- Implement proper validation for required variables
+
+### 2. Build Configuration
+- Use different configurations for debug/release
+- Implement proper logging levels
+- Handle platform-specific code with `kIsWeb`
+- Use conditional compilation for platform-specific features
+
+## Localization Rules
+
+### 1. Internationalization
+- Use `LanguageProvider` for language management
+- Store translations in `assets/translations/`
+- Use semantic keys for translation strings
+- Implement proper pluralization
+- Support RTL languages when needed
+
+### 2. Text Handling
+- Always use localized strings
+- Avoid hardcoded text in UI
+- Use proper text scaling
+- Implement accessibility features
+
+## Security Rules
+
+### 1. API Security
+- Never expose API keys in client code
+- Use proper authentication headers
+- Implement request validation
+- Handle sensitive data securely
+
+### 2. Data Protection
+- Encrypt sensitive local data
+- Use secure storage for credentials
+- Implement proper session management
+- Follow GDPR compliance guidelines
+
+## MCP Context7 Integration Rules
+
+### 1. Documentation Access
+- Use MCP Context7 for accessing Flutter documentation
+- Query for specific Flutter widgets and APIs
+- Get up-to-date information about Flutter best practices
+- Access Material Design guidelines through Context7
+
+### 2. Library Documentation
+- Use Context7 to get documentation for third-party packages
+- Query for Dio, Provider, GoRouter, and other dependencies
+- Get examples and usage patterns for external libraries
+- Access package-specific best practices
+
+### 3. Code Examples
+- Request code examples for complex Flutter patterns
+- Get implementation examples for AI integration
+- Access state management patterns and examples
+- Query for testing strategies and examples
+
+### 4. Best Practices
+- Use Context7 to stay updated with Flutter best practices
+- Query for performance optimization techniques
+- Get accessibility implementation guidelines
+- Access security best practices for Flutter apps
+
+## Development Workflow
+
+### 1. Before Coding
+- Read existing code to understand patterns
+- Check for similar implementations
+- Plan the feature architecture
+- Consider error handling and edge cases
+
+### 2. During Development
+- Follow the established patterns
+- Write tests as you develop
+- Use proper error handling
+- Implement proper loading states
+
+### 3. After Development
+- Run `flutter analyze` to check for issues
+- Run tests to ensure functionality
+- Check for performance implications
+- Update documentation if needed
+
+## Common Patterns
+
+### 1. Provider Pattern
+```dart
+class FeatureProvider extends ChangeNotifier {
+  // State variables
+  bool _isLoading = false;
+  
+  // Getters
+  bool get isLoading => _isLoading;
+  
+  // Methods
+  Future<void> performAction() async {
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      // Business logic
+    } catch (e) {
+      // Error handling
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+}
+```
+
+### 2. Service Pattern
+```dart
+class FeatureService {
+  FeatureService._();
+  static final FeatureService _instance = FeatureService._();
+  static FeatureService get instance => _instance;
+  
+  Future<Result> performAction() async {
+    try {
+      // Implementation
+    } catch (e) {
+      throw FeatureException('Error message');
+    }
+  }
+}
+```
+
+### 3. Widget Pattern
+```dart
+class FeatureWidget extends StatelessWidget {
+  const FeatureWidget({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FeatureProvider>(
+      builder: (context, provider, child) {
+        return // Widget implementation
+      },
+    );
+  }
+}
+```
+
+## Prohibited Practices
+
+### 1. Never Do
+- Hardcode API keys or sensitive data
+- Use `setState` in provider-based architecture
+- Ignore error handling
+- Skip documentation for public APIs
+- Use deprecated Flutter APIs
+- Mix business logic with UI code
+- Create circular dependencies
+- Use global variables for state management
+
+### 2. Avoid
+- Deeply nested widget trees
+- Large widget files (over 300 lines)
+- Complex build methods
+- Synchronous operations in build methods
+- Unnecessary rebuilds
+- Memory leaks from unclosed streams
+- Platform-specific code without proper abstraction
+
+## Performance Guidelines
+
+### 1. Optimization
+- Use `const` constructors everywhere possible
+- Implement proper list virtualization
+- Optimize image loading and caching
+- Use `RepaintBoundary` for complex widgets
+- Implement proper memory management
+
+### 2. Monitoring
+- Use Flutter Inspector for debugging
+- Monitor memory usage
+- Check for unnecessary rebuilds
+- Profile app performance regularly
+
+## Testing Strategy
+
+### 1. Unit Tests
+- Test business logic in providers
+- Test service methods
+- Test utility functions
+- Mock external dependencies
+
+### 2. Widget Tests
+- Test UI components
+- Test user interactions
+- Test state changes
+- Test error states
+
+### 3. Integration Tests
+- Test complete user flows
+- Test API integrations
+- Test navigation
+- Test error handling
+
+## Deployment Rules
+
+### 1. Build Process
+- Use `Makefile` commands for builds
+- Run all tests before deployment
+- Check code quality with `flutter analyze`
+- Optimize assets for production
+
+### 2. Version Management
+- Follow semantic versioning
+- Update version in `pubspec.yaml`
+- Tag releases in Git
+- Maintain changelog
+
+## Emergency Procedures
+
+### 1. Critical Bugs
+- Create hotfix branch
+- Implement minimal fix
+- Test thoroughly
+- Deploy quickly
+- Follow up with proper fix
+
+### 2. Performance Issues
+- Profile the application
+- Identify bottlenecks
+- Implement optimizations
+- Monitor improvements
+- Document changes
+
+Remember: These rules are guidelines to maintain code quality, consistency, and maintainability. Always prioritize user experience and code clarity over strict adherence to rules when necessary.

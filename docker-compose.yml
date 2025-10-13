@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  landcomp-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: landcomp-app
+    ports:
+      - "8080:80"
+    environment:
+      # Environment variables will be loaded from .env file
+      - NODE_ENV=production
+    volumes:
+      # Mount logs for debugging
+      - ./logs:/var/log/nginx
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - landcomp-network
+
+  # Development service (optional)
+  landcomp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: landcomp-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/build
+      - /app/.dart_tool
+    environment:
+      - FLUTTER_WEB_AUTO_DETECT=true
+    profiles:
+      - dev
+    networks:
+      - landcomp-network
+
+networks:
+  landcomp-network:
+    driver: bridge
+
+volumes:
+  logs:

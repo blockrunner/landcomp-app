@@ -1,0 +1,8 @@
+---
+description: Для всех задач генерации изображений всегда использовать модели семейства gemini-2.5-flash.
+globs: 
+    - "**"
+alwaysApply: true
+models:
+    image_gen: "gemini-2.5-flash"
+---

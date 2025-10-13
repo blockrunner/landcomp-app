@@ -1,0 +1,74 @@
+# Конституция проекта: Landscape AI App
+
+## Принципы качества кода
+- **100% покрытие тестами** для всей бизнес-логики
+- **Widget тесты** для критических UI компонентов
+- **Integration тесты** для полных пользовательских сценариев
+- **Статический анализ**: dart analyze с нулевыми warnings
+- **Форматирование**: dart format с consistent style
+- **Документация**: каждый публичный метод должен иметь документацию
+- **Header комментарии** для всех новых файлов
+
+## Стандарты пользовательского опыта
+- **Material Design 3** как основа дизайн-системы
+- **Responsive дизайн** для всех размеров экранов
+- **Accessibility (WCAG 2.1 AA)** для инклюзивности
+- **60 FPS UI** для плавной анимации
+- **<3s холодный старт** для быстрой загрузки
+- **Интуитивная навигация** с go_router
+- **Многоязычная поддержка** (RU/EN)
+
+## Требования к производительности
+- **Оптимизированная загрузка** с lazy loading
+- **Эффективное кэширование** с Hive
+- **Минимальный bundle size** для быстрой загрузки
+- **Оптимизация изображений** и медиа-контента
+- **Memory management** без утечек
+
+## Архитектурные принципы
+- **Clean Architecture** с четким разделением слоев:
+  - Presentation (UI, ViewModels, Widgets)
+  - Domain (Entities, Use Cases, Repositories)
+  - Data (Data Sources, Models, Network)
+- **MVVM паттерн** с Provider/Riverpod для state management
+- **Dependency Injection** с GetIt для слабосвязанной архитектуры
+- **Repository Pattern** для абстракции источников данных
+- **Single Responsibility Principle** для всех компонентов
+- **SOLID принципы** во всей кодовой базе
+
+## Принципы разработки
+- **Spec-Driven Development** - сначала спецификация, потом код
+- **Test-Driven Development** - тесты перед реализацией
+- **Feature Branch** workflow с обязательным code review
+- **Continuous Integration** с автоматическими проверками
+- **Fail Fast** - быстрая обратная связь при ошибках
+- **Incremental Development** - поэтапная реализация функций
+
+## Стандарты безопасности
+- **API ключи** в environment variables
+- **Валидация входных данных** на всех уровнях
+- **Secure storage** для чувствительных данных
+- **HTTPS only** для всех сетевых запросов
+- **Input sanitization** для предотвращения инъекций
+
+## Принципы AI интеграции
+- **Graceful degradation** при недоступности AI сервисов
+- **Офлайн режим** для базовой функциональности
+- **Rate limiting** для предотвращения злоупотреблений
+- **Error handling** для AI API ошибок
+- **Fallback механизмы** при сбоях AI
+
+## Стандарты кодирования
+- **Dart/Flutter best practices** во всем коде
+- **Consistent naming conventions** (camelCase для переменных, PascalCase для классов)
+- **Meaningful variable names** без сокращений
+- **Small functions** (максимум 20 строк)
+- **DRY principle** - не повторяй себя
+- **KISS principle** - простота превыше всего
+
+## Принципы командной работы
+- **Code review** обязателен для всех изменений
+- **Pair programming** для сложных задач
+- **Knowledge sharing** через документацию и комментарии
+- **Continuous learning** и улучшение процессов
+- **Open communication** о проблемах и решениях

@@ -1,0 +1,695 @@
+# Технический план: Landscape AI App
+
+## Архитектурная стратегия
+
+### Clean Architecture Implementation
+```
+┌─────────────────────────────────────────┐
+│              Presentation               │
+│  ┌─────────────┐  ┌─────────────────┐  │
+│  │   Widgets   │  │   ViewModels    │  │
+│  │   (UI)      │  │   (State Mgmt)  │  │
+│  └─────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────────┐
+│               Domain                    │
+│  ┌─────────────┐  ┌─────────────────┐  │
+│  │  Entities   │  │   Use Cases     │  │
+│  │  (Models)   │  │  (Business)     │  │
+│  └─────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────────┐
+│                Data                     │
+│  ┌─────────────┐  ┌─────────────────┐  │
+│  │ Repositories│  │  Data Sources   │  │
+│  │ (Abstraction)│  │  (API/DB)      │  │
+│  └─────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+### Технологический стек
+
+#### Core Framework
+- **Flutter SDK**: 3.24.0+ (stable channel)
+- **Dart**: 3.5.0+
+- **Target Platforms**: Android (API 21+), iOS (12.0+), Web
+
+#### State Management
+- **Provider**: 6.1.2+ для простого state management
+- **Riverpod**: 2.4.9+ как альтернатива (будущие версии)
+- **Bloc**: 8.1.4+ для сложной бизнес-логики
+
+#### Dependency Injection
+- **GetIt**: 7.7.0+ для DI контейнера
+- **Injectable**: 2.6.1+ для code generation
+- **Build Runner**: 2.4.9+ для генерации кода
+
+#### Networking & API
+- **Dio**: 5.4.3+ для HTTP клиента
+- **Retrofit**: 4.1.0+ для API интерфейсов
+- **Connectivity Plus**: 5.0.2+ для проверки сети
+
+#### Local Storage
+- **SQLite**: sqflite 2.3.3+ для структурированных данных
+- **Hive**: 2.2.3+ для кэширования и настроек
+- **Shared Preferences**: 2.2.2+ для простых настроек
+
+#### AI Integration
+- **HTTP Client**: для прямых API вызовов с поддержкой прокси
+- **Custom AI Service**: обертка для OpenAI/Gemini с fallback механизмами
+- **Proxy Support**: обязательное использование прокси для API запросов
+- **Fallback Keys**: автоматическое переключение на резервные ключи при исчерпании ресурсов
+- **Error Handling**: graceful degradation с retry логикой
+
+#### Navigation & Routing
+- **Go Router**: 14.2.3+ для декларативной навигации
+- **Deep Linking**: поддержка URL схем
+
+#### UI & Design
+- **Material Design 3**: встроенная поддержка Flutter
+- **Responsive Design**: adaptive layouts
+- **Custom Themes**: светлая/темная темы
+
+#### Testing
+- **Flutter Test**: unit и widget тесты
+- **Integration Test**: end-to-end тестирование
+- **Mockito**: 5.4.4+ для мокирования
+- **Golden Tests**: для UI регрессий
+
+#### Code Quality
+- **Flutter Lints**: 4.0.0+ для статического анализа
+- **Very Good Analysis**: 6.0.0+ для расширенных правил
+- **Dart Format**: автоматическое форматирование
+- **Coverage**: измерение покрытия тестами
+
+## Структура проекта
+
+### Директории
+```
+lib/
+├── main.dart                 # Entry point
+├── app/                      # App configuration
+│   ├── app.dart             # Main app widget
+│   ├── router.dart          # Navigation configuration
+│   ├── theme.dart           # Theme configuration
+│   └── constants/           # App constants
+├── core/                     # Core functionality
+│   ├── constants/           # Global constants
+│   ├── errors/              # Error handling
+│   ├── network/             # Network configuration with proxy support
+│   ├── storage/             # Storage abstractions
+│   ├── utils/               # Utility functions
+│   ├── extensions/          # Dart extensions
+│   └── localization/        # Localization support (EN/RU)
+├── features/                 # Feature modules
+│   ├── chat/                # Chat feature with AI agents
+│   │   ├── data/            # Data layer
+│   │   │   ├── datasources/ # API & local sources with proxy support
+│   │   │   ├── models/      # Data models
+│   │   │   └── repositories/ # Repository implementations
+│   │   ├── domain/          # Domain layer
+│   │   │   ├── entities/    # Business entities (AI agents, messages)
+│   │   │   ├── repositories/ # Repository interfaces
+│   │   │   └── usecases/    # Business logic
+│   │   └── presentation/    # Presentation layer
+│   │       ├── pages/       # UI pages
+│   │       ├── widgets/     # Reusable widgets
+│   │       └── providers/   # State management
+│   ├── settings/            # Settings feature with localization
+│   └── profile/             # User profile
+├── shared/                   # Shared components
+│   ├── widgets/             # Common widgets
+│   ├── models/              # Shared models
+│   ├── services/            # Shared services
+│   └── utils/               # Shared utilities
+└── di/                      # Dependency injection
+    └── injection.dart       # DI configuration
+```
+
+### Конфигурационные файлы
+```
+├── pubspec.yaml             # Dependencies
+├── analysis_options.yaml    # Linting rules
+├── .gitignore              # Git ignore rules
+├── .github/                # GitHub workflows
+│   └── workflows/
+│       ├── android.yml     # Android CI/CD
+│       ├── ios.yml         # iOS CI/CD
+│       └── web.yml         # Web CI/CD
+├── android/                # Android configuration
+├── ios/                    # iOS configuration
+├── web/                    # Web configuration
+├── test/                   # Unit tests
+├── integration_test/       # Integration tests
+└── scripts/                # Build scripts
+    ├── build.sh           # Linux/macOS build
+    └── build.ps1          # Windows build
+```
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+#### Android Build
+```yaml
+name: Android Build & Test
+on: [push, pull_request]
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - checkout
+      - setup-java@v4 (Java 17)
+      - setup-flutter@v2 (3.24.0)
+      - flutter pub get
+      - flutter analyze
+      - flutter test --coverage
+      - flutter build apk --debug
+      - flutter build appbundle --release (main branch)
+```
+
+#### iOS Build
+```yaml
+name: iOS Build & Test
+on: [push]
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - checkout
+      - setup-flutter@v2 (3.24.0)
+      - flutter pub get
+      - cd ios && pod install
+      - flutter analyze
+      - flutter test
+      - flutter build ios --simulator
+      - flutter build ios --release --no-codesign (main branch)
+```
+
+#### Web Build
+```yaml
+name: Web Build & Deploy
+on: [push]
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - checkout
+      - setup-flutter@v2 (3.24.0)
+      - flutter config --enable-web
+      - flutter pub get
+      - flutter analyze
+      - flutter test
+      - flutter build web --debug
+      - flutter build web --release (main branch)
+      - deploy-to-firebase (main branch)
+```
+
+### Quality Gates
+- **Code Analysis**: dart analyze без warnings
+- **Test Coverage**: минимум 90% для критической логики
+- **Format Check**: dart format --set-exit-if-changed
+- **Build Success**: успешная сборка на всех платформах
+
+## Development Workflow
+
+### Git Strategy
+- **Main Branch**: стабильная версия для продакшена
+- **Develop Branch**: интеграционная ветка для разработки
+- **Feature Branches**: feature/feature-name для новых функций
+- **Hotfix Branches**: hotfix/issue-description для критических исправлений
+
+### Code Review Process
+1. **Self Review**: проверка собственного кода
+2. **Automated Checks**: CI/CD pipeline
+3. **Peer Review**: минимум один reviewer
+4. **Testing**: локальное тестирование
+5. **Merge**: только после всех проверок
+
+### Testing Strategy
+- **Unit Tests**: для бизнес-логики (Use Cases)
+- **Widget Tests**: для UI компонентов
+- **Integration Tests**: для полных пользовательских сценариев
+- **Golden Tests**: для UI регрессий
+
+## Performance Optimization
+
+### Build Optimization
+- **Tree Shaking**: удаление неиспользуемого кода
+- **Code Splitting**: разделение кода по фичам
+- **Asset Optimization**: сжатие изображений и ресурсов
+- **Bundle Analysis**: анализ размера приложения
+
+### Runtime Optimization
+- **Lazy Loading**: загрузка по требованию
+- **Caching Strategy**: эффективное кэширование
+- **Memory Management**: предотвращение утечек
+- **Network Optimization**: минимизация запросов
+
+## Security Considerations
+
+### API Security
+- **API Key Management**: безопасное хранение ключей
+- **Rate Limiting**: предотвращение злоупотреблений
+- **Input Validation**: валидация всех входных данных
+- **HTTPS Only**: шифрование всех соединений
+
+### Data Protection
+- **Local Encryption**: шифрование чувствительных данных
+- **Secure Storage**: использование secure storage APIs
+- **Privacy by Design**: минимальная коллекция данных
+- **GDPR Compliance**: соответствие требованиям приватности
+
+## Monitoring & Analytics
+
+### Error Tracking
+- **Crash Reporting**: автоматический сбор crash reports
+- **Error Logging**: детальное логирование ошибок
+- **Performance Monitoring**: отслеживание производительности
+
+### User Analytics
+- **Usage Metrics**: использование функций
+- **Performance Metrics**: время загрузки, отзывчивость
+- **User Journey**: пути пользователей в приложении
+
+## Deployment Strategy
+
+### Staging Environment
+- **Development Builds**: для внутреннего тестирования
+- **Staging Server**: для QA тестирования
+- **Feature Flags**: для постепенного развертывания
+
+### Production Deployment
+- **Gradual Rollout**: постепенное развертывание
+- **A/B Testing**: тестирование новых функций
+- **Rollback Strategy**: план отката при проблемах
+
+## Maintenance & Updates
+
+### Version Management
+- **Semantic Versioning**: MAJOR.MINOR.PATCH
+- **Changelog**: детальное описание изменений
+- **Migration Guides**: руководства по обновлению
+
+### Dependency Management
+- **Regular Updates**: регулярное обновление зависимостей
+- **Security Patches**: быстрое применение security patches
+- **Breaking Changes**: планирование breaking changes
+
+## AI Integration Plan
+
+### Специализированные AI Агенты
+- **Садовод (Gardener)**: эксперт по растениям, уходу и сезонным работам
+- **Ландшафтный дизайнер (Landscape Designer)**: планирование участков и зонирование
+- **Строитель (Builder)**: материалы, технологии и строительные работы
+- **Эколог (Ecologist)**: экологичные решения и устойчивое развитие
+
+### API Configuration
+```dart
+// Environment variables from .env
+OPENAI_API_KEY="sk-proj-..."
+GOOGLE_API_KEY="AIzaSy..."
+GOOGLE_API_KEYS_FALLBACK="AIzaSy..."
+
+// Proxy configuration
+ALL_PROXY="socks5h://user:pass@proxy:port"
+BACKUP_PROXIES="socks5h://user:pass@proxy1:port,socks5h://user:pass@proxy2:port"
+```
+
+### Proxy Support Implementation
+- **Primary Proxy**: основной прокси для всех API запросов
+- **Backup Proxies**: резервные прокси при недоступности основного
+- **Fallback Keys**: автоматическое переключение на резервные API ключи
+- **Resource Exhausted Handling**: обработка ошибки "ресурс исчерпан"
+
+### Localization Continuation
+- **Продолжение разработки** с полной поддержкой локализации (EN/RU)
+- **Все новые функции** должны поддерживать оба языка
+- **AI ответы** на языке выбранном пользователем
+- **Специализированные промпты** для каждого агента на обоих языках
+
+## Development Roadmap
+
+### 📊 Project Status Overview
+- **Phase 1: AI Integration Foundation** ✅ **COMPLETED (100%)**
+- **Phase 2: Chat Implementation** ✅ **COMPLETED (100%)**
+- **Phase 3: Local Storage** ✅ **COMPLETED (90%)**
+- **Phase 4: Advanced Features** ⏳ **PENDING (0%)**
+- **Phase 5: Testing & Quality** ⏳ **PENDING (5%)**
+- **Phase 6: Deployment** ⏳ **PENDING (0%)**
+
+**Overall Project Completion: 75%**
+
+### Phase 1: AI Integration Foundation ✅ COMPLETED
+- ✅ Environment configuration with proxy support
+- ✅ AI Service with OpenAI and Google Gemini integration
+- ✅ Fallback mechanisms for API keys and proxies
+- ✅ Specialized AI agents (Gardener, Landscape Designer, Builder, Ecologist)
+- ✅ Localization support for AI agents
+
+### Phase 2: Chat Implementation ✅ COMPLETED
+
+#### 2.1 ChatProvider Implementation ✅ COMPLETED
+```dart
+// lib/features/chat/presentation/providers/chat_provider.dart
+class ChatProvider extends ChangeNotifier {
+  // ✅ State management for chat messages
+  // ✅ AI agent selection with smart selection
+  // ✅ Message sending/receiving with typing indicators
+  // ✅ Error handling and retry logic
+  // ✅ Session management and persistence
+  // ✅ Language provider integration
+}
+```
+
+#### 2.2 Message Models ✅ COMPLETED
+```dart
+// lib/features/chat/domain/entities/message.dart
+class Message {
+  final String id;
+  final String content;
+  final MessageType type; // user, ai, system, typing
+  final DateTime timestamp;
+  final String? agentId;
+  final bool isError;
+  final bool isTyping;
+}
+```
+
+#### 2.3 MessageBubble Widget ✅ COMPLETED
+```dart
+// lib/features/chat/presentation/widgets/message_bubble.dart
+class MessageBubble extends StatelessWidget {
+  // ✅ User message bubble with proper styling
+  // ✅ AI message bubble with agent styling and icons
+  // ✅ Typing indicator with animated dots
+  // ✅ Error message display with retry button
+  // ✅ Timestamp display
+  // ✅ Agent header for AI messages
+}
+```
+
+#### 2.4 Agent Selection UI ✅ COMPLETED
+```dart
+// lib/features/chat/presentation/widgets/agent_selector.dart
+class AgentSelector extends StatelessWidget {
+  // ✅ Grid of available agents with cards
+  // ✅ Agent cards with icons and descriptions
+  // ✅ Current agent indicator in chat header
+  // ✅ Smart agent selection based on query content
+}
+```
+
+#### 2.5 Chat Integration ✅ COMPLETED
+- ✅ ChatProvider for comprehensive state management
+- ✅ MessageBubble widget for displaying messages with animations
+- ✅ Integration of AI Service with chat interface
+- ✅ Smart agent selection UI with automatic switching
+- ✅ Quick start suggestions for each agent
+- ✅ Real-time message updates with typing indicators
+- ✅ Error handling and retry logic
+- ✅ Welcome screen with agent-specific suggestions
+- ✅ Message input with send button and keyboard handling
+
+### Phase 3: Local Storage ✅ COMPLETED (90%)
+
+#### 3.1 Database Setup ✅ COMPLETED (Hive Implementation)
+```dart
+// lib/core/storage/chat_storage.dart
+class ChatStorage {
+  // ✅ Hive database initialization
+  // ✅ Chat session storage and retrieval
+  // ✅ Message persistence and loading
+  // ✅ Storage statistics and monitoring
+  // ✅ Error handling and recovery
+}
+```
+
+#### 3.2 Message Repository ✅ COMPLETED
+```dart
+// lib/features/chat/presentation/providers/chat_provider.dart
+class ChatProvider {
+  // ✅ Save messages to storage via ChatStorage
+  // ✅ Retrieve chat history from storage
+  // ✅ Delete sessions and messages
+  // ✅ Session management and persistence
+  // ✅ Storage integration with state management
+}
+```
+
+#### 3.3 Hive Cache ✅ COMPLETED
+```dart
+// lib/core/storage/chat_storage.dart
+class ChatStorage {
+  // ✅ Cache chat sessions and messages
+  // ✅ Offline message storage
+  // ✅ Storage statistics and size monitoring
+  // ✅ Session management and cleanup
+}
+```
+
+#### 3.4 Storage Implementation ✅ COMPLETED (90%)
+- ✅ Hive database setup for chat history
+- ✅ Message persistence and retrieval
+- ✅ Session management and storage
+- ✅ Storage statistics and monitoring
+- ✅ Error handling and recovery
+- ⏳ SQLite database setup for advanced queries (10% pending)
+- ⏳ Advanced offline mode with cached AI responses (10% pending)
+- ⏳ Data synchronization between devices (10% pending)
+
+### Phase 4: Advanced Features (PENDING)
+
+#### 4.1 Message Search Functionality (HIGH PRIORITY)
+```dart
+// lib/features/chat/domain/entities/search_result.dart
+class SearchResult {
+  final String messageId;
+  final String content;
+  final String sessionId;
+  final DateTime timestamp;
+  final AIAgent? agent;
+  final List<String> highlights;
+}
+
+// lib/features/chat/domain/usecases/search_messages.dart
+class SearchMessagesUseCase {
+  Future<List<SearchResult>> execute({
+    required String query,
+    String? sessionId,
+    DateTime? fromDate,
+    DateTime? toDate,
+    AIAgent? agent,
+    MessageType? messageType,
+  });
+}
+```
+- ⏳ Full-text search through message content
+- ⏳ Filter by agents (Gardener, Builder, etc.)
+- ⏳ Filter by date ranges
+- ⏳ Filter by message types (user, ai, system)
+- ⏳ Highlight search results in found text
+- ⏳ Search within specific sessions
+- ⏳ Autocomplete for search queries
+- ⏳ Search history (recent queries)
+
+#### 4.2 Chat Export Capabilities (HIGH PRIORITY)
+```dart
+// lib/features/chat/domain/entities/export_format.dart
+enum ExportFormat { text, markdown, pdf, json, csv }
+
+// lib/features/chat/domain/usecases/export_chat.dart
+class ExportChatUseCase {
+  Future<String> execute({
+    required String sessionId,
+    required ExportFormat format,
+    bool includeTimestamps = true,
+    bool includeAgentInfo = true,
+  });
+}
+```
+- ⏳ Export to TXT - simple text format
+- ⏳ Export to Markdown - formatted text
+- ⏳ Export to PDF - beautifully formatted document
+- ⏳ Export to JSON - structured data
+- ⏳ Export to CSV - for data analysis
+- ⏳ Selective export (by dates, agents)
+- ⏳ Batch export (multiple sessions)
+- ⏳ Export settings (include/exclude elements)
+
+#### 4.3 Offline Mode with Cached Responses (HIGH PRIORITY)
+```dart
+// lib/core/storage/offline_cache.dart
+class OfflineCache {
+  Future<void> cacheAIResponse({
+    required String query,
+    required String response,
+    required AIAgent agent,
+  });
+  Future<String?> getCachedResponse(String query);
+  Future<List<CachedResponse>> getAllCachedResponses();
+}
+
+// lib/features/chat/domain/usecases/offline_chat.dart
+class OfflineChatUseCase {
+  Future<Message> processOfflineQuery(String query);
+}
+```
+- ⏳ Cache AI responses in local database
+- ⏳ Offline search through cached responses
+- ⏳ Local processing of simple queries
+- ⏳ Synchronization when connection restored
+- ⏳ Offline mode indicator in UI
+- ⏳ Message queue for sending when connected
+- ⏳ Warnings about limited functionality
+- ⏳ Automatic switching between online/offline
+
+#### 4.4 Message Threading and Context (MEDIUM PRIORITY)
+```dart
+// lib/features/chat/domain/entities/message_thread.dart
+class MessageThread {
+  final String id;
+  final String parentMessageId;
+  final List<Message> messages;
+  final String topic;
+  final DateTime createdAt;
+}
+
+// lib/features/chat/domain/usecases/create_thread.dart
+class CreateThreadUseCase {
+  Future<MessageThread> execute({
+    required String parentMessageId,
+    required String topic,
+  });
+}
+```
+- ⏳ Message branching (replies to specific messages)
+- ⏳ Conversation topics (grouping by topics)
+- ⏳ Contextual memory (AI remembers previous messages)
+- ⏳ Visual connections between messages
+- ⏳ Collapsible branches to save space
+- ⏳ Search within branches and topics
+- ⏳ Export branches separately
+- ⏳ Statistics by topics (activity, popularity)
+
+#### 4.5 Advanced UI Features (MEDIUM PRIORITY)
+- ⏳ Drag & Drop for reordering messages
+- ⏳ Floating action buttons for quick actions
+- ⏳ Hotkeys for navigation
+- ⏳ Agent themes (color schemes for each agent)
+- ⏳ Transition animations between agents
+- ⏳ Sound notifications for new messages
+- ⏳ Vibration (on mobile devices)
+- ⏳ Reading mode (without distracting elements)
+
+#### 4.6 Analytics and Insights (MEDIUM PRIORITY)
+```dart
+// lib/features/analytics/domain/entities/usage_stats.dart
+class UsageStats {
+  final int totalMessages;
+  final Map<String, int> agentUsage;
+  final List<String> popularTopics;
+  final Duration averageSessionTime;
+}
+
+// lib/features/analytics/domain/usecases/get_insights.dart
+class GetInsightsUseCase {
+  Future<UsageStats> execute();
+}
+```
+- ⏳ Usage statistics (messages, time, agents)
+- ⏳ Popular topics and queries
+- ⏳ Activity by days/weeks
+- ⏳ Agent effectiveness (response quality)
+- ⏳ Personal insights (user preferences)
+- ⏳ Recommendations based on history
+- ⏳ Export statistics in various formats
+- ⏳ Period comparison (month to month)
+
+#### 4.7 Advanced Settings and Customization (LOW PRIORITY)
+```dart
+// lib/features/settings/domain/entities/advanced_settings.dart
+class AdvancedSettings {
+  final AIProvider preferredProvider;
+  final int maxTokens;
+  final double temperature;
+  final bool enableVoiceInput;
+  final bool enableNotifications;
+  final String customSystemPrompt;
+}
+```
+- ⏳ AI settings (provider, model parameters)
+- ⏳ Personal prompts for agents
+- ⏳ Notification settings (types, timing)
+- ⏳ Themes and colors (UI customization)
+- ⏳ Hotkeys (shortcut configuration)
+- ⏳ Autocomplete (enable/disable)
+- ⏳ Settings backup
+- ⏳ Import/export configuration
+
+#### 4.8 Security and Privacy (LOW PRIORITY)
+```dart
+// lib/core/security/privacy_manager.dart
+class PrivacyManager {
+  Future<void> encryptSensitiveData(String data);
+  Future<void> clearChatHistory();
+  Future<void> anonymizeData();
+}
+```
+- ⏳ Data encryption (sensitive information)
+- ⏳ Chat history anonymization
+- ⏳ Automatic deletion of old messages
+- ⏳ App lock (PIN/biometrics)
+- ⏳ Incognito mode (no history saving)
+- ⏳ Data export (GDPR compliance)
+- ⏳ Data deletion (complete cleanup)
+- ⏳ Access audit (security logs)
+
+#### 4.9 Platform-Specific Features (LOW PRIORITY)
+- ⏳ Android: Widget for quick access, Google Assistant integration
+- ⏳ iOS: Siri Shortcuts, Apple Health integration
+- ⏳ Web: PWA features, push notifications, offline mode
+- ⏳ Desktop: Hotkeys, system notifications
+- ⏳ Cross-platform: Device synchronization
+
+#### Phase 4 Priority Matrix
+| Feature | Priority | Complexity | Time Estimate | Dependencies |
+|---------|----------|------------|---------------|--------------|
+| Message Search | HIGH | Medium | 2-3 weeks | ChatStorage |
+| Chat Export | HIGH | Medium | 2-3 weeks | ChatStorage |
+| Offline Mode | HIGH | High | 3-4 weeks | AI Service, ChatStorage |
+| Message Threading | MEDIUM | High | 3-4 weeks | ChatStorage, UI |
+| Advanced UI | MEDIUM | Medium | 2-3 weeks | UI Framework |
+| Analytics | MEDIUM | Medium | 2-3 weeks | ChatStorage |
+| Advanced Settings | LOW | Low | 1-2 weeks | Settings Framework |
+| Security & Privacy | LOW | High | 2-3 weeks | Security Framework |
+| Platform Features | LOW | Medium | 2-3 weeks | Platform APIs |
+
+**Total Phase 4 Time Estimate: 8-12 weeks** (with 2-3 developers)
+
+### Phase 5: Testing & Quality (PENDING)
+- ⏳ Unit tests for AI service
+- ⏳ Widget tests for chat interface
+- ⏳ Integration tests for full chat flow
+- ⏳ Performance optimization
+
+### Phase 6: Deployment (PENDING)
+- ⏳ Android build optimization
+- ⏳ iOS build configuration
+- ⏳ Web deployment setup
+- ⏳ CI/CD pipeline completion
+
+## Risk Mitigation
+
+### Technical Risks
+- **AI Service Downtime**: fallback механизмы с прокси и резервными ключами
+- **Platform Changes**: адаптация к изменениям платформ
+- **Performance Issues**: мониторинг и оптимизация
+- **Proxy Failures**: автоматическое переключение на резервные прокси
+
+### Business Risks
+- **User Adoption**: фокус на пользовательском опыте с локализацией
+- **Competition**: уникальные функции и качество
+- **Regulatory Changes**: соответствие требованиям

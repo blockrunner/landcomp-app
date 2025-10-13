@@ -1,0 +1,72 @@
+name: Android Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Run code analysis
+        run: flutter analyze
+      
+      - name: Check code formatting
+        run: dart format --set-exit-if-changed .
+      
+      - name: Run tests
+        run: flutter test --coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          flags: android
+          name: android-coverage
+      
+      - name: Build APK (Debug)
+        run: flutter build apk --debug
+      
+      - name: Build APK (Release)
+        if: github.ref == 'refs/heads/main'
+        run: flutter build apk --release
+      
+      - name: Build App Bundle (Release)
+        if: github.ref == 'refs/heads/main'
+        run: flutter build appbundle --release
+      
+      - name: Upload APK artifacts
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/*.apk
+      
+      - name: Upload App Bundle artifacts
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-bundle
+          path: build/app/outputs/bundle/release/*.aab

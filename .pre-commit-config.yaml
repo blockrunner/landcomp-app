@@ -1,0 +1,31 @@
+# Pre-commit hooks configuration for Landscape AI App
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      
+  - repo: local
+    hooks:
+      - id: flutter-format
+        name: Flutter Format
+        entry: dart format
+        language: system
+        files: '\.dart$'
+        
+      - id: flutter-analyze
+        name: Flutter Analyze
+        entry: flutter analyze
+        language: system
+        files: '\.dart$'
+        
+      - id: flutter-test
+        name: Flutter Test
+        entry: flutter test
+        language: system
+        files: '\.dart$'
+        pass_filenames: false

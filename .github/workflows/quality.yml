@@ -1,0 +1,84 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Run code analysis
+        run: flutter analyze
+      
+      - name: Check code formatting
+        run: dart format --set-exit-if-changed .
+      
+      - name: Run tests with coverage
+        run: flutter test --coverage
+      
+      - name: Generate coverage report
+        run: |
+          # Install lcov if not available
+          if ! command -v lcov &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y lcov
+          fi
+          
+          # Generate HTML coverage report
+          lcov --summary coverage/lcov.info
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          flags: quality
+          name: quality-coverage
+      
+      - name: Check test coverage threshold
+        run: |
+          # Extract coverage percentage from lcov summary
+          COVERAGE=$(lcov --summary coverage/lcov.info | grep "lines" | awk '{print $2}' | sed 's/%//')
+          echo "Coverage: $COVERAGE%"
+          
+          # Check if coverage is above 80%
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage is below 80% threshold"
+            exit 1
+          else
+            echo "✅ Coverage is above 80% threshold"
+          fi
+      
+      - name: Security audit
+        run: |
+          # Check for known security vulnerabilities
+          flutter pub deps
+          
+          # Run security audit if available
+          if flutter pub audit --help &> /dev/null; then
+            flutter pub audit
+          fi
+      
+      - name: Performance check
+        run: |
+          # Check for performance issues
+          flutter analyze --no-fatal-infos
+          
+          # Check for unused dependencies
+          flutter pub deps --no-dev
