@@ -29,11 +29,26 @@ RUN flutter packages pub run build_runner build --delete-conflicting-outputs
 # Build web application
 RUN flutter build web --release
 
+# Production stage with Nginx and Proxy Server
+FROM node:18-alpine AS proxy
+
+# Set working directory
+WORKDIR /app
+
+# Copy proxy server files
+COPY debug/package*.json ./
+RUN npm install --production
+
+COPY debug/proxy-server.js ./
+
 # Main production stage
 FROM nginx:alpine
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install Node.js for proxy server
+RUN apk add --no-cache nodejs npm curl
+
+# Copy proxy server from proxy stage
+COPY --from=proxy /app /app/proxy
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -44,7 +59,7 @@ COPY --from=build /app/build/web /usr/share/nginx/html
 # Create directory for logs
 RUN mkdir -p /var/log/nginx
 
-# Create startup script to generate .env file
+# Create startup script to generate .env file and start proxy
 RUN echo '#!/bin/sh' > /usr/local/bin/start-services.sh && \
     echo 'echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
@@ -59,13 +74,16 @@ RUN echo '#!/bin/sh' > /usr/local/bin/start-services.sh && \
     echo 'echo "YC_API_KEY_ID=${YC_API_KEY_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "YC_API_KEY=${YC_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "YC_FOLDER_ID=${YC_FOLDER_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
-    echo 'echo "PROXY_SERVER_URL=http://landcomp-proxy:3001" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
+    echo 'echo "PROXY_SERVER_URL=http://localhost:3001" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
+    echo 'echo "Starting proxy server..."' >> /usr/local/bin/start-services.sh && \
+    echo 'cd /app/proxy && node proxy-server.js > /var/log/proxy.log 2>&1 &' >> /usr/local/bin/start-services.sh && \
+    echo 'sleep 10' >> /usr/local/bin/start-services.sh && \
     echo 'echo "Starting nginx..."' >> /usr/local/bin/start-services.sh && \
     echo 'nginx -g "daemon off;"' >> /usr/local/bin/start-services.sh && \
     chmod +x /usr/local/bin/start-services.sh
 
 # Expose ports
-EXPOSE 80
+EXPOSE 80 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
