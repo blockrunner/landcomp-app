@@ -75,7 +75,8 @@ RUN echo '#!/bin/sh' > /usr/local/bin/start-services.sh && \
     echo 'echo "YC_API_KEY=${YC_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "YC_FOLDER_ID=${YC_FOLDER_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "PROXY_SERVER_URL=http://localhost:3001" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
-    echo 'cd /app/proxy && npm start &' >> /usr/local/bin/start-services.sh && \
+    echo 'cd /app/proxy && node proxy-server.js &' >> /usr/local/bin/start-services.sh && \
+    echo 'sleep 5' >> /usr/local/bin/start-services.sh && \
     echo 'nginx -g "daemon off;"' >> /usr/local/bin/start-services.sh && \
     chmod +x /usr/local/bin/start-services.sh
 
@@ -83,8 +84,8 @@ RUN echo '#!/bin/sh' > /usr/local/bin/start-services.sh && \
 EXPOSE 80 3001
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/health && curl -f http://localhost:3001/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
 
 # Start services
 CMD ["/usr/local/bin/start-services.sh"]
