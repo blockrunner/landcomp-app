@@ -1,6 +1,28 @@
 version: '3.8'
 
 services:
+  # Proxy Server for AI API requests
+  landcomp-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.proxy
+    container_name: landcomp-proxy
+    ports:
+      - "3001:3001"
+    environment:
+      # Proxy configuration from .env file
+      - ALL_PROXY=${ALL_PROXY}
+      - BACKUP_PROXIES=${BACKUP_PROXIES}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - NO_PROXY=${NO_PROXY}
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - landcomp-network
+
+  # Main Flutter Web Application
   landcomp-app:
     build:
       context: .
@@ -8,7 +30,6 @@ services:
     container_name: landcomp-app
     ports:
       - "80:80"
-      - "3001:3001"
     environment:
       # Application environment
       - NODE_ENV=production
@@ -46,6 +67,8 @@ services:
     volumes:
       - ./logs:/var/log/nginx
     restart: unless-stopped
+    depends_on:
+      - landcomp-proxy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
