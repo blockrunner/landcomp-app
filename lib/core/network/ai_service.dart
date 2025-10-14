@@ -99,7 +99,8 @@ class AIService {
 
       if (kIsWeb) {
         // For web platform, we cannot use IOHttpClientAdapter
-        // Instead, we'll use BrowserHttpClientAdapter and handle proxy differently
+        // Instead, we'll use BrowserHttpClientAdapter and handle proxy
+        // differently
         _dio.httpClientAdapter = BrowserHttpClientAdapter();
 
         // For web, we need to use a proxy server or CORS proxy
@@ -148,11 +149,49 @@ class AIService {
   void _configureWebProxy(Uri proxyUri) {
     debugPrint('🌐 Configuring web proxy...');
     debugPrint('   Proxy URI: $proxyUri');
-    debugPrint('   Setting baseUrl to: http://localhost:3001');
     
-    // For web, we set baseUrl to the local proxy server
+    // Определяем URL прокси-сервера динамически
+    String proxyServerUrl;
+    
+    if (kIsWeb) {
+      // Для веб - используем текущий хост или SERVER_HOST
+      final currentHost = Uri.base.host;
+      final serverHost = EnvConfig.serverHost;
+      
+      if (currentHost == 'localhost' || currentHost == '127.0.0.1') {
+        // Если запущено локально, используем localhost
+        proxyServerUrl = 'http://localhost:3001';
+        debugPrint('   Local development detected, using localhost:3001');
+      } else if (serverHost.isNotEmpty) {
+        // Если указан SERVER_HOST, используем его
+        proxyServerUrl = 'http://$serverHost:3001';
+        debugPrint('   Using configured server host: $serverHost:3001');
+      } else {
+        // Если запущено на сервере, используем тот же хост
+        proxyServerUrl = 'http://$currentHost:3001';
+        debugPrint('   Using current host: $currentHost:3001');
+      }
+    } else {
+      // Для нативных приложений - используем SERVER_HOST или дефолтный IP
+      final serverHost = EnvConfig.serverHost;
+      if (serverHost.isNotEmpty) {
+        proxyServerUrl = 'http://$serverHost:3001';
+        debugPrint(
+          '   Native app using configured server host: $serverHost:3001',
+        );
+      } else {
+        proxyServerUrl = 'http://89.111.171.89:3001';
+        debugPrint(
+          '   Native app using default server: 89.111.171.89:3001',
+        );
+      }
+    }
+    
+    debugPrint('   Setting baseUrl to: $proxyServerUrl');
+    
+    // For web, we set baseUrl to the proxy server
     // The proxy server will handle the SOCKS5 proxy connection
-    _dio.options.baseUrl = 'http://localhost:3001';
+    _dio.options.baseUrl = proxyServerUrl;
     
     // Add proxy information to headers for the proxy server
     _dio.options.headers

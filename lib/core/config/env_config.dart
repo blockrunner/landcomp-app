@@ -87,6 +87,10 @@ class EnvConfig {
   /// Hugging Face API token.
   static String get huggingfaceApiKey => _getEnvVar('HUGGINGFACE_API_KEY');
 
+  // Server Configuration
+  /// Server host for proxy connections.
+  static String get serverHost => _getEnvVar('SERVER_HOST');
+
   // Validation
   /// Whether the OpenAI configuration appears to be set (non-empty key).
   static bool get isOpenAIConfigured => openaiApiKey.isNotEmpty;
