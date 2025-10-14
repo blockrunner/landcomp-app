@@ -4,9 +4,13 @@
 /// agent selection, and request execution in the system.
 library;
 
+// Flutter imports
 import 'package:flutter/foundation.dart';
+
+// Third-party package imports
 import 'package:uuid/uuid.dart';
 
+// Project imports
 import 'package:landcomp_app/core/agents/base/agent.dart';
 import 'package:landcomp_app/core/agents/base/agent_adapter.dart';
 import 'package:landcomp_app/core/agents/base/agent_registry.dart';
@@ -149,7 +153,7 @@ class AgentOrchestrator {
       _agentRegistry.trackExecution(
         agent.id,
         executionTime,
-        response.isSuccess,
+        success: response.isSuccess,
       );
 
       debugPrint(

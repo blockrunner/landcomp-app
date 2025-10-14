@@ -4,6 +4,8 @@
 /// of all agents in the system.
 library;
 
+import 'package:flutter/foundation.dart';
+
 import 'package:landcomp_app/core/agents/base/agent.dart';
 
 /// Registry for managing agents
@@ -11,6 +13,9 @@ class AgentRegistry {
   AgentRegistry._();
 
   static final AgentRegistry _instance = AgentRegistry._();
+  /// Get the singleton instance of `AgentRegistry`.
+  ///
+  /// Manages agent registration, discovery and metrics across the app.
   static AgentRegistry get instance => _instance;
 
   final Map<String, Agent> _agents = {};
@@ -24,7 +29,7 @@ class AgentRegistry {
     _executionTimes[agent.id] = [];
     _successCounts[agent.id] = 0;
     _errorCounts[agent.id] = 0;
-    print('✅ Registered agent: ${agent.id} (${agent.name})');
+    debugPrint('✅ Registered agent: ${agent.id} (${agent.name})');
   }
 
   /// Unregister an agent
@@ -34,7 +39,7 @@ class AgentRegistry {
       _executionTimes.remove(agentId);
       _successCounts.remove(agentId);
       _errorCounts.remove(agentId);
-      print('🗑️ Unregistered agent: $agentId');
+      debugPrint('🗑️ Unregistered agent: $agentId');
     }
   }
 
@@ -90,7 +95,11 @@ class AgentRegistry {
   int get agentCount => _agents.length;
 
   /// Track agent execution metrics
-  void trackExecution(String agentId, Duration executionTime, bool success) {
+  void trackExecution(
+    String agentId,
+    Duration executionTime, {
+    required bool success,
+  }) {
     if (_executionTimes.containsKey(agentId)) {
       _executionTimes[agentId]!.add(executionTime);
 
@@ -187,9 +196,9 @@ class AgentRegistry {
     for (final agent in _agents.values) {
       try {
         await agent.initialize();
-        print('✅ Initialized agent: ${agent.id}');
+        debugPrint('✅ Initialized agent: ${agent.id}');
       } catch (e) {
-        print('❌ Failed to initialize agent ${agent.id}: $e');
+        debugPrint('❌ Failed to initialize agent ${agent.id}: $e');
       }
     }
   }
@@ -199,9 +208,9 @@ class AgentRegistry {
     for (final agent in _agents.values) {
       try {
         await agent.dispose();
-        print('✅ Disposed agent: ${agent.id}');
+        debugPrint('✅ Disposed agent: ${agent.id}');
       } catch (e) {
-        print('❌ Failed to dispose agent ${agent.id}: $e');
+        debugPrint('❌ Failed to dispose agent ${agent.id}: $e');
       }
     }
   }

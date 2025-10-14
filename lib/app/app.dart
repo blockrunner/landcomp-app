@@ -4,6 +4,7 @@
 /// overall app structure, theme, and routing.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -62,9 +63,9 @@ class AppInitializer {
     // Load environment variables
     try {
       await dotenv.load();
-      print('✅ Environment variables loaded successfully');
+      debugPrint('✅ Environment variables loaded successfully');
     } catch (e) {
-      print('⚠️ Failed to load .env file: $e');
+      debugPrint('⚠️ Failed to load .env file: $e');
       // Continue without .env file
     }
 
@@ -77,22 +78,22 @@ class AppInitializer {
     // Initialize AI Service
     try {
       await AIService.instance.initialize();
-      print('✅ AIService initialized successfully');
+      debugPrint('✅ AIService initialized successfully');
     } catch (e) {
-      print('❌ Failed to initialize AIService: $e');
+      debugPrint('❌ Failed to initialize AIService: $e');
       // Don't throw here to allow app to start even if AI service fails
     }
 
     // Initialize Chat Storage
     try {
       await ChatStorage.instance.initialize();
-      print('✅ ChatStorage initialized successfully');
+      debugPrint('✅ ChatStorage initialized successfully');
     } catch (e) {
-      print('❌ Failed to initialize ChatStorage: $e');
+      debugPrint('❌ Failed to initialize ChatStorage: $e');
       // Don't throw here to allow app to start even if chat storage fails
     }
 
     // Initialize other services
-    // TODO: Add other initialization logic
+    // TODO(developer): Add other initialization logic
   }
 }

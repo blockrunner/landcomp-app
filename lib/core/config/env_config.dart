@@ -42,41 +42,61 @@ class EnvConfig {
   }
 
   // OpenAI Configuration
+  /// Primary OpenAI API key loaded from environment variables.
   static String get openaiApiKey => _getEnvVar('OPENAI_API_KEY');
 
   // Google API Configuration
+  /// Primary Google API key used for Gemini and other Google services.
   static String get googleApiKey => _getEnvVar('GOOGLE_API_KEY');
 
+  /// Ordered list of fallback Google API keys parsed from
+  /// `GOOGLE_API_KEYS_FALLBACK`.
+  ///
+  /// The underlying variable should be a comma-separated string.
   static List<String> get googleApiKeysFallback {
     final fallbackKeys = _getEnvVar('GOOGLE_API_KEYS_FALLBACK');
     return fallbackKeys.split(',').where((key) => key.isNotEmpty).toList();
   }
 
   // Proxy Configuration
+  /// Global proxy URL used for outbound HTTP requests (e.g. `socks5://user:pass@host:port`).
   static String get allProxy => _getEnvVar('ALL_PROXY');
 
+  /// Backup proxy URLs parsed from `BACKUP_PROXIES` for failover.
+  ///
+  /// The underlying variable should be a comma-separated string.
   static List<String> get backupProxies {
     final backupProxies = _getEnvVar('BACKUP_PROXIES');
     return backupProxies.split(',').where((proxy) => proxy.isNotEmpty).toList();
   }
 
   // Yandex Cloud Configuration (if needed)
+  /// Yandex Cloud API key ID.
   static String get ycApiKeyId => _getEnvVar('YC_API_KEY_ID');
 
+  /// Yandex Cloud API key secret.
   static String get ycApiKey => _getEnvVar('YC_API_KEY');
 
+  /// Yandex Cloud folder identifier.
   static String get ycFolderId => _getEnvVar('YC_FOLDER_ID');
 
   // Other API Keys
+  /// Stability.ai API key.
   static String get stabilityApiKey => _getEnvVar('STABILITY_API_KEY');
 
+  /// Hugging Face API token.
   static String get huggingfaceApiKey => _getEnvVar('HUGGINGFACE_API_KEY');
 
   // Validation
+  /// Whether the OpenAI configuration appears to be set (non-empty key).
   static bool get isOpenAIConfigured => openaiApiKey.isNotEmpty;
+  /// Whether the Google configuration appears to be set (non-empty key).
   static bool get isGoogleConfigured => googleApiKey.isNotEmpty;
+  /// Whether a primary proxy is configured.
   static bool get isProxyConfigured => allProxy.isNotEmpty;
+  /// Whether any backup proxies are available.
   static bool get hasBackupProxies => backupProxies.isNotEmpty;
+  /// Whether any Google fallback API keys are available.
   static bool get hasGoogleFallbackKeys => googleApiKeysFallback.isNotEmpty;
 
   /// Get current proxy configuration

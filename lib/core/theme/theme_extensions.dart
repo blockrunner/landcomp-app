@@ -12,6 +12,7 @@ import 'package:landcomp_app/core/theme/typography.dart';
 /// Custom colors extension
 @immutable
 class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
+  /// Creates an [AppColorsExtension] with all semantic color slots.
   const AppColorsExtension({
     required this.primaryGreen,
     required this.primaryGreenLight,
@@ -28,18 +29,43 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.textAccent,
   });
 
+  /// Primary brand green used for key interactive elements.
   final Color primaryGreen;
+
+  /// Lighter variant of the primary green for hover and subtle accents.
   final Color primaryGreenLight;
+
+  /// Darker variant of the primary green for pressed states and emphasis.
   final Color primaryGreenDark;
+
+  /// Deep teal accent color used across dark surfaces.
   final Color darkTeal;
+
+  /// Neutral light gray for surfaces and dividers.
   final Color lightGray;
+
+  /// Success color for positive statuses and confirmations.
   final Color success;
+
+  /// Warning color for cautions and non-blocking alerts.
   final Color warning;
+
+  /// Error color for failures and blocking alerts.
   final Color error;
+
+  /// Informational color for notices and tips.
   final Color info;
+
+  /// Primary text color for high-emphasis text.
   final Color textPrimary;
+
+  /// Secondary text color for medium-emphasis text.
   final Color textSecondary;
+
+  /// Tertiary text color for low-emphasis text and hints.
   final Color textTertiary;
+
+  /// Accent text color for links and highlighted text.
   final Color textAccent;
 
   @override
@@ -143,6 +169,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 /// Custom spacing extension
 @immutable
 class AppSpacingExtension extends ThemeExtension<AppSpacingExtension> {
+  /// Creates an [AppSpacingExtension] defining spacing scale tokens.
   const AppSpacingExtension({
     required this.xs,
     required this.sm,
@@ -157,16 +184,37 @@ class AppSpacingExtension extends ThemeExtension<AppSpacingExtension> {
     required this.internalPadding,
   });
 
+  /// Extra-small spacing (e.g., tight gaps and micro padding).
   final double xs;
+
+  /// Small spacing for compact gaps.
   final double sm;
+
+  /// Medium spacing for standard layout gaps.
   final double md;
+
+  /// Large spacing for section separation.
   final double lg;
+
+  /// Extra-large spacing for major separations.
   final double xl;
+
+  /// 2x extra-large spacing for page-level structure.
   final double xxl;
+
+  /// 3x extra-large spacing for hero/section blocks.
   final double xxxl;
+
+  /// Standard outer padding for containers.
   final double containerPadding;
+
+  /// Vertical space between sections.
   final double sectionSpacing;
+
+  /// Space between related UI elements.
   final double elementSpacing;
+
+  /// Internal padding for components.
   final double internalPadding;
 
   @override
@@ -244,6 +292,7 @@ class AppSpacingExtension extends ThemeExtension<AppSpacingExtension> {
 /// Custom typography extension
 @immutable
 class AppTypographyExtension extends ThemeExtension<AppTypographyExtension> {
+  /// Creates an [AppTypographyExtension] with semantic text styles.
   const AppTypographyExtension({
     required this.display,
     required this.h1,
@@ -264,22 +313,55 @@ class AppTypographyExtension extends ThemeExtension<AppTypographyExtension> {
     required this.code,
   });
 
+  /// Display style for prominent headings.
   final TextStyle display;
+
+  /// Heading 1 style for page titles.
   final TextStyle h1;
+
+  /// Heading 2 style for section titles.
   final TextStyle h2;
+
+  /// Heading 3 style for sub-section titles.
   final TextStyle h3;
+
+  /// Heading 4 style.
   final TextStyle h4;
+
+  /// Heading 5 style.
   final TextStyle h5;
+
+  /// Heading 6 style.
   final TextStyle h6;
+
+  /// Lead paragraph style for introductory text.
   final TextStyle lead;
+
+  /// Larger body text style.
   final TextStyle bodyLarge;
+
+  /// Standard body text style.
   final TextStyle body;
+
+  /// Small body text style.
   final TextStyle bodySmall;
+
+  /// Large button text style.
   final TextStyle buttonLarge;
+
+  /// Standard button text style.
   final TextStyle button;
+
+  /// Small button text style.
   final TextStyle buttonSmall;
+
+  /// Navigation label text style.
   final TextStyle navigation;
+
+  /// Caption text style for annotations.
   final TextStyle caption;
+
+  /// Monospace code text style.
   final TextStyle code;
 
   @override
@@ -353,7 +435,7 @@ class AppTypographyExtension extends ThemeExtension<AppTypographyExtension> {
   }
 
   /// Light theme typography
-  static AppTypographyExtension get light => AppTypographyExtension(
+  static final AppTypographyExtension light = AppTypographyExtension(
     display: AppTypography.display,
     h1: AppTypography.h1,
     h2: AppTypography.h2,
@@ -374,7 +456,7 @@ class AppTypographyExtension extends ThemeExtension<AppTypographyExtension> {
   );
 
   /// Dark theme typography
-  static AppTypographyExtension get dark => AppTypographyExtension(
+  static final AppTypographyExtension dark = AppTypographyExtension(
     display: AppTypography.display,
     h1: AppTypography.h1,
     h2: AppTypography.h2,

@@ -4,14 +4,16 @@
 /// with the new Agent interface until proper Agent implementations are created.
 library;
 
+import 'dart:developer' as developer;
+
 import 'package:landcomp_app/core/agents/base/agent.dart';
+import 'package:landcomp_app/core/network/ai_service.dart';
 import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
-import 'package:landcomp_app/shared/models/intent.dart';
-import 'package:landcomp_app/shared/models/context.dart';
+import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 import 'package:landcomp_app/shared/models/agent_request.dart';
 import 'package:landcomp_app/shared/models/agent_response.dart';
-import 'package:landcomp_app/core/network/ai_service.dart';
-import 'package:landcomp_app/features/chat/domain/entities/message.dart';
+import 'package:landcomp_app/shared/models/context.dart';
+import 'package:landcomp_app/shared/models/intent.dart';
 
 /// Adapter that wraps AIAgent to implement Agent interface
 class AgentAdapter implements Agent {
@@ -35,7 +37,10 @@ class AgentAdapter implements Agent {
       return _cachedCapabilities!;
     }
 
-    print('🔍 Building capabilities for ${_aiAgent.name}');
+    developer.log(
+      'Building capabilities for ${_aiAgent.name}',
+      name: 'AgentAdapter',
+    );
 
     // Map AIAgent expertise areas to capabilities
     final capabilities = <String>[];
@@ -95,8 +100,9 @@ class AgentAdapter implements Agent {
     // Add specific capabilities based on agent name
     final agentName = _aiAgent.name.toLowerCase();
     if (agentName.contains('landscape') || agentName.contains('дизайн')) {
-      capabilities.add(AgentCapabilities.landscapeDesign);
-      capabilities.add(AgentCapabilities.planning);
+      capabilities
+        ..add(AgentCapabilities.landscapeDesign)
+        ..add(AgentCapabilities.planning);
     }
     if (agentName.contains('gardener') || agentName.contains('садовник')) {
       capabilities.add(AgentCapabilities.gardening);
@@ -115,10 +121,14 @@ class AgentAdapter implements Agent {
       AgentCapabilities.analysis,
     ]);
 
-    // Cache and remove duplicates - IMPORTANT: create the list once and reuse it
+    // Cache and remove duplicates - IMPORTANT:
+    // create the list once and reuse it
     final uniqueCapabilities = capabilities.toSet().toList();
     _cachedCapabilities = uniqueCapabilities;
-    print('   Final capabilities: $_cachedCapabilities');
+    developer.log(
+      'Final capabilities: $_cachedCapabilities',
+      name: 'AgentAdapter',
+    );
     return _cachedCapabilities!;
   }
 
@@ -141,15 +151,17 @@ class AgentAdapter implements Agent {
         canHandle = true; // All agents can handle unclear intents
     }
 
-    print(
-      '   🔍 ${_aiAgent.name}: base intent ${intent.type.name} -> $canHandle',
+    developer.log(
+      '${_aiAgent.name}: base intent ${intent.type.name} -> $canHandle',
+      name: 'AgentAdapter',
     );
 
     // If base intent is handled, check subtype-specific capabilities
     if (canHandle && intent.subtype != null) {
       final subtypeResult = _canHandleSubtype(intent.subtype!);
-      print(
-        '   🔍 ${_aiAgent.name}: subtype ${intent.subtype!.name} -> $subtypeResult',
+      developer.log(
+        '${_aiAgent.name}: subtype ${intent.subtype!.name} -> $subtypeResult',
+        name: 'AgentAdapter',
       );
       canHandle = subtypeResult;
     }
@@ -157,7 +169,10 @@ class AgentAdapter implements Agent {
     // Note: We don't block agents based on image presence
     // Image analysis capability is a bonus in scoring, not a requirement
 
-    print('   🔍 ${_aiAgent.name}: final canHandle = $canHandle');
+    developer.log(
+      '${_aiAgent.name}: final canHandle = $canHandle',
+      name: 'AgentAdapter',
+    );
     return canHandle;
   }
 
@@ -171,34 +186,64 @@ class AgentAdapter implements Agent {
         return capabilities.contains(AgentCapabilities.gardening);
       case IntentSubtype.constructionAdvice:
         return capabilities.contains(AgentCapabilities.construction);
-      case IntentSubtype.imageAnalysis:
-        return capabilities.contains(AgentCapabilities.imageAnalysis);
+      case IntentSubtype.maintenanceAdvice:
+        return capabilities.contains(AgentCapabilities.gardening);
+      case IntentSubtype.generalQuestion:
+        return true;
       case IntentSubtype.imageGeneration:
         return capabilities.contains(AgentCapabilities.imageGeneration);
+      case IntentSubtype.textGeneration:
+        return capabilities.contains(AgentCapabilities.textGeneration);
       case IntentSubtype.planGeneration:
         return capabilities.contains(AgentCapabilities.planning);
-      default:
-        return true; // Default to true for other subtypes
+      case IntentSubtype.imageAnalysis:
+        return capabilities.contains(AgentCapabilities.imageAnalysis);
+      case IntentSubtype.siteAnalysis:
+        return capabilities.contains(AgentCapabilities.analysis) ||
+            capabilities.contains(AgentCapabilities.ecology) ||
+            capabilities.contains(AgentCapabilities.landscapeDesign);
+      case IntentSubtype.problemDiagnosis:
+        return capabilities.contains(AgentCapabilities.analysis);
+      case IntentSubtype.designModification:
+        return capabilities.contains(AgentCapabilities.planning) ||
+            capabilities.contains(AgentCapabilities.landscapeDesign);
+      case IntentSubtype.planAdjustment:
+        return capabilities.contains(AgentCapabilities.planning);
+      case IntentSubtype.contentUpdate:
+        return capabilities.contains(AgentCapabilities.consultation) ||
+            capabilities.contains(AgentCapabilities.textGeneration);
+      case IntentSubtype.ambiguous:
+        return true;
+      case IntentSubtype.incomplete:
+        return true;
     }
   }
 
   @override
   Future<AgentResponse> execute(AgentRequest request) async {
-    print('🤖 Executing request with agent: ${_aiAgent.name}');
+    developer.log(
+      'Executing request with agent: ${_aiAgent.name}',
+      name: 'AgentAdapter',
+    );
 
     try {
       // ALWAYS use sendMessageWithSmartSelection for full conversation context
       // It handles both text-only and image requests properly with full history
-      print(
-        '📸 Request has ${request.context.attachments?.length ?? 0} attachments',
+      developer.log(
+        'Request has attachments: '
+        '${request.context.attachments?.length ?? 0}',
+        name: 'AgentAdapter',
       );
-      print(
-        '📚 Conversation history: ${request.conversationHistory.length} messages',
+      developer.log(
+        'Conversation history messages: '
+        '${request.conversationHistory.length}',
+        name: 'AgentAdapter',
       );
 
       final response = await _aiService.sendMessageWithSmartSelection(
         message: request.userMessage,
-        conversationHistory: request.conversationHistory.cast<Message>(),
+        conversationHistory:
+            request.conversationHistory.cast<Message>(),
         selectedImages: request.context.attachments,
       );
 
@@ -218,7 +263,9 @@ class AgentAdapter implements Agent {
         return AgentResponse.error(
           requestId: request.requestId,
           error: response.message ?? 'Unknown error from AI service',
-          metadata: const {'execution_method': 'ai_service_smart_selection'},
+          metadata: const {
+            'execution_method': 'ai_service_smart_selection',
+          },
         );
       }
     } catch (e) {

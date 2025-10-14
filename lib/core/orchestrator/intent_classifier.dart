@@ -101,9 +101,9 @@ class IntentClassifier {
 
     buffer
       ..writeln(
-        "You are an intelligent intent classifier for a landscape design AI "
+        'You are an intelligent intent classifier for a landscape design AI '
         "assistant. Analyze the user's message and conversation context to "
-        "understand their true intent.",
+        'understand their true intent.',
       )
       ..writeln()
       ..writeln("Classify the user's intent into one of these types:")
@@ -126,8 +126,8 @@ class IntentClassifier {
         'For consultation type, determine the most relevant subtype:',
       )
       ..writeln(
-        '- landscapePlanning: Questions about planning, design, or transforming '
-        'outdoor spaces',
+        '- landscapePlanning: Questions about planning, design, or '
+        'transforming outdoor spaces',
       )
       ..writeln(
         '- plantSelection: Questions about plants, gardening, or plant care',
@@ -159,8 +159,8 @@ class IntentClassifier {
         '- Do they want to CREATE something new or GET information?',
       )
       ..writeln(
-        '- Are they asking "how to" or "what is" (consultation) vs "make this" or '
-        '"change that" (generation)?',
+        '- Are they asking "how to" or "what is" (consultation) vs "make '
+        'this" or "change that" (generation)?',
       )
       ..writeln(
         '- Look at the conversation context - what came before this message?',
@@ -208,7 +208,32 @@ class IntentClassifier {
         '- If user asks general questions without image context → '
         'noImageNeeded',
       )
-      ..writeln();
+      ..writeln()
+      ..writeln('Current user message: "$userMessage"')
+      ..writeln()
+      ..writeln('Return JSON response:')
+      ..writeln('{')
+      ..writeln(
+        '  "type": "consultation|generation|modification|analysis|unclear",',
+      )
+      ..writeln(
+        '  "subtype": "landscapePlanning|plantSelection|constructionAdvice| '
+        'maintenanceAdvice|generalQuestion|imageGeneration|textGeneration|'
+        'planGeneration|designModification|planAdjustment|contentUpdate|'
+        'imageAnalysis|siteAnalysis|problemDiagnosis|ambiguous|incomplete",',
+      )
+      ..writeln('  "confidence": 0.0-1.0,')
+      ..writeln('  "reasoning": "explanation of classification",')
+      ..writeln('  "extracted_entities": ["entity1", "entity2"],')
+      ..writeln(
+        '  "imageIntent": "analyzeNew|analyzeRecent|compareMultiple| '
+        'referenceSpecific|generateBased|noImageNeeded|unclear",',
+      )
+      ..writeln(
+        '  "referencedImageIndices": [0, 1, 2],  // Only for referenceSpecific',
+      )
+      ..writeln('  "imagesNeeded": 0-5  // How many images needed')
+      ..writeln('}');
 
     // Add recent conversation history for context
     if (context.conversationHistory.isNotEmpty) {
@@ -228,10 +253,6 @@ class IntentClassifier {
       }
       buffer.writeln();
     }
-
-    buffer
-      ..writeln('Current user message: "$userMessage"')
-      ..writeln();
 
     // Add context information
     if (context.hasImages) {
@@ -264,32 +285,6 @@ class IntentClassifier {
         'Context: User language detected as ${context.userLanguage}',
       );
     }
-
-    buffer
-      ..writeln()
-      ..writeln('Return JSON response:')
-      ..writeln('{')
-      ..writeln(
-        '  "type": "consultation|generation|modification|analysis|unclear",',
-      )
-      ..writeln(
-        '  "subtype": "landscapePlanning|plantSelection|constructionAdvice|'
-        'maintenanceAdvice|generalQuestion|imageGeneration|textGeneration|'
-        'planGeneration|designModification|planAdjustment|contentUpdate|'
-        'imageAnalysis|siteAnalysis|problemDiagnosis|ambiguous|incomplete",',
-      )
-      ..writeln('  "confidence": 0.0-1.0,')
-      ..writeln('  "reasoning": "explanation of classification",')
-      ..writeln('  "extracted_entities": ["entity1", "entity2"],')
-      ..writeln(
-        '  "imageIntent": "analyzeNew|analyzeRecent|compareMultiple|'
-        'referenceSpecific|generateBased|noImageNeeded|unclear",',
-      )
-      ..writeln(
-        '  "referencedImageIndices": [0, 1, 2],  // Only for referenceSpecific',
-      )
-      ..writeln('  "imagesNeeded": 0-5  // How many images needed')
-      ..writeln('}');
 
     return buffer.toString();
   }
