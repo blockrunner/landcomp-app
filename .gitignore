@@ -104,6 +104,9 @@ docker-compose.override.yml
 
 # Debug and test files with sensitive data
 debug/
+!debug/proxy-server.js
+!debug/package.json
+!debug/package-lock.json
 test-images/
 
 # Temporary and development files
