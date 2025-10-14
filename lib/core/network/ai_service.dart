@@ -4,27 +4,30 @@
 /// fallback mechanisms, and error handling.
 library;
 
-import 'dart:io';
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
+
+import 'package:dio/browser.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:dio/browser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
-import 'package:landcomp_app/core/config/env_config.dart';
+
 import 'package:landcomp_app/core/ai/agent_selector.dart';
+import 'package:landcomp_app/core/config/env_config.dart';
 import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
+import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
 import 'package:landcomp_app/features/chat/domain/entities/image_generation_response.dart';
 import 'package:landcomp_app/features/chat/domain/entities/message.dart';
-import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
 
 /// AI Service for handling AI API requests
 class AIService {
   AIService._();
 
   static final AIService _instance = AIService._();
+  
+  /// Get the singleton instance of AIService
   static AIService get instance => _instance;
 
   late Dio _dio;
@@ -34,29 +37,34 @@ class AIService {
 
   /// Initialize the AI service
   Future<void> initialize() async {
-    print('🔧 Initializing AIService...');
+    debugPrint('🔧 Initializing AIService...');
 
     _currentProxy = EnvConfig.getCurrentProxy();
     _currentGoogleApiKey = EnvConfig.googleApiKey;
     _currentOpenAIApiKey = EnvConfig.openaiApiKey;
 
-    print('   Proxy configured: ${_currentProxy.isNotEmpty ? '✅' : '❌'}');
-    print(
-      '   Google API key configured: ${_currentGoogleApiKey.isNotEmpty ? '✅' : '❌'}',
+    debugPrint('   Proxy configured: ${_currentProxy.isNotEmpty ? '✅' : '❌'}');
+    if (_currentProxy.isNotEmpty) {
+      debugPrint('   Proxy URL: $_currentProxy');
+    }
+    debugPrint(
+      '   Google API key configured: '
+      '${_currentGoogleApiKey.isNotEmpty ? '✅' : '❌'}',
     );
-    print(
-      '   OpenAI API key configured: ${EnvConfig.isOpenAIConfigured ? '✅' : '❌'}',
+    debugPrint(
+      '   OpenAI API key configured: '
+      '${EnvConfig.isOpenAIConfigured ? '✅' : '❌'}',
     );
-    print('   Platform: ${kIsWeb ? 'Web' : 'Native'}');
+    debugPrint('   Platform: ${kIsWeb ? 'Web' : 'Native'}');
 
     _dio = Dio();
 
     // Configure proxy if available
     if (_currentProxy.isNotEmpty) {
-      print('   Configuring proxy...');
+      debugPrint('   Configuring proxy...');
       _configureProxy();
     } else {
-      print('   No proxy configured, using default settings');
+      debugPrint('   No proxy configured, using default settings');
       if (kIsWeb) {
         _dio.httpClientAdapter = BrowserHttpClientAdapter();
       }
@@ -68,10 +76,11 @@ class AIService {
     _dio.options.sendTimeout = const Duration(seconds: 30);
 
     // Add interceptors
-    _dio.interceptors.add(_createLoggingInterceptor());
-    _dio.interceptors.add(_createRetryInterceptor());
+    _dio.interceptors
+      ..add(_createLoggingInterceptor())
+      ..add(_createRetryInterceptor());
 
-    print('✅ AIService initialized successfully');
+    debugPrint('✅ AIService initialized successfully');
   }
 
   /// Configure proxy for HTTP requests
@@ -101,11 +110,12 @@ class AIService {
         // Reset baseUrl for native platforms
         _dio.options.baseUrl = '';
 
-        (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-          final client = HttpClient();
-          client.findProxy = (uri) {
-            return 'PROXY ${proxyUri.host}:${proxyUri.port}';
-          };
+        (_dio.httpClientAdapter as IOHttpClientAdapter)
+            .createHttpClient = () {
+          final client = HttpClient()
+            ..findProxy = (uri) {
+              return 'PROXY ${proxyUri.host}:${proxyUri.port}';
+            };
 
           // Handle authentication if present
           if (proxyUri.userInfo.isNotEmpty) {
@@ -126,7 +136,7 @@ class AIService {
         };
       }
     } catch (e) {
-      print('❌ Error configuring proxy: $e');
+      debugPrint('❌ Error configuring proxy: $e');
       // Continue without proxy configuration
       if (kIsWeb) {
         _dio.httpClientAdapter = BrowserHttpClientAdapter();
@@ -136,20 +146,26 @@ class AIService {
 
   /// Configure proxy for web platform
   void _configureWebProxy(Uri proxyUri) {
-    // For web, we'll use a local proxy server
+    debugPrint('🌐 Configuring web proxy...');
+    debugPrint('   Proxy URI: $proxyUri');
+    debugPrint('   Setting baseUrl to: http://localhost:3001');
+    
+    // For web, we set baseUrl to the local proxy server
     // The proxy server will handle the SOCKS5 proxy connection
     _dio.options.baseUrl = 'http://localhost:3001';
-
+    
     // Add proxy information to headers for the proxy server
-    _dio.options.headers['X-Proxy-URL'] = _currentProxy;
-    _dio.options.headers['X-Proxy-Host'] = proxyUri.host;
-    _dio.options.headers['X-Proxy-Port'] = proxyUri.port.toString();
+    _dio.options.headers
+      ..['X-Proxy-URL'] = _currentProxy
+      ..['X-Proxy-Host'] = proxyUri.host
+      ..['X-Proxy-Port'] = proxyUri.port.toString();
 
     if (proxyUri.userInfo.isNotEmpty) {
       final credentials = proxyUri.userInfo.split(':');
       if (credentials.length == 2) {
-        _dio.options.headers['X-Proxy-User'] = credentials[0];
-        _dio.options.headers['X-Proxy-Pass'] = credentials[1];
+        _dio.options.headers
+          ..['X-Proxy-User'] = credentials[0]
+          ..['X-Proxy-Pass'] = credentials[1];
       }
     }
   }
@@ -158,15 +174,15 @@ class AIService {
   Interceptor _createLoggingInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) {
-        print('🚀 AI Request: ${options.method} ${options.uri}');
+        debugPrint('🚀 AI Request: ${options.method} ${options.uri}');
         handler.next(options);
       },
       onResponse: (response, handler) {
-        print('✅ AI Response: ${response.statusCode}');
+        debugPrint('✅ AI Response: ${response.statusCode}');
         handler.next(response);
       },
       onError: (error, handler) {
-        print('❌ AI Error: ${error.message}');
+        debugPrint('❌ AI Error: ${error.message}');
         handler.next(error);
       },
     );
@@ -256,8 +272,9 @@ class AIService {
         final data = response.data!;
         final choices = data['choices'] as List<dynamic>;
         if (choices.isNotEmpty) {
-          final messageObj = choices[0]['message'] as Map<String, dynamic>;
-          final content = messageObj['content'] as String?;
+          final messageObj = choices[0] as Map<String, dynamic>;
+          final message = messageObj['message'] as Map<String, dynamic>;
+          final content = message['content'] as String?;
           if (content != null && content.isNotEmpty) {
             return content;
           }
@@ -265,7 +282,9 @@ class AIService {
         throw Exception('Empty response from OpenAI');
       } else {
         final errorData = response.data;
-        final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Unknown error';
         throw Exception(
           'OpenAI API error (${response.statusCode}): $errorMessage',
         );
@@ -280,8 +299,10 @@ class AIService {
           'OpenAI API access forbidden. Check your API key permissions.',
         );
       } else if (e.response?.statusCode == 400) {
-        final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage = errorData?['error']?['message'] ?? 'Bad request';
+        final errorData = e.response?.data;
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Bad request';
         throw Exception('OpenAI API bad request: $errorMessage');
       } else if (e.type == DioExceptionType.connectionTimeout) {
         throw Exception(
@@ -343,7 +364,7 @@ class AIService {
 
       // Add selected images (up to 5)
       final imagesToSend = selectedImages.take(5).toList();
-      print('📸 Adding ${imagesToSend.length} selected images to request');
+      debugPrint('📸 Adding ${imagesToSend.length} selected images to request');
 
       for (final attachment in imagesToSend) {
         if (attachment.data != null) {
@@ -383,7 +404,8 @@ class AIService {
 
     if (detectedLanguage == 'ru') {
       // Add Russian language instruction
-      return '''$systemPrompt
+      return '''
+$systemPrompt
 
 ВАЖНО: 
 1. Пользователь пишет на русском языке. Отвечай ТОЛЬКО на русском языке. Используй русские термины и учитывай российский климат и условия.
@@ -392,7 +414,8 @@ class AIService {
 4. Если пользователь прислал изображение ранее, помни о нем и учитывай его в своих ответах.''';
     } else {
       // Keep English as default
-      return '''$systemPrompt
+      return '''
+$systemPrompt
 
 IMPORTANT: 
 1. Respond in the same language as the user. If the user writes in Russian, respond in Russian. If in English, respond in English.
@@ -439,18 +462,19 @@ IMPORTANT:
     try {
       final image = img.decodeImage(imageData);
       if (image == null) {
-        print('⚠️ Could not decode image, returning original');
+        debugPrint('⚠️ Could not decode image, returning original');
         return imageData;
       }
 
       final originalSizeKb = imageData.length / 1024;
-      print(
-        '📸 Original image: ${image.width}x${image.height}, ${originalSizeKb.toStringAsFixed(1)}KB',
+      debugPrint(
+        '📸 Original image: ${image.width}x${image.height}, '
+        '${originalSizeKb.toStringAsFixed(1)}KB',
       );
 
       // If already small enough, return as-is
       if (originalSizeKb <= maxSizeKb) {
-        print('✅ Image already small enough');
+        debugPrint('✅ Image already small enough');
         return imageData;
       }
 
@@ -464,7 +488,7 @@ IMPORTANT:
       final newWidth = (image.width * ratio).toInt();
       final newHeight = (image.height * ratio).toInt();
 
-      print('📸 Resizing to ${newWidth}x$newHeight');
+      debugPrint('📸 Resizing to ${newWidth}x$newHeight');
       final resized = img.copyResize(image, width: newWidth, height: newHeight);
 
       // Encode as JPEG with quality 85
@@ -473,13 +497,17 @@ IMPORTANT:
       );
       final compressedSizeKb = compressed.length / 1024;
 
-      print(
-        '✅ Compressed: ${compressedSizeKb.toStringAsFixed(1)}KB (${((1 - compressedSizeKb / originalSizeKb) * 100).toStringAsFixed(1)}% reduction)',
+      debugPrint(
+        '✅ Compressed: ${compressedSizeKb.toStringAsFixed(1)}KB '
+        '(${(1 - compressedSizeKb / originalSizeKb) * 100}'
+        '.toStringAsFixed(1)}% reduction)',
       );
 
       return compressed;
     } catch (e) {
-      print('⚠️ Image compression failed: $e, returning original');
+      debugPrint(
+        '⚠️ Image compression failed: $e, returning original',
+      );
       return imageData;
     }
   }
@@ -530,7 +558,8 @@ IMPORTANT:
           if (content != null) {
             final parts = content['parts'] as List<dynamic>?;
             if (parts != null && parts.isNotEmpty) {
-              final text = parts[0]['text'] as String?;
+              final firstPart = parts[0] as Map<String, dynamic>;
+              final text = firstPart['text'] as String?;
               if (text != null && text.isNotEmpty) {
                 return text;
               }
@@ -540,7 +569,9 @@ IMPORTANT:
         throw Exception('Empty response from Google Gemini');
       } else {
         final errorData = response.data;
-        final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Unknown error';
         throw Exception(
           'Google Gemini API error (${response.statusCode}): $errorMessage',
         );
@@ -559,9 +590,10 @@ IMPORTANT:
           'Google Gemini rate limit exceeded. Please try again later.',
         );
       } else if (e.response?.statusCode == 400) {
-        final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage =
-            errorData?['error']?['message'] as String? ?? 'Bad request';
+        final errorData = e.response?.data;
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Bad request';
         if (errorMessage.contains('RESOURCE_EXHAUSTED') ||
             errorMessage.contains('QUOTA_EXCEEDED')) {
           // Try with fallback key
@@ -640,7 +672,7 @@ IMPORTANT:
     // Add selected images if any
     if (selectedImages != null && selectedImages.isNotEmpty) {
       final imagesToSend = selectedImages.take(5).toList();
-      print(
+      debugPrint(
         '📸 Adding ${imagesToSend.length} selected images to Gemini request',
       );
 
@@ -739,7 +771,9 @@ IMPORTANT:
         throw Exception('Empty response from OpenAI');
       } else {
         final errorData = response.data;
-        final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Unknown error';
         throw Exception(
           'OpenAI API error (${response.statusCode}): $errorMessage',
         );
@@ -748,9 +782,10 @@ IMPORTANT:
       if (e.response?.statusCode == 429) {
         throw Exception('OpenAI rate limit exceeded. Please try again later.');
       } else if (e.response?.statusCode == 400) {
-        final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage =
-            errorData?['error']?['message'] as String? ?? 'Bad request';
+        final errorData = e.response?.data;
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Bad request';
         throw Exception('OpenAI API bad request: $errorMessage');
       } else if (e.response?.statusCode == 401) {
         throw Exception('OpenAI API key is invalid or expired.');
@@ -832,7 +867,8 @@ IMPORTANT:
           if (content != null) {
             final parts = content['parts'] as List<dynamic>?;
             if (parts != null && parts.isNotEmpty) {
-              final text = parts[0]['text'] as String?;
+              final firstPart = parts[0] as Map<String, dynamic>;
+              final text = firstPart['text'] as String?;
               if (text != null && text.isNotEmpty) {
                 return text;
               }
@@ -842,7 +878,9 @@ IMPORTANT:
         throw Exception('Empty response from Google Gemini');
       } else {
         final errorData = response.data;
-        final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Unknown error';
         throw Exception(
           'Google Gemini API error (${response.statusCode}): $errorMessage',
         );
@@ -861,9 +899,10 @@ IMPORTANT:
           'Google Gemini rate limit exceeded. Please try again later.',
         );
       } else if (e.response?.statusCode == 400) {
-        final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage =
-            errorData?['error']?['message'] as String? ?? 'Bad request';
+        final errorData = e.response?.data;
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Bad request';
         if (errorMessage.contains('RESOURCE_EXHAUSTED') ||
             errorMessage.contains('QUOTA_EXCEEDED')) {
           // Try with fallback key
@@ -932,10 +971,10 @@ IMPORTANT:
         });
       }
 
-      print('🎨 Sending image generation request to Gemini');
-      print('🎨 Model: $model');
-      print('🎨 Prompt: ${prompt.length} characters');
-      print('🎨 Input images: ${images.length}');
+      debugPrint('🎨 Sending image generation request to Gemini');
+      debugPrint('🎨 Model: $model');
+      debugPrint('🎨 Prompt: ${prompt.length} characters');
+      debugPrint('🎨 Input images: ${images.length}');
 
       final response = await _dio.post<Map<String, dynamic>>(
         url,
@@ -957,7 +996,7 @@ IMPORTANT:
 
       if (response.statusCode == 200) {
         final data = response.data!;
-        print('🎨 Received response from Gemini image generation');
+        debugPrint('🎨 Received response from Gemini image generation');
 
         final candidates = data['candidates'] as List<dynamic>?;
         if (candidates == null || candidates.isEmpty) {
@@ -980,7 +1019,7 @@ IMPORTANT:
         final generatedImages = <Uint8List>[];
         final imageMimeTypes = <String>[];
 
-        print('🎨 Processing ${responseParts.length} response parts');
+        debugPrint('🎨 Processing ${responseParts.length} response parts');
 
         for (var i = 0; i < responseParts.length; i++) {
           final part = responseParts[i] as Map<String, dynamic>;
@@ -989,7 +1028,7 @@ IMPORTANT:
             // Text response
             final text = part['text'] as String;
             textParts.add(text);
-            print('🎨 Text part ${i + 1}: ${text.length} characters');
+            debugPrint('🎨 Text part ${i + 1}: ${text.length} characters');
           } else if (part['inline_data'] != null ||
               part['inlineData'] != null) {
             // Generated image
@@ -1005,8 +1044,9 @@ IMPORTANT:
             generatedImages.add(imageBytes);
             imageMimeTypes.add(mimeType);
 
-            print(
-              '🎨 Generated image ${i + 1}: ${imageBytes.length} bytes, type: $mimeType',
+            debugPrint(
+              '🎨 Generated image ${i + 1}: ${imageBytes.length} bytes, '
+              'type: $mimeType',
             );
           }
         }
@@ -1014,9 +1054,13 @@ IMPORTANT:
         // Combine text parts
         final fullTextResponse = textParts.join('\n\n');
 
-        print('🎨 Generation complete:');
-        print('🎨   - Text response: ${fullTextResponse.length} characters');
-        print('🎨   - Generated images: ${generatedImages.length}');
+        debugPrint('🎨 Generation complete:');
+        debugPrint(
+          '🎨   - Text response: ${fullTextResponse.length} characters',
+        );
+        debugPrint(
+          '🎨   - Generated images: ${generatedImages.length}',
+        );
 
         return ImageGenerationResponse.withImages(
           text: fullTextResponse,
@@ -1025,7 +1069,9 @@ IMPORTANT:
         );
       } else {
         final errorData = response.data;
-        final errorMessage = errorData?['error']?['message'] ?? 'Unknown error';
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Unknown error';
         throw Exception(
           'Google Gemini API error (${response.statusCode}): $errorMessage',
         );
@@ -1044,9 +1090,10 @@ IMPORTANT:
           'Google Gemini rate limit exceeded. Please try again later.',
         );
       } else if (e.response?.statusCode == 400) {
-        final errorData = e.response?.data as Map<String, dynamic>?;
-        final errorMessage =
-            errorData?['error']?['message'] as String? ?? 'Bad request';
+        final errorData = e.response?.data;
+        final error = errorData?['error'];
+        final errorMessage = (error as Map<String, dynamic>?)?['message'] 
+            as String? ?? 'Bad request';
         if (errorMessage.contains('RESOURCE_EXHAUSTED') ||
             errorMessage.contains('QUOTA_EXCEEDED')) {
           // Try with fallback key
@@ -1196,7 +1243,7 @@ IMPORTANT:
     required String userQuestion,
     List<Message>? conversationHistory,
   }) async {
-    print('🔍🎯 Analyzing image and detecting intent...');
+    debugPrint('🔍🎯 Analyzing image and detecting intent...');
 
     final contextSummary = _buildConversationSummary(conversationHistory);
 
@@ -1269,7 +1316,7 @@ $userQuestion
             'temperature': 0.1,
           };
 
-          print('🚀 AI Request: POST $url with model: $model');
+          debugPrint('🚀 AI Request: POST $url with model: $model');
           response = await _dio.post<Map<String, dynamic>>(
             url,
             data: requestBody,
@@ -1282,10 +1329,14 @@ $userQuestion
           );
 
           usedModel = model;
-          print('✅ AI Response: ${response.statusCode} with model: $model');
+          debugPrint(
+            '✅ AI Response: ${response.statusCode} with model: $model',
+          );
           break; // Success, exit the loop
         } catch (e) {
-          print('❌ Model $model failed: $e');
+          debugPrint(
+            '❌ Model $model failed: $e',
+          );
           if (model == models.last) {
             rethrow; // If all models failed, throw the last error
           }
@@ -1298,7 +1349,7 @@ $userQuestion
       }
 
       if (response.statusCode == 200) {
-        final responseData = response.data! as Map<String, dynamic>;
+        final responseData = response.data!;
         final choices = responseData['choices'] as List<dynamic>;
 
         if (choices.isNotEmpty) {
@@ -1306,13 +1357,16 @@ $userQuestion
           final message = choice['message'] as Map<String, dynamic>;
           final content = message['content'] as String;
 
-          print(
-            '🔍 Vision analysis received: ${content.length} characters using model: $usedModel',
+          debugPrint(
+            '🔍 Vision analysis received: ${content.length} characters '
+            'using model: $usedModel',
           );
 
           // Clean and parse JSON response (remove markdown formatting)
           final cleanedContent = _cleanJsonResponse(content);
-          print('🧹 Cleaned JSON: ${cleanedContent.length} characters');
+          debugPrint(
+            '🧹 Cleaned JSON: ${cleanedContent.length} characters',
+          );
 
           // Parse JSON response
           final jsonData = jsonDecode(cleanedContent) as Map<String, dynamic>;
@@ -1333,27 +1387,36 @@ $userQuestion
 
       throw Exception('Invalid response from OpenAI Vision API');
     } catch (e) {
-      print('❌ Error in analyzeImageWithVision: $e');
+      debugPrint(
+        '❌ Error in analyzeImageWithVision: $e',
+      );
 
       // Fallback: Provide basic analysis without image processing
-      print('🔄 Falling back to basic text analysis...');
+      debugPrint(
+        '🔄 Falling back to basic text analysis...',
+      );
 
       return ImageGenerationResponse.fromAnalysis(
         imageAnalysis:
-            'Изображение участка получено, но детальный анализ недоступен из-за технических ограничений.',
+            'Изображение участка получено, но детальный анализ '
+            'недоступен из-за технических ограничений.',
         userIntent: 'unclear',
         intentConfidence: 0.3,
         intentReasoning:
-            'Не удалось проанализировать изображение, намерение пользователя неясно.',
+            'Не удалось проанализировать изображение, '
+            'намерение пользователя неясно.',
         suitability:
-            'Требуется дополнительная информация для оценки пригодности участка.',
+            'Требуется дополнительная информация для оценки '
+            'пригодности участка.',
         recommendations: const [
           'Опишите участок подробнее: освещение, тип почвы, размеры',
           'Укажите какие растения вас интересуют',
           'Расскажите о ваших предпочтениях и целях',
         ],
         textResponse:
-            'К сожалению, не удалось проанализировать изображение. Пожалуйста, опишите ваш участок подробнее, и я смогу дать рекомендации по посадке растений.',
+            'К сожалению, не удалось проанализировать изображение. '
+            'Пожалуйста, опишите ваш участок подробнее, и я смогу дать '
+            'рекомендации по посадке растений.',
       );
     }
   }

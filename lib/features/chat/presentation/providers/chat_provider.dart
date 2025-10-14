@@ -5,23 +5,31 @@
 library;
 
 import 'dart:async';
-import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:landcomp_app/features/chat/domain/entities/message.dart';
-import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
-import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
-import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
-import 'package:landcomp_app/features/chat/domain/entities/image_generation_response.dart';
-import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
-import 'package:landcomp_app/core/network/ai_service.dart';
 import 'package:landcomp_app/core/localization/language_provider.dart';
-import 'package:landcomp_app/core/storage/chat_storage.dart';
+import 'package:landcomp_app/core/network/ai_service.dart';
 import 'package:landcomp_app/core/orchestrator/agent_orchestrator.dart';
+import 'package:landcomp_app/core/storage/chat_storage.dart';
+import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
+import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
+import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
+import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
+import 'package:landcomp_app/features/chat/domain/entities/image_generation_response.dart';
+import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 
 /// Chat provider for state management
+///
+/// Manages chat conversations, AI agent selection, and message handling.
+/// Provides methods for sending messages, managing sessions, and handling
+/// AI responses through the orchestrator.
 class ChatProvider extends ChangeNotifier {
+  /// Creates a new chat provider instance
+  ///
+  /// Automatically initializes the provider by loading sessions and setting up
+  /// the orchestrator.
   ChatProvider() {
     _initializeProvider();
   }
@@ -41,14 +49,31 @@ class ChatProvider extends ChangeNotifier {
   bool _isInitialized = false;
 
   // Getters
+  /// Current active chat session
   ChatSession? get currentSession => _currentSession;
+  
+  /// Currently selected AI agent
   AIAgent? get currentAgent => _currentAgent;
+  
+  /// List of all chat sessions
   List<ChatSession> get sessions => _sessions;
+  
+  /// Messages in the current session
   List<Message> get messages => _currentSession?.messages ?? [];
+  
+  /// Whether the provider is currently loading
   bool get isLoading => _isLoading;
+  
+  /// Current error message, if any
   String? get error => _error;
+  
+  /// Whether the current session has messages
   bool get hasMessages => messages.isNotEmpty;
+  
+  /// Whether there are any chat sessions
   bool get hasSessions => _sessions.isNotEmpty;
+  
+  /// Whether the provider has been initialized
   bool get isInitialized => _isInitialized;
 
   /// Initialize the provider
@@ -75,7 +100,7 @@ class ChatProvider extends ChangeNotifier {
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
-      print('❌ Error initializing ChatProvider: $e');
+      debugPrint('❌ Error initializing ChatProvider: $e');
       _setError('Failed to initialize chat: $e');
     }
   }
@@ -84,7 +109,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> _loadSessions() async {
     try {
       _sessions = await _chatStorage.loadAllSessions();
-      print('📂 Loaded ${_sessions.length} sessions from storage');
+      debugPrint('📂 Loaded ${_sessions.length} sessions from storage');
 
       // Debug: Check if any messages have images
       for (final session in _sessions) {
@@ -94,23 +119,29 @@ class ChatProvider extends ChangeNotifier {
                 .where((a) => a.isImage)
                 .toList();
             if (imageAttachments.isNotEmpty) {
-              print(
-                '📂 Found message with ${imageAttachments.length} images: ${message.id}',
+              debugPrint(
+                '📂 Found message with ${imageAttachments.length} images: '
+                '${message.id}',
               );
-              print(
-                '📂 Image sizes: ${imageAttachments.map((img) => img.size).toList()}',
+              debugPrint(
+                '📂 Image sizes: '
+                '${imageAttachments.map((img) => img.size).toList()}',
               );
             }
           }
         }
       }
     } catch (e) {
-      print('❌ Error loading sessions: $e');
+      debugPrint('❌ Error loading sessions: $e');
       _sessions = [];
     }
   }
 
   /// Set language provider for localization
+  ///
+  /// Sets the language provider to enable localized messages and responses.
+  ///
+  /// [languageProvider] The language provider instance to use for localization.
   void setLanguageProvider(LanguageProvider languageProvider) {
     if (_languageProvider != languageProvider) {
       _languageProvider = languageProvider;
@@ -151,6 +182,10 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Switch to a different AI agent
+  ///
+  /// Changes the current AI agent and creates a new session for the new agent.
+  ///
+  /// [agent] The AI agent to switch to.
   Future<void> switchAgent(AIAgent agent) async {
     if (_currentAgent?.id == agent.id) return;
 
@@ -163,6 +198,12 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Send a message to the AI agent
+  ///
+  /// Sends a text message to the current AI agent and handles the response.
+  /// Automatically detects visualization requests and switches to image
+  /// generation mode.
+  ///
+  /// [content] The message content to send.
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty || _isLoading) return;
 
@@ -182,18 +223,18 @@ class ChatProvider extends ChangeNotifier {
       final isVisualizationRequest = _isVisualizationRequest(content.trim());
       final hasPreviousImages = _hasImagesInRecentMessages();
 
-      print('🔍 Text message analysis:');
-      print('   Content: ${content.trim()}');
-      print('   Is visualization request: $isVisualizationRequest');
-      print('   Has previous images: $hasPreviousImages');
+      debugPrint('🔍 Text message analysis:');
+      debugPrint('   Content: ${content.trim()}');
+      debugPrint('   Is visualization request: $isVisualizationRequest');
+      debugPrint('   Has previous images: $hasPreviousImages');
 
       if (isVisualizationRequest && hasPreviousImages) {
         // STEP 2: Switch to image generation mode
-        print('🎨 Switching to image generation mode...');
+        debugPrint('🎨 Switching to image generation mode...');
         await _handleVisualizationRequest(content.trim());
       } else {
         // STEP 3: Regular text response
-        print('💬 Regular text response...');
+        debugPrint('💬 Regular text response...');
         final smartResponse = await _getSmartAIResponse(content.trim());
 
         if (smartResponse.isSuccess) {
@@ -206,7 +247,7 @@ class ChatProvider extends ChangeNotifier {
               _currentSession = _currentSession!.copyWith(
                 agentId: _currentAgent!.id,
               );
-              _saveCurrentSession();
+              unawaited(_saveCurrentSession());
             }
           }
 
@@ -259,6 +300,11 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Send a message with images to the AI agent
+  ///
+  /// Sends a message with image attachments to the AI agent for analysis.
+  ///
+  /// [content] The message content to send.
+  /// [images] List of image data to attach to the message.
   Future<void> sendMessageWithImages({
     required String content,
     required List<Uint8List> images,
@@ -266,9 +312,9 @@ class ChatProvider extends ChangeNotifier {
     if (content.trim().isEmpty || _isLoading) return;
     if (images.isEmpty) return;
 
-    print('📸 Sending message with ${images.length} images');
-    print('📸 Content: ${content.trim()}');
-    print('📸 Image sizes: ${images.map((img) => img.length).toList()}');
+    debugPrint('📸 Sending message with ${images.length} images');
+    debugPrint('📸 Content: ${content.trim()}');
+    debugPrint('📸 Image sizes: ${images.map((img) => img.length).toList()}');
 
     // Create attachments from images
     final attachments = images.map((imageData) {
@@ -286,8 +332,9 @@ class ChatProvider extends ChangeNotifier {
       attachments: attachments,
     );
 
-    print(
-      '📸 Created user message with attachments: ${userMessage.attachments?.length ?? 0}',
+    debugPrint(
+      '📸 Created user message with attachments: '
+      '${userMessage.attachments?.length ?? 0}',
     );
 
     // Add user message to current session
@@ -301,7 +348,7 @@ class ChatProvider extends ChangeNotifier {
       _clearError();
 
       // Use new AgentOrchestrator for ALL requests (with or without images)
-      print('🤖 Processing message with AgentOrchestrator...');
+      debugPrint('🤖 Processing message with AgentOrchestrator...');
       final smartResponse = await _getSmartAIResponse(
         content.trim(),
         attachments,
@@ -346,25 +393,31 @@ class ChatProvider extends ChangeNotifier {
     String userMessage, [
     List<Attachment>? attachments,
   ]) async {
-    print(
-      '🤖 Getting smart AI response for message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...',
+    final messagePreview = userMessage.length > 50 
+        ? userMessage.substring(0, 50) 
+        : userMessage;
+    debugPrint(
+      '🤖 Getting smart AI response for message: $messagePreview...',
     );
-    print('🎯 Using AgentOrchestrator for request processing...');
+    debugPrint('🎯 Using AgentOrchestrator for request processing...');
 
     // Get conversation history from current session
     final allMessages = _currentSession?.messages ?? [];
-    print('📊 Total messages in session: ${allMessages.length}');
-    print('   - Typing: ${allMessages.where((m) => m.isTyping).length}');
-    print('   - Error: ${allMessages.where((m) => m.isError).length}');
+    debugPrint('📊 Total messages in session: ${allMessages.length}');
+    debugPrint('   - Typing: ${allMessages.where((m) => m.isTyping).length}');
+    debugPrint('   - Error: ${allMessages.where((m) => m.isError).length}');
 
     final history = allMessages
         .where((m) => !m.isTyping && !m.isError)
         .toList();
 
-    print('📚 Passing ${history.length} messages as conversation history');
-    print(
-      '   - With attachments: ${history.where((m) => m.attachments != null && m.attachments!.isNotEmpty).length}',
+    debugPrint(
+      '📚 Passing ${history.length} messages as conversation history',
     );
+    final messagesWithAttachments = history.where(
+      (m) => m.attachments != null && m.attachments!.isNotEmpty,
+    ).length;
+    debugPrint('   - With attachments: $messagesWithAttachments');
 
     try {
       final response = await _orchestrator.processRequest(
@@ -375,32 +428,37 @@ class ChatProvider extends ChangeNotifier {
       );
 
       if (response.isSuccess) {
-        print(
-          '✅ Orchestrator response received: ${response.message!.substring(0, response.message!.length > 50 ? 50 : response.message!.length)}...',
+        final responsePreview = response.message!.length > 50 
+            ? response.message!.substring(0, 50) 
+            : response.message!;
+        debugPrint(
+          '✅ Orchestrator response received: $responsePreview...',
         );
-        print('   Selected agent: ${response.selectedAgent?.name}');
+        debugPrint('   Selected agent: ${response.selectedAgent?.name}');
 
         return SmartAIResponse.success(
           agent: response.selectedAgent ?? AIAgentsConfig.getDefaultAgent(),
           message: response.message!,
-          confidence:
-              (response.metadata['confidence'] as num?)?.toDouble() ?? 0.8,
+          confidence: (response.metadata['confidence'] as num?)?.toDouble() ??
+              0.8,
         );
       } else {
-        print('❌ Error in orchestrator response: ${response.error}');
+        debugPrint('❌ Error in orchestrator response: ${response.error}');
         // Return user-friendly error message instead of technical details
         return SmartAIResponse.error(
-          message:
-              'К сожалению, не удалось обработать ваш запрос. Пожалуйста, попробуйте еще раз или измените формулировку.',
+          message: 'К сожалению, не удалось обработать ваш запрос. '
+              'Пожалуйста, попробуйте еще раз или измените '
+              'формулировку.',
         );
       }
     } catch (e) {
-      print('❌ Error getting orchestrator response: $e');
-      print('   Error type: ${e.runtimeType}');
-      // Return user-friendly error message instead of technical exception details
+      debugPrint('❌ Error getting orchestrator response: $e');
+      debugPrint('   Error type: ${e.runtimeType}');
+      // Return user-friendly error message instead of technical exception
+      // details
       return SmartAIResponse.error(
-        message:
-            'К сожалению, произошла ошибка при обработке вашего запроса. Пожалуйста, попробуйте еще раз.',
+        message: 'К сожалению, произошла ошибка при обработке вашего '
+            'запроса. Пожалуйста, попробуйте еще раз.',
       );
     }
   }
@@ -413,9 +471,11 @@ class ChatProvider extends ChangeNotifier {
   /// Get localized error message
   String _getLocalizedError(String error) {
     if (_languageProvider != null) {
-      final isRussian = _languageProvider!.currentLocale.languageCode == 'ru';
+      final isRussian =
+          _languageProvider!.currentLocale.languageCode == 'ru';
       if (isRussian) {
-        return 'Произошла ошибка при получении ответа от ИИ. Попробуйте еще раз.';
+        return 'Произошла ошибка при получении ответа от ИИ. '
+            'Попробуйте еще раз.';
       }
     }
     return 'An error occurred while getting AI response. Please try again.';
@@ -425,12 +485,12 @@ class ChatProvider extends ChangeNotifier {
   void _addMessageToCurrentSession(Message message) {
     if (_currentSession == null) return;
 
-    print('💾 Adding message to session: ${message.id}');
+    debugPrint('💾 Adding message to session: ${message.id}');
     final imageAttachments =
         message.attachments?.where((a) => a.isImage).toList() ?? [];
-    print('💾 Message has images: ${imageAttachments.length}');
+    debugPrint('💾 Message has images: ${imageAttachments.length}');
     if (imageAttachments.isNotEmpty) {
-      print(
+      debugPrint(
         '💾 Image sizes: ${imageAttachments.map((img) => img.size).toList()}',
       );
     }
@@ -451,7 +511,7 @@ class ChatProvider extends ChangeNotifier {
     }
 
     // Save to storage asynchronously to avoid blocking UI
-    _saveCurrentSessionAsync();
+    unawaited(_saveCurrentSessionAsync());
 
     notifyListeners();
   }
@@ -461,9 +521,9 @@ class ChatProvider extends ChangeNotifier {
     if (_currentSession != null) {
       try {
         await _chatStorage.saveSession(_currentSession!);
-        print('💾 Session saved successfully: ${_currentSession!.id}');
+        debugPrint('💾 Session saved successfully: ${_currentSession!.id}');
       } catch (e) {
-        print('❌ Error saving session: $e');
+        debugPrint('❌ Error saving session: $e');
         // Don't throw error to avoid breaking UI
       }
     }
@@ -518,6 +578,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Clear current session messages
+  ///
+  /// Removes all messages from the current chat session.
   void clearCurrentSession() {
     if (_currentSession == null) return;
 
@@ -535,6 +597,10 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Delete a message
+  ///
+  /// Removes a specific message from the current session.
+  ///
+  /// [messageId] The ID of the message to delete.
   void deleteMessage(String messageId) {
     if (_currentSession == null) return;
 
@@ -552,6 +618,10 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Switch to a different session
+  ///
+  /// Changes the current active session to the specified session.
+  ///
+  /// [sessionId] The ID of the session to switch to.
   void switchToSession(String sessionId) {
     final session = _sessions.firstWhere(
       (s) => s.id == sessionId,
@@ -570,6 +640,10 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Delete a session
+  ///
+  /// Permanently removes a chat session from storage and local state.
+  ///
+  /// [sessionId] The ID of the session to delete.
   Future<void> deleteSession(String sessionId) async {
     try {
       // Remove from storage
@@ -585,12 +659,17 @@ class ChatProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      print('❌ Error deleting session: $e');
+      debugPrint('❌ Error deleting session: $e');
       _setError('Failed to delete session: $e');
     }
   }
 
   /// Get quick start suggestions for current agent
+  ///
+  /// Returns localized quick start suggestions for the current AI agent.
+  ///
+  /// Returns a list of suggestion strings, or empty list if no agent is
+  /// selected.
   List<String> getQuickStartSuggestions() {
     if (_currentAgent == null) return [];
     if (_languageProvider != null) {
@@ -602,6 +681,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Retry last AI message
+  ///
+  /// Retries the last user message, removing the previous AI response first.
   Future<void> retryLastMessage() async {
     if (_currentSession == null || messages.isEmpty) return;
 
@@ -624,11 +705,17 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Initialize the provider (public method)
+  ///
+  /// Public method to initialize the chat provider.
+  /// This is called automatically in the constructor but can be called
+  /// manually if needed.
   Future<void> initialize() async {
     await _initializeProvider();
   }
 
   /// Clear all chat history
+  ///
+  /// Permanently removes all chat sessions and creates a new empty session.
   Future<void> clearAllHistory() async {
     try {
       await _chatStorage.clearAllSessions();
@@ -636,13 +723,16 @@ class ChatProvider extends ChangeNotifier {
       _createNewSession();
       notifyListeners();
     } catch (e) {
-      print('❌ Error clearing history: $e');
+      debugPrint('❌ Error clearing history: $e');
       _setError('Failed to clear history: $e');
     }
   }
 
   /// Load messages from project
-  /// This synchronizes ChatProvider's session with the current project's messages
+  ///
+  /// Synchronizes ChatProvider's session with the current project's messages.
+  ///
+  /// [projectMessages] List of messages to load into the current session.
   void loadMessagesFromProject(List<Message> projectMessages) {
     if (_currentSession == null) {
       _createNewSession();
@@ -822,11 +912,11 @@ $content
 
     if (messageWithImages?.attachments == null) {
       // No images found, fallback to text response
-      print('❌ No images found for visualization request');
+      debugPrint('❌ No images found for visualization request');
       final fallbackMessage = Message.system(
         id: _uuid.v4(),
-        content:
-            'Для создания визуализации нужны изображения участка. Пожалуйста, загрузите фото участка.',
+        content: 'Для создания визуализации нужны изображения участка. '
+            'Пожалуйста, загрузите фото участка.',
       );
       _addMessageToCurrentSession(fallbackMessage);
       return;
@@ -843,7 +933,7 @@ $content
         .cast<Uint8List>()
         .toList();
 
-    print('🎨 Found ${imageData.length} images for visualization');
+    debugPrint('🎨 Found ${imageData.length} images for visualization');
 
     // Use the existing image generation flow
     await _generateVisualization(content, imageData, null);

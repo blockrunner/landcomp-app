@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:landcomp_app/app/router.dart';
 import 'package:landcomp_app/app/theme.dart';
+import 'package:landcomp_app/core/config/web_config.dart';
 import 'package:landcomp_app/core/constants/app_constants.dart';
 import 'package:landcomp_app/core/localization/language_provider.dart';
 import 'package:landcomp_app/core/network/ai_service.dart';
@@ -55,6 +56,9 @@ class LandscapeAIApp extends StatelessWidget {
 class AppInitializer {
   /// Initializes the application
   static Future<void> initialize() async {
+    // Initialize web-specific configurations
+    await WebConfig.initialize();
+
     // Load environment variables
     try {
       await dotenv.load();

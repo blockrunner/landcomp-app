@@ -4,6 +4,7 @@
 /// agent selection, and request execution in the system.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:landcomp_app/core/agents/base/agent.dart';
@@ -26,7 +27,7 @@ class AgentOrchestrator {
   AgentOrchestrator._();
 
   static final AgentOrchestrator _instance = AgentOrchestrator._();
-  
+
   /// Singleton instance of the AgentOrchestrator
   static AgentOrchestrator get instance => _instance;
 
@@ -43,7 +44,7 @@ class AgentOrchestrator {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    print('🚀 Initializing Agent Orchestrator...');
+    debugPrint('🚀 Initializing Agent Orchestrator...');
 
     try {
       // Initialize registries
@@ -51,9 +52,9 @@ class AgentOrchestrator {
       await _initializeToolRegistry();
 
       _isInitialized = true;
-      print('✅ Agent Orchestrator initialized successfully');
+      debugPrint('✅ Agent Orchestrator initialized successfully');
     } catch (e) {
-      print('❌ Failed to initialize Agent Orchestrator: $e');
+      debugPrint('❌ Failed to initialize Agent Orchestrator: $e');
       rethrow;
     }
   }
@@ -68,14 +69,14 @@ class AgentOrchestrator {
     final requestId = _uuid.v4();
     final startTime = DateTime.now();
 
-    print('🎯 Processing request: $requestId');
+    debugPrint('🎯 Processing request: $requestId');
     final messagePreview = userMessage.length > 50
         ? '${userMessage.substring(0, 50)}...'
         : userMessage;
-    print('   Message: $messagePreview');
-    print('   History: ${conversationHistory.length} messages');
-    print('   Attachments: ${attachments?.length ?? 0}');
-    print('🚀 AgentOrchestrator.processRequest called!');
+    debugPrint('   Message: $messagePreview');
+    debugPrint('   History: ${conversationHistory.length} messages');
+    debugPrint('   Attachments: ${attachments?.length ?? 0}');
+    debugPrint('🚀 AgentOrchestrator.processRequest called!');
 
     try {
       // 1. Build context
@@ -92,11 +93,11 @@ class AgentOrchestrator {
         context,
       );
 
-      print(
+      debugPrint(
         '   Intent: ${intent.type.name} (confidence: ${intent.confidence})',
       );
       if (intent.subtype != null) {
-        print('   Subtype: ${intent.subtype!.name}');
+        debugPrint('   Subtype: ${intent.subtype!.name}');
       }
 
       // 2.5. Select relevant images based on intent
@@ -107,7 +108,7 @@ class AgentOrchestrator {
         currentAttachments: attachments,
       );
 
-      print(
+      debugPrint(
         '🖼️ Selected ${relevantImages.length} relevant images for request',
       );
 
@@ -131,9 +132,9 @@ class AgentOrchestrator {
       );
 
       // 4. Select agent
-      print('🎯 Starting agent selection...');
+      debugPrint('🎯 Starting agent selection...');
       final agent = await _selectAgent(request);
-      print('   Selected agent: ${agent.name}');
+      debugPrint('   Selected agent: ${agent.name}');
 
       // 5. Execute request
       final response = await agent.execute(request);
@@ -151,7 +152,7 @@ class AgentOrchestrator {
         response.isSuccess,
       );
 
-      print(
+      debugPrint(
         '✅ Request processed successfully in ${executionTime.inMilliseconds}ms',
       );
       return response;
@@ -159,7 +160,7 @@ class AgentOrchestrator {
       final executionTime = DateTime.now().difference(startTime);
       _metricsTracker.trackExecution('orchestrator', executionTime, false);
 
-      print('❌ Request processing failed: $e');
+      debugPrint('❌ Request processing failed: $e');
       return AgentResponse.error(
         requestId: requestId,
         error: 'Request processing failed: $e',
@@ -173,7 +174,7 @@ class AgentOrchestrator {
 
   /// Select the best agent for the request using scoring system
   Future<Agent> _selectAgent(AgentRequest request) async {
-    print('🤖 Selecting agent for intent: ${request.intent.type.name}');
+    debugPrint('🤖 Selecting agent for intent: ${request.intent.type.name}');
 
     // Get all agents that can handle this intent and context
     final agentScores = <Agent, double>{};
@@ -187,14 +188,14 @@ class AgentOrchestrator {
         if (canHandle) {
           final score = await _calculateAgentScore(agent, request);
           agentScores[agent] = score;
-          print('   ${agent.name}: score ${score.toStringAsFixed(2)}');
+          debugPrint('   ${agent.name}: score ${score.toStringAsFixed(2)}');
 
           // Debug scoring breakdown
           final intentScore = _getIntentScore(agent, request.intent);
           final contextScore = _getContextScore(agent, request.context);
           final keywordScore = _getKeywordScore(agent, request.userMessage);
           final performanceScore = _getPerformanceScore(agent);
-          print(
+          debugPrint(
             '     - Intent: ${intentScore.toStringAsFixed(2)}, '
             'Context: ${contextScore.toStringAsFixed(2)}, '
             'Keywords: ${keywordScore.toStringAsFixed(2)}, '
@@ -202,7 +203,7 @@ class AgentOrchestrator {
           );
         }
       } catch (e) {
-        print('⚠️ Agent ${agent.id} failed capability check: $e');
+        debugPrint('⚠️ Agent ${agent.id} failed capability check: $e');
       }
     }
 
@@ -219,7 +220,7 @@ class AgentOrchestrator {
     final selectedAgent = sortedAgents.first.key;
     final selectedScore = sortedAgents.first.value;
 
-    print(
+    debugPrint(
       '   Selected: ${selectedAgent.name} '
       '(score: ${selectedScore.toStringAsFixed(2)})',
     );
@@ -289,30 +290,71 @@ class AgentOrchestrator {
         if (agent.capabilities.contains(AgentCapabilities.landscapeDesign)) {
           return 1.5; // High bonus for landscape planning
         }
+        return 0;
       case IntentSubtype.plantSelection:
         if (agent.capabilities.contains(AgentCapabilities.gardening)) {
           return 1.5; // High bonus for plant selection
         }
+        return 0;
       case IntentSubtype.constructionAdvice:
         if (agent.capabilities.contains(AgentCapabilities.construction)) {
           return 1.5; // High bonus for construction advice
         }
-      case IntentSubtype.imageAnalysis:
-        if (agent.capabilities.contains(AgentCapabilities.imageAnalysis)) {
-          return 1; // Bonus for image analysis
+        return 0;
+      case IntentSubtype.maintenanceAdvice:
+        if (agent.capabilities.contains(AgentCapabilities.gardening)) {
+          return 1; // Bonus for maintenance advice
         }
+        return 0;
+      case IntentSubtype.generalQuestion:
+        return 0.5; // Small bonus for general questions
       case IntentSubtype.imageGeneration:
         if (agent.capabilities.contains(AgentCapabilities.imageGeneration)) {
           return 1; // Bonus for image generation
         }
+        return 0;
+      case IntentSubtype.textGeneration:
+        if (agent.capabilities.contains(AgentCapabilities.textGeneration)) {
+          return 1; // Bonus for text generation
+        }
+        return 0;
       case IntentSubtype.planGeneration:
         if (agent.capabilities.contains(AgentCapabilities.planning)) {
           return 1; // Bonus for planning
         }
-      default:
-        return 0; // No bonus for other subtypes
+        return 0;
+      case IntentSubtype.imageAnalysis:
+        if (agent.capabilities.contains(AgentCapabilities.imageAnalysis)) {
+          return 1; // Bonus for image analysis
+        }
+        return 0;
+      case IntentSubtype.siteAnalysis:
+        if (agent.capabilities.contains(AgentCapabilities.analysis)) {
+          return 1; // Bonus for site analysis
+        }
+        return 0;
+      case IntentSubtype.problemDiagnosis:
+        if (agent.capabilities.contains(AgentCapabilities.analysis)) {
+          return 1; // Bonus for problem diagnosis
+        }
+        return 0;
+      case IntentSubtype.designModification:
+        if (agent.capabilities.contains(AgentCapabilities.landscapeDesign)) {
+          return 1; // Bonus for design modification
+        }
+        return 0;
+      case IntentSubtype.planAdjustment:
+        if (agent.capabilities.contains(AgentCapabilities.planning)) {
+          return 1; // Bonus for plan adjustment
+        }
+        return 0;
+      case IntentSubtype.contentUpdate:
+        return 0.5; // Small bonus for content updates
+      case IntentSubtype.ambiguous:
+        return 0; // No bonus for ambiguous intents
+      case IntentSubtype.incomplete:
+        return 0; // No bonus for incomplete intents
     }
-    return 0;
   }
 
   /// Get score based on context (images, conversation history, etc.)
@@ -464,16 +506,16 @@ class AgentOrchestrator {
   /// Get all agents from registry
   List<Agent> _getAllAgents() {
     final agents = _agentRegistry.getAllAgents();
-    print('🔍 Found ${agents.length} agents in registry:');
+    debugPrint('🔍 Found ${agents.length} agents in registry:');
     for (final agent in agents) {
-      print('   - ${agent.id}: ${agent.name}');
+      debugPrint('   - ${agent.id}: ${agent.name}');
     }
     return agents;
   }
 
   /// Initialize agent registry with existing agents
   Future<void> _initializeAgentRegistry() async {
-    print('📋 Initializing agent registry...');
+    debugPrint('📋 Initializing agent registry...');
 
     // Register existing agents from AIAgentsConfig using adapters
     final existingAgents = AIAgentsConfig.getAllAgents();
@@ -483,17 +525,20 @@ class AgentOrchestrator {
       _agentRegistry.registerAgent(agent);
     }
 
-    print('✅ Agent registry initialized with ${existingAgents.length} agents');
+    debugPrint(
+      '✅ Agent registry initialized with ${existingAgents.length} agents',
+    );
   }
 
   /// Initialize tool registry with basic tools
   Future<void> _initializeToolRegistry() async {
-    print('🔧 Initializing tool registry...');
+    debugPrint('🔧 Initializing tool registry...');
 
-    // TODO(phase4): Register actual tools
-    // For now, this is a placeholder
+    // Tool registration will be implemented in phase 4
+    // This placeholder ensures the registry is properly initialized
+    // and ready for future tool implementations
 
-    print('✅ Tool registry initialized (placeholder)');
+    debugPrint('✅ Tool registry initialized (ready for phase 4 tools)');
   }
 
   /// Get orchestrator status and metrics
@@ -526,7 +571,7 @@ class AgentOrchestrator {
     _metricsTracker.reset();
     _agentRegistry.clearMetrics();
     _toolRegistry.clearMetrics();
-    print('🔄 Reset all orchestrator metrics');
+    debugPrint('🔄 Reset all orchestrator metrics');
   }
 
   /// Dispose the orchestrator
@@ -535,7 +580,7 @@ class AgentOrchestrator {
       await _agentRegistry.disposeAllAgents();
       await _toolRegistry.disposeAllTools();
       _isInitialized = false;
-      print('🔒 Agent Orchestrator disposed');
+      debugPrint('🔒 Agent Orchestrator disposed');
     }
   }
 }

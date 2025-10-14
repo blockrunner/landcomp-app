@@ -2,51 +2,75 @@ import 'package:equatable/equatable.dart';
 
 /// Represents a classified user intent
 enum IntentType {
-  consultation, // User asking question/advice
-  generation, // User wants image generated
-  modification, // User wants to modify existing
-  analysis, // User wants analysis of situation/image
-  unclear, // Intent is unclear
+  /// User asking question/advice
+  consultation,
+  /// User wants image generated
+  generation,
+  /// User wants to modify existing
+  modification,
+  /// User wants analysis of situation/image
+  analysis,
+  /// Intent is unclear
+  unclear,
 }
 
 /// Subtypes for more detailed intent classification
 enum IntentSubtype {
-  // Consultation subtypes
-  landscapePlanning, // Planning and design consultation
-  plantSelection, // Plant and garden advice
-  constructionAdvice, // Building and construction help
-  maintenanceAdvice, // Care and maintenance tips
-  generalQuestion, // General questions
-  // Generation subtypes
-  imageGeneration, // Generate new images
-  textGeneration, // Generate text content
-  planGeneration, // Generate plans or layouts
-  // Analysis subtypes
-  imageAnalysis, // Analyze uploaded images
-  siteAnalysis, // Analyze site conditions
-  problemDiagnosis, // Diagnose problems
-  // Modification subtypes
-  designModification, // Modify existing designs
-  planAdjustment, // Adjust existing plans
-  contentUpdate, // Update existing content
-  // Unclear
-  ambiguous, // Intent is ambiguous
-  incomplete, // Intent is incomplete
+  /// Planning and design consultation
+  landscapePlanning,
+  /// Plant and garden advice
+  plantSelection,
+  /// Building and construction help
+  constructionAdvice,
+  /// Care and maintenance tips
+  maintenanceAdvice,
+  /// General questions
+  generalQuestion,
+  /// Generate new images
+  imageGeneration,
+  /// Generate text content
+  textGeneration,
+  /// Generate plans or layouts
+  planGeneration,
+  /// Analyze uploaded images
+  imageAnalysis,
+  /// Analyze site conditions
+  siteAnalysis,
+  /// Diagnose problems
+  problemDiagnosis,
+  /// Modify existing designs
+  designModification,
+  /// Adjust existing plans
+  planAdjustment,
+  /// Update existing content
+  contentUpdate,
+  /// Intent is ambiguous
+  ambiguous,
+  /// Intent is incomplete
+  incomplete,
 }
 
 /// Image intent classification - what user wants to do with images
 enum ImageIntent {
-  analyzeNew, // Анализировать новое загруженное изображение
-  analyzeRecent, // Анализировать недавнее изображение из истории
-  compareMultiple, // Сравнить несколько изображений
-  referenceSpecific, // Ссылка на конкретное изображение (первое, второе, предыдущее)
-  generateBased, // Генерировать на основе изображения
-  noImageNeeded, // Изображения не нужны для ответа
-  unclear, // Неясно, нужны ли изображения
+  /// Анализировать новое загруженное изображение
+  analyzeNew,
+  /// Анализировать недавнее изображение из истории
+  analyzeRecent,
+  /// Сравнить несколько изображений
+  compareMultiple,
+  /// Ссылка на конкретное изображение (первое, второе, предыдущее)
+  referenceSpecific,
+  /// Генерировать на основе изображения
+  generateBased,
+  /// Изображения не нужны для ответа
+  noImageNeeded,
+  /// Неясно, нужны ли изображения
+  unclear,
 }
 
 /// Represents a classified user intent with detailed information
 class Intent extends Equatable {
+  /// Creates a new Intent instance
   const Intent({
     required this.type,
     required this.confidence,
@@ -59,6 +83,7 @@ class Intent extends Equatable {
     this.imagesNeeded,
   });
 
+  /// Creates an Intent instance from JSON data
   factory Intent.fromJson(Map<String, dynamic> json) {
     return Intent(
       type: IntentType.values.firstWhere(
@@ -90,11 +115,17 @@ class Intent extends Equatable {
     );
   }
 
+  /// The primary intent type
   final IntentType type;
+  /// Confidence level of the intent classification (0.0 to 1.0)
   final double confidence;
+  /// Reasoning behind the intent classification
   final String reasoning;
+  /// Optional subtype for more detailed classification
   final IntentSubtype? subtype;
+  /// Additional metadata about the intent
   final Map<String, dynamic> metadata;
+  /// Entities extracted from the user input
   final List<String> extractedEntities;
 
   /// Image-related intent classification
@@ -130,6 +161,7 @@ class Intent extends Equatable {
   /// Check if intent has low confidence (< 0.5)
   bool get isLowConfidence => confidence < 0.5;
 
+  /// Converts the Intent to JSON format
   Map<String, dynamic> toJson() {
     return {
       'type': type.name,

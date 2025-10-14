@@ -2,14 +2,14 @@
 ///
 /// This page allows users to configure various app settings
 /// including AI provider, theme, language, and other preferences.
+// ignore_for_file: deprecated_member_use
 library;
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:landcomp_app/core/localization/language_provider.dart';
 import 'package:landcomp_app/core/theme/theme_provider.dart';
 import 'package:landcomp_app/features/projects/presentation/widgets/projects_sidebar.dart';
+import 'package:provider/provider.dart';
 
 /// Settings page widget
 class SettingsPage extends StatefulWidget {
@@ -218,14 +218,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     title: Text(languageProvider.getString('privacyPolicy')),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
-                      // TODO: Open privacy policy
+                      // TODO(settings): Open privacy policy
                     },
                   ),
                   ListTile(
                     title: Text(languageProvider.getString('termsOfService')),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
-                      // TODO: Open terms of service
+                      // TODO(settings): Open terms of service
                     },
                   ),
                 ],

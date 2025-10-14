@@ -5,16 +5,18 @@
 library;
 
 import 'dart:convert';
+
 import 'package:landcomp_app/core/network/ai_service.dart';
 import 'package:landcomp_app/features/chat/domain/entities/message.dart';
-import 'package:landcomp_app/shared/models/intent.dart';
 import 'package:landcomp_app/shared/models/context.dart';
+import 'package:landcomp_app/shared/models/intent.dart';
 
 /// Intent classification service
 class IntentClassifier {
   IntentClassifier._();
 
   static final IntentClassifier _instance = IntentClassifier._();
+  /// Get the singleton instance of IntentClassifier
   static IntentClassifier get instance => _instance;
 
   final AIService _aiService = AIService.instance;
@@ -24,22 +26,22 @@ class IntentClassifier {
     String userMessage,
     RequestContext context,
   ) async {
-    print(
-      '🎯 Classifying intent for message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...',
-    );
+    // Log classification start
+    // TODO(developer): Replace with proper logging framework
 
     try {
       // Try OpenAI first
       return await _classifyWithOpenAI(userMessage, context);
     } catch (e) {
-      print('⚠️ OpenAI classification failed: $e');
-      print('🔄 Falling back to Gemini...');
+      // Log OpenAI failure and fallback
+      // TODO(developer): Replace with proper logging framework
 
       try {
         // Fallback to Gemini
         return await _classifyWithGemini(userMessage, context);
       } catch (e) {
-        print('❌ Gemini classification also failed: $e');
+        // Log Gemini failure
+        // TODO(developer): Replace with proper logging framework
         // Return default unclear intent
         return _createDefaultIntent(userMessage, e.toString());
       }
@@ -53,7 +55,8 @@ class IntentClassifier {
   ) async {
     final prompt = _buildClassificationPrompt(userMessage, context);
 
-    print('🤖 Sending classification request to OpenAI...');
+    // Log OpenAI request
+    // TODO(developer): Replace with proper logging framework
 
     final response = await _aiService.sendMessageWithSmartSelection(
       message: prompt,
@@ -74,7 +77,8 @@ class IntentClassifier {
   ) async {
     final prompt = _buildClassificationPrompt(userMessage, context);
 
-    print('🤖 Sending classification request to Gemini...');
+    // Log Gemini request
+    // TODO(developer): Replace with proper logging framework
 
     final response = await _aiService.sendMessageWithSmartSelection(
       message: prompt,
@@ -95,108 +99,116 @@ class IntentClassifier {
   ) {
     final buffer = StringBuffer();
 
-    buffer.writeln(
-      "You are an intelligent intent classifier for a landscape design AI assistant. Analyze the user's message and conversation context to understand their true intent.",
-    );
-    buffer.writeln();
-
-    buffer.writeln("Classify the user's intent into one of these types:");
-    buffer.writeln(
-      '- consultation: User is asking for advice, information, or guidance',
-    );
-    buffer.writeln(
-      '- generation: User wants to create, modify, or generate new content (images, plans, designs)',
-    );
-    buffer.writeln(
-      '- modification: User wants to change or update existing content',
-    );
-    buffer.writeln(
-      '- analysis: User wants to analyze, examine, or understand something',
-    );
-    buffer.writeln('- unclear: Intent is ambiguous or unclear');
-    buffer.writeln();
-
-    buffer.writeln(
-      'For consultation type, determine the most relevant subtype:',
-    );
-    buffer.writeln(
-      '- landscapePlanning: Questions about planning, design, or transforming outdoor spaces',
-    );
-    buffer.writeln(
-      '- plantSelection: Questions about plants, gardening, or plant care',
-    );
-    buffer.writeln(
-      '- constructionAdvice: Questions about building, construction, or materials',
-    );
-    buffer.writeln(
-      '- maintenanceAdvice: Questions about care, maintenance, or seasonal work',
-    );
-    buffer.writeln(
-      '- generalQuestion: General questions not related to specific areas',
-    );
-    buffer.writeln();
-
-    buffer.writeln('For generation type, determine the most relevant subtype:');
-    buffer.writeln('- imageGeneration: User wants to create or modify images');
-    buffer.writeln(
-      '- planGeneration: User wants to create plans, diagrams, or layouts',
-    );
-    buffer.writeln('- textGeneration: User wants to generate text content');
-    buffer.writeln();
-
-    buffer.writeln(
-      "CRITICAL: Focus on the user's INTENT, not just keywords. Consider:",
-    );
-    buffer.writeln('- What is the user trying to accomplish?');
-    buffer.writeln(
-      '- Do they want to CREATE something new or GET information?',
-    );
-    buffer.writeln(
-      '- Are they asking "how to" or "what is" (consultation) vs "make this" or "change that" (generation)?',
-    );
-    buffer.writeln(
-      '- Look at the conversation context - what came before this message?',
-    );
-    buffer.writeln();
-
-    // Add image intent classification section
-    buffer.writeln('Image Intent Classification:');
-    buffer.writeln(
-      'Analyze what the user wants to do with images based on context:',
-    );
-    buffer.writeln(
-      '- analyzeNew: User uploaded NEW image(s) and wants to analyze or understand them',
-    );
-    buffer.writeln(
-      '- analyzeRecent: User refers to recent images from conversation history',
-    );
-    buffer.writeln('- compareMultiple: User wants to compare several images');
-    buffer.writeln(
-      '- referenceSpecific: User references specific image (first, second, previous, last)',
-    );
-    buffer.writeln(
-      '- generateBased: User wants to generate/create new content based on existing images',
-    );
-    buffer.writeln(
-      "- noImageNeeded: Question doesn't require images to answer",
-    );
-    buffer.writeln('- unclear: Unclear if images are needed');
-    buffer.writeln();
-
-    buffer.writeln('Consider the conversation flow:');
-    buffer.writeln(
-      '- If user just uploaded an image and asks about it → analyzeNew',
-    );
-    buffer.writeln(
-      '- If user asks about "this image" or "that design" → analyzeRecent',
-    );
-    buffer.writeln(
-      '- If user wants to "change", "modify", or "create based on" → generateBased',
-    );
-    buffer.writeln(
-      '- If user asks general questions without image context → noImageNeeded',
-    );
-    buffer.writeln();
+    buffer
+      ..writeln(
+        "You are an intelligent intent classifier for a landscape design AI "
+        "assistant. Analyze the user's message and conversation context to "
+        "understand their true intent.",
+      )
+      ..writeln()
+      ..writeln("Classify the user's intent into one of these types:")
+      ..writeln(
+        '- consultation: User is asking for advice, information, or guidance',
+      )
+      ..writeln(
+        '- generation: User wants to create, modify, or generate new content '
+        '(images, plans, designs)',
+      )
+      ..writeln(
+        '- modification: User wants to change or update existing content',
+      )
+      ..writeln(
+        '- analysis: User wants to analyze, examine, or understand something',
+      )
+      ..writeln('- unclear: Intent is ambiguous or unclear')
+      ..writeln()
+      ..writeln(
+        'For consultation type, determine the most relevant subtype:',
+      )
+      ..writeln(
+        '- landscapePlanning: Questions about planning, design, or transforming '
+        'outdoor spaces',
+      )
+      ..writeln(
+        '- plantSelection: Questions about plants, gardening, or plant care',
+      )
+      ..writeln(
+        '- constructionAdvice: Questions about building, construction, or '
+        'materials',
+      )
+      ..writeln(
+        '- maintenanceAdvice: Questions about care, maintenance, or seasonal '
+        'work',
+      )
+      ..writeln(
+        '- generalQuestion: General questions not related to specific areas',
+      )
+      ..writeln()
+      ..writeln('For generation type, determine the most relevant subtype:')
+      ..writeln('- imageGeneration: User wants to create or modify images')
+      ..writeln(
+        '- planGeneration: User wants to create plans, diagrams, or layouts',
+      )
+      ..writeln('- textGeneration: User wants to generate text content')
+      ..writeln()
+      ..writeln(
+        "CRITICAL: Focus on the user's INTENT, not just keywords. Consider:",
+      )
+      ..writeln('- What is the user trying to accomplish?')
+      ..writeln(
+        '- Do they want to CREATE something new or GET information?',
+      )
+      ..writeln(
+        '- Are they asking "how to" or "what is" (consultation) vs "make this" or '
+        '"change that" (generation)?',
+      )
+      ..writeln(
+        '- Look at the conversation context - what came before this message?',
+      )
+      ..writeln()
+      // Add image intent classification section
+      ..writeln('Image Intent Classification:')
+      ..writeln(
+        'Analyze what the user wants to do with images based on context:',
+      )
+      ..writeln(
+        '- analyzeNew: User uploaded NEW image(s) and wants to analyze or '
+        'understand them',
+      )
+      ..writeln(
+        '- analyzeRecent: User refers to recent images from conversation '
+        'history',
+      )
+      ..writeln('- compareMultiple: User wants to compare several images')
+      ..writeln(
+        '- referenceSpecific: User references specific image (first, second, '
+        'previous, last)',
+      )
+      ..writeln(
+        '- generateBased: User wants to generate/create new content based on '
+        'existing images',
+      )
+      ..writeln(
+        "- noImageNeeded: Question doesn't require images to answer",
+      )
+      ..writeln('- unclear: Unclear if images are needed')
+      ..writeln()
+      ..writeln('Consider the conversation flow:')
+      ..writeln(
+        '- If user just uploaded an image and asks about it → analyzeNew',
+      )
+      ..writeln(
+        '- If user asks about "this image" or "that design" → analyzeRecent',
+      )
+      ..writeln(
+        '- If user wants to "change", "modify", or "create based on" → '
+        'generateBased',
+      )
+      ..writeln(
+        '- If user asks general questions without image context → '
+        'noImageNeeded',
+      )
+      ..writeln();
 
     // Add recent conversation history for context
     if (context.conversationHistory.isNotEmpty) {
@@ -217,15 +229,17 @@ class IntentClassifier {
       buffer.writeln();
     }
 
-    buffer.writeln('Current user message: "$userMessage"');
-    buffer.writeln();
+    buffer
+      ..writeln('Current user message: "$userMessage"')
+      ..writeln();
 
     // Add context information
     if (context.hasImages) {
-      buffer.writeln('Context: User has uploaded images with current message');
-      buffer.writeln(
-        'Current message has ${context.imageAttachments.length} new image(s)',
-      );
+      buffer
+        ..writeln('Context: User has uploaded images with current message')
+        ..writeln(
+          'Current message has ${context.imageAttachments.length} new image(s)',
+        );
     }
 
     if (context.hasRecentImages) {
@@ -251,26 +265,31 @@ class IntentClassifier {
       );
     }
 
-    buffer.writeln();
-    buffer.writeln('Return JSON response:');
-    buffer.writeln('{');
-    buffer.writeln(
-      '  "type": "consultation|generation|modification|analysis|unclear",',
-    );
-    buffer.writeln(
-      '  "subtype": "landscapePlanning|plantSelection|constructionAdvice|maintenanceAdvice|generalQuestion|imageGeneration|textGeneration|planGeneration|designModification|planAdjustment|contentUpdate|imageAnalysis|siteAnalysis|problemDiagnosis|ambiguous|incomplete",',
-    );
-    buffer.writeln('  "confidence": 0.0-1.0,');
-    buffer.writeln('  "reasoning": "explanation of classification",');
-    buffer.writeln('  "extracted_entities": ["entity1", "entity2"],');
-    buffer.writeln(
-      '  "imageIntent": "analyzeNew|analyzeRecent|compareMultiple|referenceSpecific|generateBased|noImageNeeded|unclear",',
-    );
-    buffer.writeln(
-      '  "referencedImageIndices": [0, 1, 2],  // Only for referenceSpecific',
-    );
-    buffer.writeln('  "imagesNeeded": 0-5  // How many images needed');
-    buffer.writeln('}');
+    buffer
+      ..writeln()
+      ..writeln('Return JSON response:')
+      ..writeln('{')
+      ..writeln(
+        '  "type": "consultation|generation|modification|analysis|unclear",',
+      )
+      ..writeln(
+        '  "subtype": "landscapePlanning|plantSelection|constructionAdvice|'
+        'maintenanceAdvice|generalQuestion|imageGeneration|textGeneration|'
+        'planGeneration|designModification|planAdjustment|contentUpdate|'
+        'imageAnalysis|siteAnalysis|problemDiagnosis|ambiguous|incomplete",',
+      )
+      ..writeln('  "confidence": 0.0-1.0,')
+      ..writeln('  "reasoning": "explanation of classification",')
+      ..writeln('  "extracted_entities": ["entity1", "entity2"],')
+      ..writeln(
+        '  "imageIntent": "analyzeNew|analyzeRecent|compareMultiple|'
+        'referenceSpecific|generateBased|noImageNeeded|unclear",',
+      )
+      ..writeln(
+        '  "referencedImageIndices": [0, 1, 2],  // Only for referenceSpecific',
+      )
+      ..writeln('  "imagesNeeded": 0-5  // How many images needed')
+      ..writeln('}');
 
     return buffer.toString();
   }
@@ -288,8 +307,8 @@ class IntentClassifier {
       }
       cleanResponse = cleanResponse.trim();
 
-      print('📝 Parsing classification response: $cleanResponse');
-      print('🔍 Raw response from AI: $response');
+      // Log parsing response
+      // TODO(developer): Replace with proper logging framework
 
       final json = jsonDecode(cleanResponse) as Map<String, dynamic>;
 
@@ -342,35 +361,20 @@ class IntentClassifier {
         imagesNeeded: imagesNeeded,
       );
 
-      print(
-        '✅ Intent classified: ${intent.type.name} (confidence: ${intent.confidence})',
-      );
-      if (intent.subtype != null) {
-        print('   Subtype: ${intent.subtype!.name}');
-      } else {
-        print('   ⚠️ No subtype determined');
-      }
-      if (intent.imageIntent != null) {
-        print('   Image Intent: ${intent.imageIntent!.name}');
-        if (intent.imagesNeeded != null) {
-          print('   Images Needed: ${intent.imagesNeeded}');
-        }
-        if (intent.referencedImageIndices != null &&
-            intent.referencedImageIndices!.isNotEmpty) {
-          print('   Referenced Indices: ${intent.referencedImageIndices}');
-        }
-      }
+      // Log successful classification
+      // TODO(developer): Replace with proper logging framework
       return intent;
     } catch (e) {
-      print('❌ Failed to parse classification response: $e');
-      print('📝 Raw response: $response');
+      // Log parsing failure
+      // TODO(developer): Replace with proper logging framework
       throw Exception('Failed to parse classification response: $e');
     }
   }
 
   /// Create default intent when classification fails
   Intent _createDefaultIntent(String userMessage, String error) {
-    print('⚠️ Creating default unclear intent due to classification failure');
+    // Log default intent creation
+    // TODO(developer): Replace with proper logging framework
 
     return Intent(
       type: IntentType.unclear,
@@ -380,8 +384,7 @@ class IntentClassifier {
         'classification_method': 'default_fallback',
         'error': error,
         'user_message': userMessage,
-      },
-      extractedEntities: const [],
+      }
     );
   }
 
@@ -396,7 +399,7 @@ class IntentClassifier {
 
   /// Get classification statistics (for future use)
   Map<String, dynamic> getClassificationStats() {
-    // TODO: Implement statistics tracking
+    // TODO(developer): Implement statistics tracking
     return {
       'total_classifications': 0,
       'openai_success_rate': 0.0,

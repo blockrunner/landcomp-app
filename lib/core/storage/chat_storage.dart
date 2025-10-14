@@ -5,17 +5,22 @@
 library;
 
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
-import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
-import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+
 import 'package:landcomp_app/core/constants/app_constants.dart';
 import 'package:landcomp_app/core/utils/json_utils.dart';
+import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
 
 /// Chat storage service
 class ChatStorage {
   ChatStorage._();
 
   static final ChatStorage _instance = ChatStorage._();
+  
+  /// Singleton instance of the ChatStorage
   static ChatStorage get instance => _instance;
 
   late Box<String> _chatBox;
@@ -30,9 +35,9 @@ class ChatStorage {
       _chatBox = await Hive.openBox<String>(AppConstants.chatHistoryBox);
       _projectsBox = await Hive.openBox<String>('projects');
       _isInitialized = true;
-      print('✅ ChatStorage initialized successfully');
+      debugPrint('✅ ChatStorage initialized successfully');
     } catch (e) {
-      print('❌ Error initializing ChatStorage: $e');
+      debugPrint('❌ Error initializing ChatStorage: $e');
       rethrow;
     }
   }
@@ -64,14 +69,16 @@ class ChatStorage {
       }
 
       if (totalImages > 0) {
-        print(
-          '💾 Saving session with $totalImages images, total size: ${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB',
+        debugPrint(
+          '💾 Saving session with $totalImages images, '
+          'total size: ${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB',
         );
 
         // Check if total size is too large (> 10MB)
         if (totalImageSize > 10 * 1024 * 1024) {
-          print(
-            '⚠️ Warning: Session size is very large (${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB)',
+          debugPrint(
+            '⚠️ Warning: Session size is very large '
+            '(${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB)',
           );
         }
       }
@@ -88,22 +95,23 @@ class ChatStorage {
         compressedSize,
       );
 
-      print(
+      debugPrint(
         '💾 JSON size: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
       );
-      print('💾 Compression ratio: ${compressionRatio.toStringAsFixed(1)}%');
+      debugPrint('💾 Compression ratio: ${compressionRatio.toStringAsFixed(1)}%');
 
       // Check JSON size limit (50MB)
       if (compressedSize > 50 * 1024 * 1024) {
         throw Exception(
-          'Session JSON too large: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
+          'Session JSON too large: '
+          '${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
         );
       }
 
       await _chatBox.put(session.id, sessionJson);
-      print('💾 Saved session: ${session.id}');
+      debugPrint('💾 Saved session: ${session.id}');
     } catch (e) {
-      print('❌ Error saving session: $e');
+      debugPrint('❌ Error saving session: $e');
       rethrow;
     }
   }
@@ -129,8 +137,9 @@ class ChatStorage {
               final messageJson = messageData as Map<String, dynamic>;
               final imageBytes = messageJson['imageBytes'];
               if (imageBytes != null) {
-                print(
-                  '📂 Raw JSON has imageBytes for message ${messageJson['id']}: ${(imageBytes as List).length} images',
+                debugPrint(
+                  '📂 Raw JSON has imageBytes for message '
+                  '${messageJson['id']}: ${(imageBytes as List).length} images',
                 );
               }
             }
@@ -140,7 +149,7 @@ class ChatStorage {
 
           // Validate loaded session
           if (!_validateSession(session)) {
-            print('❌ Skipping invalid session: ${session.id}');
+            debugPrint('❌ Skipping invalid session: ${session.id}');
             continue;
           }
 
@@ -157,9 +166,9 @@ class ChatStorage {
           }
 
           if (totalImages > 0) {
-            print('📂 Loaded session ${session.id} with $totalImages images');
+            debugPrint('📂 Loaded session ${session.id} with $totalImages images');
           } else {
-            print('📂 Loaded session ${session.id} with NO images');
+            debugPrint('📂 Loaded session ${session.id} with NO images');
           }
 
           sessions.add(session);
@@ -169,10 +178,10 @@ class ChatStorage {
       // Sort by updatedAt descending (newest first)
       sessions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-      print('📂 Loaded ${sessions.length} chat sessions');
+      debugPrint('📂 Loaded ${sessions.length} chat sessions');
       return sessions;
     } catch (e) {
-      print('❌ Error loading sessions: $e');
+      debugPrint('❌ Error loading sessions: $e');
       return [];
     }
   }
@@ -190,7 +199,7 @@ class ChatStorage {
       }
       return null;
     } catch (e) {
-      print('❌ Error loading session $sessionId: $e');
+      debugPrint('❌ Error loading session $sessionId: $e');
       return null;
     }
   }
@@ -201,9 +210,9 @@ class ChatStorage {
 
     try {
       await _chatBox.delete(sessionId);
-      print('🗑️ Deleted session: $sessionId');
+      debugPrint('🗑️ Deleted session: $sessionId');
     } catch (e) {
-      print('❌ Error deleting session: $e');
+      debugPrint('❌ Error deleting session: $e');
       rethrow;
     }
   }
@@ -214,9 +223,9 @@ class ChatStorage {
 
     try {
       await _chatBox.clear();
-      print('🧹 Cleared all chat sessions');
+      debugPrint('🧹 Cleared all chat sessions');
     } catch (e) {
-      print('❌ Error clearing sessions: $e');
+      debugPrint('❌ Error clearing sessions: $e');
       rethrow;
     }
   }
@@ -235,7 +244,7 @@ class ChatStorage {
         'storage_size_bytes': await _getStorageSize(),
       };
     } catch (e) {
-      print('❌ Error getting storage stats: $e');
+      debugPrint('❌ Error getting storage stats: $e');
       return {
         'total_sessions': 0,
         'total_messages': 0,
@@ -286,7 +295,7 @@ class ChatStorage {
     try {
       // Check session ID
       if (session.id.isEmpty) {
-        print('❌ Session validation failed: Empty session ID');
+        debugPrint('❌ Session validation failed: Empty session ID');
         return false;
       }
 
@@ -294,7 +303,7 @@ class ChatStorage {
       for (final message in session.messages) {
         // Check message ID
         if (message.id.isEmpty) {
-          print('❌ Session validation failed: Empty message ID');
+          debugPrint('❌ Session validation failed: Empty message ID');
           return false;
         }
 
@@ -302,8 +311,9 @@ class ChatStorage {
         if (message.content.isEmpty &&
             (message.attachments == null || message.attachments!.isEmpty) &&
             !message.isTyping) {
-          print(
-            '❌ Session validation failed: Empty message content and no images',
+          debugPrint(
+            '❌ Session validation failed: '
+            'Empty message content and no images',
           );
           return false;
         }
@@ -313,8 +323,9 @@ class ChatStorage {
           for (var i = 0; i < message.attachments!.length; i++) {
             final attachment = message.attachments![i];
             if (attachment.data == null || attachment.data!.isEmpty) {
-              print(
-                '❌ Session validation failed: Empty attachment data at index $i',
+              debugPrint(
+                '❌ Session validation failed: '
+                'Empty attachment data at index $i',
               );
               return false;
             }
@@ -322,8 +333,9 @@ class ChatStorage {
             // Check attachment size
             if (attachment.size > 10 * 1024 * 1024) {
               // 10MB limit per attachment
-              print(
-                '❌ Session validation failed: Attachment too large at index $i: ${attachment.size} bytes',
+              debugPrint(
+                '❌ Session validation failed: '
+                'Attachment too large at index $i: ${attachment.size} bytes',
               );
               return false;
             }
@@ -331,10 +343,10 @@ class ChatStorage {
         }
       }
 
-      print('✅ Session validation passed: ${session.id}');
+      debugPrint('✅ Session validation passed: ${session.id}');
       return true;
     } catch (e) {
-      print('❌ Session validation error: $e');
+      debugPrint('❌ Session validation error: $e');
       return false;
     }
   }
@@ -368,14 +380,16 @@ class ChatStorage {
       }
 
       if (totalImages > 0) {
-        print(
-          '💾 Saving project with $totalImages images, total size: ${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB',
+        debugPrint(
+          '💾 Saving project with $totalImages images, '
+          'total size: ${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB',
         );
 
         // Check if total size is too large (> 10MB)
         if (totalImageSize > 10 * 1024 * 1024) {
-          print(
-            '⚠️ Warning: Project size is very large (${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB)',
+          debugPrint(
+            '⚠️ Warning: Project size is very large '
+            '(${(totalImageSize / 1024 / 1024).toStringAsFixed(2)} MB)',
           );
         }
       }
@@ -392,22 +406,23 @@ class ChatStorage {
         compressedSize,
       );
 
-      print(
+      debugPrint(
         '💾 JSON size: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
       );
-      print('💾 Compression ratio: ${compressionRatio.toStringAsFixed(1)}%');
+      debugPrint('💾 Compression ratio: ${compressionRatio.toStringAsFixed(1)}%');
 
       // Check JSON size limit (50MB)
       if (compressedSize > 50 * 1024 * 1024) {
         throw Exception(
-          'Project JSON too large: ${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
+          'Project JSON too large: '
+          '${(compressedSize / 1024 / 1024).toStringAsFixed(2)} MB',
         );
       }
 
       await _projectsBox.put(project.id, projectJson);
-      print('💾 Saved project: ${project.id}');
+      debugPrint('💾 Saved project: ${project.id}');
     } catch (e) {
-      print('❌ Error saving project: $e');
+      debugPrint('❌ Error saving project: $e');
       rethrow;
     }
   }
@@ -433,8 +448,9 @@ class ChatStorage {
               final messageJson = messageData as Map<String, dynamic>;
               final imageBytes = messageJson['imageBytes'];
               if (imageBytes != null) {
-                print(
-                  '📂 Raw JSON has imageBytes for message ${messageJson['id']}: ${(imageBytes as List).length} images',
+                debugPrint(
+                  '📂 Raw JSON has imageBytes for message '
+                  '${messageJson['id']}: ${(imageBytes as List).length} images',
                 );
               }
             }
@@ -444,7 +460,7 @@ class ChatStorage {
 
           // Validate loaded project
           if (!_validateProject(project)) {
-            print('❌ Skipping invalid project: ${project.id}');
+            debugPrint('❌ Skipping invalid project: ${project.id}');
             continue;
           }
 
@@ -461,9 +477,9 @@ class ChatStorage {
           }
 
           if (totalImages > 0) {
-            print('📂 Loaded project ${project.id} with $totalImages images');
+            debugPrint('📂 Loaded project ${project.id} with $totalImages images');
           } else {
-            print('📂 Loaded project ${project.id} with NO images');
+            debugPrint('📂 Loaded project ${project.id} with NO images');
           }
 
           projects.add(project);
@@ -473,10 +489,10 @@ class ChatStorage {
       // Sort by updatedAt descending (newest first)
       projects.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-      print('📂 Loaded ${projects.length} projects');
+      debugPrint('📂 Loaded ${projects.length} projects');
       return projects;
     } catch (e) {
-      print('❌ Error loading projects: $e');
+      debugPrint('❌ Error loading projects: $e');
       return [];
     }
   }
@@ -494,7 +510,7 @@ class ChatStorage {
       }
       return null;
     } catch (e) {
-      print('❌ Error loading project $projectId: $e');
+      debugPrint('❌ Error loading project $projectId: $e');
       return null;
     }
   }
@@ -505,9 +521,9 @@ class ChatStorage {
 
     try {
       await _projectsBox.delete(projectId);
-      print('🗑️ Deleted project: $projectId');
+      debugPrint('🗑️ Deleted project: $projectId');
     } catch (e) {
-      print('❌ Error deleting project: $e');
+      debugPrint('❌ Error deleting project: $e');
       rethrow;
     }
   }
@@ -521,12 +537,12 @@ class ChatStorage {
       if (project != null) {
         final updatedProject = project.updateTitle(newTitle);
         await saveProject(updatedProject);
-        print('📝 Updated project title: $projectId -> $newTitle');
+        debugPrint('📝 Updated project title: $projectId -> $newTitle');
       } else {
         throw Exception('Project not found: $projectId');
       }
     } catch (e) {
-      print('❌ Error updating project title: $e');
+      debugPrint('❌ Error updating project title: $e');
       rethrow;
     }
   }
@@ -537,9 +553,9 @@ class ChatStorage {
 
     try {
       await _projectsBox.clear();
-      print('🧹 Cleared all projects');
+      debugPrint('🧹 Cleared all projects');
     } catch (e) {
-      print('❌ Error clearing projects: $e');
+      debugPrint('❌ Error clearing projects: $e');
       rethrow;
     }
   }
@@ -558,7 +574,7 @@ class ChatStorage {
         'storage_size_bytes': await _getProjectStorageSize(),
       };
     } catch (e) {
-      print('❌ Error getting project storage stats: $e');
+      debugPrint('❌ Error getting project storage stats: $e');
       return {
         'total_projects': 0,
         'total_messages': 0,
@@ -609,13 +625,13 @@ class ChatStorage {
     try {
       // Check project ID
       if (project.id.isEmpty) {
-        print('❌ Project validation failed: Empty project ID');
+        debugPrint('❌ Project validation failed: Empty project ID');
         return false;
       }
 
       // Check project title
       if (project.title.isEmpty) {
-        print('❌ Project validation failed: Empty project title');
+        debugPrint('❌ Project validation failed: Empty project title');
         return false;
       }
 
@@ -623,15 +639,16 @@ class ChatStorage {
       for (final message in project.messages) {
         // Check message ID
         if (message.id.isEmpty) {
-          print('❌ Project validation failed: Empty message ID');
+          debugPrint('❌ Project validation failed: Empty message ID');
           return false;
         }
 
         // Check message content
         if (message.content.isEmpty &&
             (message.attachments == null || message.attachments!.isEmpty)) {
-          print(
-            '❌ Project validation failed: Empty message content and no images',
+          debugPrint(
+            '❌ Project validation failed: '
+            'Empty message content and no images',
           );
           return false;
         }
@@ -641,8 +658,9 @@ class ChatStorage {
           for (var i = 0; i < message.attachments!.length; i++) {
             final attachment = message.attachments![i];
             if (attachment.data == null || attachment.data!.isEmpty) {
-              print(
-                '❌ Project validation failed: Empty attachment data at index $i',
+              debugPrint(
+                '❌ Project validation failed: '
+                'Empty attachment data at index $i',
               );
               return false;
             }
@@ -650,8 +668,9 @@ class ChatStorage {
             // Check attachment size
             if (attachment.size > 10 * 1024 * 1024) {
               // 10MB limit per attachment
-              print(
-                '❌ Project validation failed: Attachment too large at index $i: ${attachment.size} bytes',
+              debugPrint(
+                '❌ Project validation failed: '
+                'Attachment too large at index $i: ${attachment.size} bytes',
               );
               return false;
             }
@@ -659,10 +678,10 @@ class ChatStorage {
         }
       }
 
-      print('✅ Project validation passed: ${project.id}');
+      debugPrint('✅ Project validation passed: ${project.id}');
       return true;
     } catch (e) {
-      print('❌ Project validation error: $e');
+      debugPrint('❌ Project validation error: $e');
       return false;
     }
   }
@@ -677,13 +696,13 @@ class ChatStorage {
 
       if (metadataJson != null) {
         final metadata = jsonDecode(metadataJson) as Map<String, dynamic>;
-        print('📊 Retrieved context metadata for session: $sessionId');
+        debugPrint('📊 Retrieved context metadata for session: $sessionId');
         return metadata;
       }
 
       return null;
     } catch (e) {
-      print('❌ Error getting context metadata: $e');
+      debugPrint('❌ Error getting context metadata: $e');
       return null;
     }
   }
@@ -700,9 +719,9 @@ class ChatStorage {
       final metadataJson = jsonEncode(metadata);
 
       await _chatBox.put(key, metadataJson);
-      print('💾 Saved context metadata for session: $sessionId');
+      debugPrint('💾 Saved context metadata for session: $sessionId');
     } catch (e) {
-      print('❌ Error saving context metadata: $e');
+      debugPrint('❌ Error saving context metadata: $e');
       rethrow;
     }
   }
@@ -714,9 +733,9 @@ class ChatStorage {
     try {
       final key = 'context_metadata_$sessionId';
       await _chatBox.delete(key);
-      print('🗑️ Cleared context metadata for session: $sessionId');
+      debugPrint('🗑️ Cleared context metadata for session: $sessionId');
     } catch (e) {
-      print('❌ Error clearing context metadata: $e');
+      debugPrint('❌ Error clearing context metadata: $e');
       rethrow;
     }
   }
@@ -733,7 +752,7 @@ class ChatStorage {
 
       return keys;
     } catch (e) {
-      print('❌ Error getting context metadata keys: $e');
+      debugPrint('❌ Error getting context metadata keys: $e');
       return [];
     }
   }
@@ -770,12 +789,12 @@ class ChatStorage {
       }
 
       if (keysToDelete.isNotEmpty) {
-        print(
+        debugPrint(
           '🧹 Cleaned up ${keysToDelete.length} old context metadata entries',
         );
       }
     } catch (e) {
-      print('❌ Error cleaning up context metadata: $e');
+      debugPrint('❌ Error cleaning up context metadata: $e');
     }
   }
 
@@ -785,7 +804,7 @@ class ChatStorage {
       await _chatBox.close();
       await _projectsBox.close();
       _isInitialized = false;
-      print('🔒 ChatStorage closed');
+      debugPrint('🔒 ChatStorage closed');
     }
   }
 }

@@ -5,15 +5,15 @@
 library;
 
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
-
-import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
 import 'package:landcomp_app/core/storage/chat_storage.dart';
 import 'package:landcomp_app/core/storage/migration_helper.dart';
-import 'package:landcomp_app/core/localization/language_provider.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+import 'package:uuid/uuid.dart';
 
 /// Project provider for state management
 class ProjectProvider extends ChangeNotifier {
+  /// Creates a new ProjectProvider instance
   ProjectProvider() {
     _initializeProvider();
   }
@@ -30,13 +30,25 @@ class ProjectProvider extends ChangeNotifier {
   LanguageProvider? _languageProvider;
   bool _isInitialized = false;
 
-  // Getters
+  /// Current active project
   Project? get currentProject => _currentProject;
+
+  /// List of all projects
   List<Project> get projects => _projects;
+
+  /// Loading state indicator
   bool get isLoading => _isLoading;
+
+  /// Current error message
   String? get error => _error;
+
+  /// Whether there are any projects
   bool get hasProjects => _projects.isNotEmpty;
+
+  /// Whether the provider has been initialized
   bool get isInitialized => _isInitialized;
+
+  /// Total number of projects
   int get projectCount => _projects.length;
 
   /// Initialize the provider
@@ -47,7 +59,7 @@ class ProjectProvider extends ChangeNotifier {
 
       // Check if migration is needed and perform it
       if (await _migrationHelper.isMigrationNeeded()) {
-        print('🔄 Migration needed, performing migration...');
+        debugPrint('🔄 Migration needed, performing migration...');
         await _migrationHelper.performCompleteMigration();
       }
 
@@ -65,8 +77,8 @@ class ProjectProvider extends ChangeNotifier {
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
-      print('❌ Error initializing ProjectProvider: $e');
-      _setError('Failed to initialize projects: ${e}');
+      debugPrint('❌ Error initializing ProjectProvider: $e');
+      _setError('Failed to initialize projects: $e');
     }
   }
 
@@ -74,9 +86,9 @@ class ProjectProvider extends ChangeNotifier {
   Future<void> _loadProjects() async {
     try {
       _projects = await _chatStorage.loadAllProjects();
-      print('📂 Loaded ${_projects.length} projects from storage');
+      debugPrint('📂 Loaded ${_projects.length} projects from storage');
     } catch (e) {
-      print('❌ Error loading projects: $e');
+      debugPrint('❌ Error loading projects: $e');
       _projects = [];
     }
   }
@@ -113,11 +125,11 @@ class ProjectProvider extends ChangeNotifier {
       _projects.insert(0, project);
       _currentProject = project;
 
-      print('✅ Created new project: ${project.title}');
+      debugPrint('✅ Created new project: ${project.title}');
       notifyListeners();
     } catch (e) {
-      print('❌ Error creating project: $e');
-      _setError('Failed to create project: ${e}');
+      debugPrint('❌ Error creating project: $e');
+      _setError('Failed to create project: $e');
     } finally {
       _setLoading(false);
     }
@@ -132,11 +144,11 @@ class ProjectProvider extends ChangeNotifier {
       );
 
       _currentProject = project;
-      print('🔄 Switched to project: ${project.title}');
+      debugPrint('🔄 Switched to project: ${project.title}');
       notifyListeners();
     } catch (e) {
-      print('❌ Error switching to project: $e');
-      _setError('Failed to switch project: ${e}');
+      debugPrint('❌ Error switching to project: $e');
+      _setError('Failed to switch project: $e');
     }
   }
 
@@ -161,11 +173,11 @@ class ProjectProvider extends ChangeNotifier {
         }
       }
 
-      print('🗑️ Deleted project: $projectId');
+      debugPrint('🗑️ Deleted project: $projectId');
       notifyListeners();
     } catch (e) {
-      print('❌ Error deleting project: $e');
-      _setError('Failed to delete project: ${e}');
+      debugPrint('❌ Error deleting project: $e');
+      _setError('Failed to delete project: $e');
     } finally {
       _setLoading(false);
     }
@@ -191,11 +203,11 @@ class ProjectProvider extends ChangeNotifier {
         }
       }
 
-      print('📝 Renamed project: $projectId -> $newTitle');
+      debugPrint('📝 Renamed project: $projectId -> $newTitle');
       notifyListeners();
     } catch (e) {
-      print('❌ Error renaming project: $e');
-      _setError('Failed to rename project: ${e}');
+      debugPrint('❌ Error renaming project: $e');
+      _setError('Failed to rename project: $e');
     } finally {
       _setLoading(false);
     }
@@ -217,12 +229,12 @@ class ProjectProvider extends ChangeNotifier {
         // Save to storage
         await _chatStorage.saveProject(updatedProject);
 
-        print('⭐ Toggled favorite for project: ${updatedProject.title}');
+        debugPrint('⭐ Toggled favorite for project: ${updatedProject.title}');
         notifyListeners();
       }
     } catch (e) {
-      print('❌ Error toggling project favorite: $e');
-      _setError('Failed to toggle favorite: ${e}');
+      debugPrint('❌ Error toggling project favorite: $e');
+      _setError('Failed to toggle favorite: $e');
     }
   }
 
@@ -248,8 +260,8 @@ class ProjectProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      print('❌ Error updating project with message: $e');
-      _setError('Failed to update project: ${e}');
+      debugPrint('❌ Error updating project with message: $e');
+      _setError('Failed to update project: $e');
     }
   }
 
@@ -298,9 +310,7 @@ class ProjectProvider extends ChangeNotifier {
 
   /// Get recent projects (last 5)
   List<Project> get recentProjects {
-    return getProjectsSortedBy(
-      
-    ).take(5).toList();
+    return getProjectsSortedBy().take(5).toList();
   }
 
   /// Clear all projects
@@ -313,11 +323,11 @@ class ProjectProvider extends ChangeNotifier {
       _projects.clear();
       await createNewProject();
 
-      print('🧹 Cleared all projects');
+      debugPrint('🧹 Cleared all projects');
       notifyListeners();
     } catch (e) {
-      print('❌ Error clearing projects: $e');
-      _setError('Failed to clear projects: ${e}');
+      debugPrint('❌ Error clearing projects: $e');
+      _setError('Failed to clear projects: $e');
     } finally {
       _setLoading(false);
     }
@@ -354,8 +364,19 @@ class ProjectProvider extends ChangeNotifier {
   Future<void> initialize() async {
     await _initializeProvider();
   }
-
 }
 
 /// Project sorting options
-enum ProjectSortBy { lastModified, created, title, favorites }
+enum ProjectSortBy {
+  /// Sort by last modified date
+  lastModified,
+
+  /// Sort by creation date
+  created,
+
+  /// Sort by title alphabetically
+  title,
+
+  /// Sort by favorites first
+  favorites,
+}
