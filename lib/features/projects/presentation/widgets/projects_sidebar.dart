@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/entities/project.dart';
-import '../providers/project_provider.dart';
-import '../../../../core/localization/language_provider.dart';
-import '../../../../shared/widgets/logo_widget.dart';
-import 'project_list_item.dart';
-import 'new_project_dialog.dart';
-import 'rename_project_dialog.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+import 'package:landcomp_app/features/projects/presentation/providers/project_provider.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
+import 'package:landcomp_app/shared/widgets/logo_widget.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/project_list_item.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/new_project_dialog.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/rename_project_dialog.dart';
 
 /// Projects sidebar widget
 class ProjectsSidebar extends StatefulWidget {
@@ -83,7 +83,7 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
         bottom: false,
         child: Row(
           children: [
-            const SmallLogoWidget(size: 32),
+            const SmallLogoWidget(),
             const SizedBox(width: 12),
             Text(
               languageProvider.getString('appName'),
@@ -160,9 +160,8 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
     BuildContext context, {
     required IconData icon,
     required String title,
-    String? subtitle,
+    required VoidCallback onTap, String? subtitle,
     bool enabled = true,
-    required VoidCallback onTap,
   }) {
     return ListTile(
       leading: Icon(
@@ -510,7 +509,7 @@ class _ProjectsSidebarState extends State<ProjectsSidebar> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

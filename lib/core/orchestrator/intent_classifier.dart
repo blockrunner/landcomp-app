@@ -96,11 +96,11 @@ class IntentClassifier {
     final buffer = StringBuffer();
 
     buffer.writeln(
-      'You are an intelligent intent classifier for a landscape design AI assistant. Analyze the user\'s message and conversation context to understand their true intent.',
+      "You are an intelligent intent classifier for a landscape design AI assistant. Analyze the user's message and conversation context to understand their true intent.",
     );
     buffer.writeln();
 
-    buffer.writeln('Classify the user\'s intent into one of these types:');
+    buffer.writeln("Classify the user's intent into one of these types:");
     buffer.writeln(
       '- consultation: User is asking for advice, information, or guidance',
     );
@@ -145,7 +145,7 @@ class IntentClassifier {
     buffer.writeln();
 
     buffer.writeln(
-      'CRITICAL: Focus on the user\'s INTENT, not just keywords. Consider:',
+      "CRITICAL: Focus on the user's INTENT, not just keywords. Consider:",
     );
     buffer.writeln('- What is the user trying to accomplish?');
     buffer.writeln(
@@ -178,7 +178,7 @@ class IntentClassifier {
       '- generateBased: User wants to generate/create new content based on existing images',
     );
     buffer.writeln(
-      '- noImageNeeded: Question doesn\'t require images to answer',
+      "- noImageNeeded: Question doesn't require images to answer",
     );
     buffer.writeln('- unclear: Unclear if images are needed');
     buffer.writeln();
@@ -279,7 +279,7 @@ class IntentClassifier {
   Intent _parseClassificationResponse(String response) {
     try {
       // Clean the response - remove any markdown formatting
-      String cleanResponse = response.trim();
+      var cleanResponse = response.trim();
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.substring(7);
       }
@@ -381,13 +381,13 @@ class IntentClassifier {
         'error': error,
         'user_message': userMessage,
       },
-      extractedEntities: [],
+      extractedEntities: const [],
     );
   }
 
   /// Count total images in conversation history
   int _countImagesInHistory(List<Message> history) {
-    int count = 0;
+    var count = 0;
     for (final msg in history) {
       count += msg.attachments?.where((a) => a.isImage).length ?? 0;
     }

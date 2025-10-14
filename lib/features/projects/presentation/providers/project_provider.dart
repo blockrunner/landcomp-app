@@ -7,10 +7,10 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../domain/entities/project.dart';
-import '../../../../core/storage/chat_storage.dart';
-import '../../../../core/storage/migration_helper.dart';
-import '../../../../core/localization/language_provider.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+import 'package:landcomp_app/core/storage/chat_storage.dart';
+import 'package:landcomp_app/core/storage/migration_helper.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
 
 /// Project provider for state management
 class ProjectProvider extends ChangeNotifier {
@@ -66,7 +66,7 @@ class ProjectProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error initializing ProjectProvider: $e');
-      _setError('Failed to initialize projects: ${e.toString()}');
+      _setError('Failed to initialize projects: ${e}');
     }
   }
 
@@ -104,8 +104,6 @@ class ProjectProvider extends ChangeNotifier {
         // agentId: 'gardener', // Default to gardener agent
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        messages: const [],
-        isFavorite: false,
       );
 
       // Save to storage
@@ -119,7 +117,7 @@ class ProjectProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error creating project: $e');
-      _setError('Failed to create project: ${e.toString()}');
+      _setError('Failed to create project: ${e}');
     } finally {
       _setLoading(false);
     }
@@ -138,7 +136,7 @@ class ProjectProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error switching to project: $e');
-      _setError('Failed to switch project: ${e.toString()}');
+      _setError('Failed to switch project: ${e}');
     }
   }
 
@@ -167,7 +165,7 @@ class ProjectProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error deleting project: $e');
-      _setError('Failed to delete project: ${e.toString()}');
+      _setError('Failed to delete project: ${e}');
     } finally {
       _setLoading(false);
     }
@@ -197,7 +195,7 @@ class ProjectProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error renaming project: $e');
-      _setError('Failed to rename project: ${e.toString()}');
+      _setError('Failed to rename project: ${e}');
     } finally {
       _setLoading(false);
     }
@@ -224,7 +222,7 @@ class ProjectProvider extends ChangeNotifier {
       }
     } catch (e) {
       print('❌ Error toggling project favorite: $e');
-      _setError('Failed to toggle favorite: ${e.toString()}');
+      _setError('Failed to toggle favorite: ${e}');
     }
   }
 
@@ -251,7 +249,7 @@ class ProjectProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error updating project with message: $e');
-      _setError('Failed to update project: ${e.toString()}');
+      _setError('Failed to update project: ${e}');
     }
   }
 
@@ -264,22 +262,18 @@ class ProjectProvider extends ChangeNotifier {
     switch (sortBy) {
       case ProjectSortBy.lastModified:
         sortedProjects.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-        break;
       case ProjectSortBy.created:
         sortedProjects.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
       case ProjectSortBy.title:
         sortedProjects.sort(
           (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
         );
-        break;
       case ProjectSortBy.favorites:
         sortedProjects.sort((a, b) {
           if (a.isFavorite && !b.isFavorite) return -1;
           if (!a.isFavorite && b.isFavorite) return 1;
           return b.updatedAt.compareTo(a.updatedAt);
         });
-        break;
     }
 
     return sortedProjects;
@@ -305,7 +299,7 @@ class ProjectProvider extends ChangeNotifier {
   /// Get recent projects (last 5)
   List<Project> get recentProjects {
     return getProjectsSortedBy(
-      sortBy: ProjectSortBy.lastModified,
+      
     ).take(5).toList();
   }
 
@@ -323,7 +317,7 @@ class ProjectProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error clearing projects: $e');
-      _setError('Failed to clear projects: ${e.toString()}');
+      _setError('Failed to clear projects: ${e}');
     } finally {
       _setLoading(false);
     }
@@ -361,10 +355,6 @@ class ProjectProvider extends ChangeNotifier {
     await _initializeProvider();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 
 /// Project sorting options

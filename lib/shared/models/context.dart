@@ -5,8 +5,8 @@
 library;
 
 import 'package:equatable/equatable.dart';
-import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
+import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 
 /// Request context for orchestrator processing
 class RequestContext extends Equatable {

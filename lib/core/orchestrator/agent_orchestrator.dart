@@ -5,26 +5,29 @@
 library;
 
 import 'package:uuid/uuid.dart';
-import 'package:landcomp_app/core/orchestrator/intent_classifier.dart';
-import 'package:landcomp_app/core/orchestrator/context_manager.dart';
+
 import 'package:landcomp_app/core/agents/base/agent.dart';
-import 'package:landcomp_app/core/agents/base/agent_registry.dart';
 import 'package:landcomp_app/core/agents/base/agent_adapter.dart';
-import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
+import 'package:landcomp_app/core/agents/base/agent_registry.dart';
+import 'package:landcomp_app/core/orchestrator/context_manager.dart';
+import 'package:landcomp_app/core/orchestrator/intent_classifier.dart';
 import 'package:landcomp_app/core/tools/base/tool_registry.dart';
+import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
+import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
+import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 import 'package:landcomp_app/shared/models/agent_request.dart';
 import 'package:landcomp_app/shared/models/agent_response.dart';
-import 'package:landcomp_app/shared/models/intent.dart';
 import 'package:landcomp_app/shared/models/context.dart';
+import 'package:landcomp_app/shared/models/intent.dart';
 import 'package:landcomp_app/shared/utils/metrics_tracker.dart';
-import 'package:landcomp_app/features/chat/domain/entities/message.dart';
-import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
 
 /// Central orchestrator for agent management and request processing
 class AgentOrchestrator {
   AgentOrchestrator._();
 
   static final AgentOrchestrator _instance = AgentOrchestrator._();
+  
+  /// Singleton instance of the AgentOrchestrator
   static AgentOrchestrator get instance => _instance;
 
   final IntentClassifier _intentClassifier = IntentClassifier.instance;
@@ -66,9 +69,10 @@ class AgentOrchestrator {
     final startTime = DateTime.now();
 
     print('🎯 Processing request: $requestId');
-    print(
-      '   Message: ${userMessage.substring(0, userMessage.length > 50 ? 50 : userMessage.length)}...',
-    );
+    final messagePreview = userMessage.length > 50
+        ? '${userMessage.substring(0, 50)}...'
+        : userMessage;
+    print('   Message: $messagePreview');
     print('   History: ${conversationHistory.length} messages');
     print('   Attachments: ${attachments?.length ?? 0}');
     print('🚀 AgentOrchestrator.processRequest called!');
@@ -191,7 +195,10 @@ class AgentOrchestrator {
           final keywordScore = _getKeywordScore(agent, request.userMessage);
           final performanceScore = _getPerformanceScore(agent);
           print(
-            '     - Intent: ${intentScore.toStringAsFixed(2)}, Context: ${contextScore.toStringAsFixed(2)}, Keywords: ${keywordScore.toStringAsFixed(2)}, Performance: ${performanceScore.toStringAsFixed(2)}',
+            '     - Intent: ${intentScore.toStringAsFixed(2)}, '
+            'Context: ${contextScore.toStringAsFixed(2)}, '
+            'Keywords: ${keywordScore.toStringAsFixed(2)}, '
+            'Performance: ${performanceScore.toStringAsFixed(2)}',
           );
         }
       } catch (e) {
@@ -213,14 +220,15 @@ class AgentOrchestrator {
     final selectedScore = sortedAgents.first.value;
 
     print(
-      '   Selected: ${selectedAgent.name} (score: ${selectedScore.toStringAsFixed(2)})',
+      '   Selected: ${selectedAgent.name} '
+      '(score: ${selectedScore.toStringAsFixed(2)})',
     );
     return selectedAgent;
   }
 
   /// Calculate score for agent based on intent, context, and capabilities
   Future<double> _calculateAgentScore(Agent agent, AgentRequest request) async {
-    double score = 0.0;
+    var score = 0.0;
 
     // Base score for capability match
     score += 1.0;
@@ -242,7 +250,7 @@ class AgentOrchestrator {
 
   /// Get score based on intent type and agent capabilities
   double _getIntentScore(Agent agent, Intent intent) {
-    double score = 0.0;
+    var score = 0.0;
 
     // Base score for intent type
     switch (intent.type) {
@@ -250,22 +258,18 @@ class AgentOrchestrator {
         if (agent.capabilities.contains(AgentCapabilities.consultation)) {
           score += 2.0;
         }
-        break;
       case IntentType.analysis:
         if (agent.capabilities.contains(AgentCapabilities.analysis)) {
           score += 2.0;
         }
-        break;
       case IntentType.generation:
         if (agent.capabilities.contains(AgentCapabilities.textGeneration)) {
           score += 2.0;
         }
-        break;
       case IntentType.modification:
         if (agent.capabilities.contains(AgentCapabilities.consultation)) {
           score += 1.5;
         }
-        break;
       case IntentType.unclear:
         score += 0.5; // Lower score for unclear intents
     }
@@ -285,41 +289,35 @@ class AgentOrchestrator {
         if (agent.capabilities.contains(AgentCapabilities.landscapeDesign)) {
           return 1.5; // High bonus for landscape planning
         }
-        break;
       case IntentSubtype.plantSelection:
         if (agent.capabilities.contains(AgentCapabilities.gardening)) {
           return 1.5; // High bonus for plant selection
         }
-        break;
       case IntentSubtype.constructionAdvice:
         if (agent.capabilities.contains(AgentCapabilities.construction)) {
           return 1.5; // High bonus for construction advice
         }
-        break;
       case IntentSubtype.imageAnalysis:
         if (agent.capabilities.contains(AgentCapabilities.imageAnalysis)) {
-          return 1.0; // Bonus for image analysis
+          return 1; // Bonus for image analysis
         }
-        break;
       case IntentSubtype.imageGeneration:
         if (agent.capabilities.contains(AgentCapabilities.imageGeneration)) {
-          return 1.0; // Bonus for image generation
+          return 1; // Bonus for image generation
         }
-        break;
       case IntentSubtype.planGeneration:
         if (agent.capabilities.contains(AgentCapabilities.planning)) {
-          return 1.0; // Bonus for planning
+          return 1; // Bonus for planning
         }
-        break;
       default:
-        return 0.0; // No bonus for other subtypes
+        return 0; // No bonus for other subtypes
     }
-    return 0.0;
+    return 0;
   }
 
   /// Get score based on context (images, conversation history, etc.)
   double _getContextScore(Agent agent, RequestContext context) {
-    double score = 0.0;
+    var score = 0.0;
 
     // Bonus for agents that can handle images
     if (context.hasImages &&
@@ -344,7 +342,7 @@ class AgentOrchestrator {
   /// Get score based on keyword matching in user message
   double _getKeywordScore(Agent agent, String userMessage) {
     final message = userMessage.toLowerCase();
-    double score = 0.0;
+    var score = 0.0;
 
     // Landscape Designer keywords
     if (agent.name.toLowerCase().contains('landscape') ||
@@ -492,7 +490,7 @@ class AgentOrchestrator {
   Future<void> _initializeToolRegistry() async {
     print('🔧 Initializing tool registry...');
 
-    // TODO: In Phase 4, we'll register actual tools
+    // TODO(phase4): Register actual tools
     // For now, this is a placeholder
 
     print('✅ Tool registry initialized (placeholder)');

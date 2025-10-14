@@ -53,7 +53,6 @@ class AgentAdapter implements Agent {
         case 'flowers':
         case 'trees':
           capabilities.add(AgentCapabilities.gardening);
-          break;
         case 'site planning':
         case 'zoning':
         case 'garden paths':
@@ -64,7 +63,6 @@ class AgentAdapter implements Agent {
         case 'design':
           capabilities.add(AgentCapabilities.landscapeDesign);
           capabilities.add(AgentCapabilities.planning);
-          break;
         case 'foundations':
         case 'walls and floors':
         case 'roofing':
@@ -74,7 +72,6 @@ class AgentAdapter implements Agent {
         case 'building':
         case 'materials':
           capabilities.add(AgentCapabilities.construction);
-          break;
         case 'eco materials':
         case 'energy saving':
         case 'waste recycling':
@@ -84,17 +81,14 @@ class AgentAdapter implements Agent {
         case 'sustainability':
         case 'environmental':
           capabilities.add(AgentCapabilities.ecology);
-          break;
         case 'image analysis':
         case 'visual analysis':
         case 'photo analysis':
           capabilities.add(AgentCapabilities.imageAnalysis);
-          break;
         case 'image generation':
         case 'visual generation':
         case 'photo generation':
           capabilities.add(AgentCapabilities.imageGeneration);
-          break;
       }
     }
 
@@ -131,22 +125,18 @@ class AgentAdapter implements Agent {
   @override
   Future<bool> canHandle(Intent intent, RequestContext context) async {
     // Enhanced capability-based matching with subtype consideration
-    bool canHandle = false;
+    var canHandle = false;
 
     // Check base intent type
     switch (intent.type) {
       case IntentType.consultation:
         canHandle = capabilities.contains(AgentCapabilities.consultation);
-        break;
       case IntentType.analysis:
         canHandle = capabilities.contains(AgentCapabilities.analysis);
-        break;
       case IntentType.generation:
         canHandle = capabilities.contains(AgentCapabilities.textGeneration);
-        break;
       case IntentType.modification:
         canHandle = capabilities.contains(AgentCapabilities.consultation);
-        break;
       case IntentType.unclear:
         canHandle = true; // All agents can handle unclear intents
     }
@@ -228,7 +218,7 @@ class AgentAdapter implements Agent {
         return AgentResponse.error(
           requestId: request.requestId,
           error: response.message ?? 'Unknown error from AI service',
-          metadata: {'execution_method': 'ai_service_smart_selection'},
+          metadata: const {'execution_method': 'ai_service_smart_selection'},
         );
       }
     } catch (e) {

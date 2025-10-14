@@ -9,6 +9,17 @@ import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 
 /// Chat session entity
 class ChatSession extends Equatable {
+
+  /// Creates a chat session
+  const ChatSession({
+    required this.id,
+    required this.agentId,
+    required this.title,
+    required this.createdAt,
+    required this.updatedAt,
+    this.messages = const [],
+    this.isActive = true,
+  });
   /// Create session from JSON
   factory ChatSession.fromJson(Map<String, dynamic> json) {
     // Debug: Check messages before deserialization
@@ -53,17 +64,6 @@ class ChatSession extends Equatable {
       isActive: json['isActive'] as bool? ?? true,
     );
   }
-
-  /// Creates a chat session
-  const ChatSession({
-    required this.id,
-    required this.agentId,
-    required this.title,
-    required this.createdAt,
-    required this.updatedAt,
-    this.messages = const [],
-    this.isActive = true,
-  });
 
   /// Unique identifier for the chat session
   final String id;

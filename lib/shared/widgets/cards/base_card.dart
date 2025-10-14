@@ -5,8 +5,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:landcomp_app/core/theme/spacing.dart';
 import 'package:landcomp_app/core/theme/design_tokens.dart';
+import 'package:landcomp_app/core/theme/spacing.dart';
 
 /// Base card widget
 class BaseCard extends StatefulWidget {

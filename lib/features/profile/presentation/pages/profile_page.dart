@@ -7,7 +7,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:landcomp_app/core/localization/language_provider.dart';
-import '../../../projects/presentation/widgets/projects_sidebar.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/projects_sidebar.dart';
 
 /// Profile page widget
 class ProfilePage extends StatelessWidget {

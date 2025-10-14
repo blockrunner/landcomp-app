@@ -4,8 +4,8 @@
 /// the most appropriate AI agent based on the query content.
 library;
 
-import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
 import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
+import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
 
 /// Smart agent selection service
 class AgentSelector {

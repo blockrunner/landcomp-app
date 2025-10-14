@@ -43,7 +43,7 @@ class ContextManager {
     final metadata = _buildMetadata(conversationHistory, currentAgentId);
 
     // If no attachments provided, try to extract from recent messages
-    List<Attachment>? finalAttachments = attachments;
+    var finalAttachments = attachments;
     if (finalAttachments == null || finalAttachments.isEmpty) {
       finalAttachments = _extractAttachmentsFromHistory(conversationHistory);
     }
@@ -112,8 +112,8 @@ class ContextManager {
   /// Detect user language from message and history
   String? _detectLanguage(String userMessage, List<Message> history) {
     // Simple language detection based on character sets
-    final cyrillicPattern = RegExp(r'[а-яё]', caseSensitive: false);
-    final latinPattern = RegExp(r'[a-z]', caseSensitive: false);
+    final cyrillicPattern = RegExp('[а-яё]', caseSensitive: false);
+    final latinPattern = RegExp('[a-z]', caseSensitive: false);
 
     // Check current message
     final hasCyrillic = cyrillicPattern.hasMatch(userMessage);
@@ -130,8 +130,8 @@ class ContextManager {
         ? history.sublist(history.length - 5)
         : history;
 
-    int cyrillicCount = 0;
-    int latinCount = 0;
+    var cyrillicCount = 0;
+    var latinCount = 0;
 
     for (final message in recentMessages) {
       if (message.type == MessageType.user) {
@@ -249,7 +249,7 @@ class ContextManager {
         : history;
 
     // Find the most recent message with attachments
-    for (int i = recentMessages.length - 1; i >= 0; i--) {
+    for (var i = recentMessages.length - 1; i >= 0; i--) {
       final message = recentMessages[i];
       if (message.attachments != null && message.attachments!.isNotEmpty) {
         print(
@@ -359,7 +359,7 @@ class ContextManager {
     // Collect all images from history with their message index
     final allImages = <({int msgIndex, Attachment attachment})>[];
 
-    for (int i = 0; i < history.length; i++) {
+    for (var i = 0; i < history.length; i++) {
       final msg = history[i];
       if (msg.attachments != null) {
         for (final attachment in msg.attachments!.where((a) => a.isImage)) {

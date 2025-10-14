@@ -1,15 +1,7 @@
 import 'package:equatable/equatable.dart';
-import '../../../chat/domain/entities/message.dart';
+import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 
 class Project extends Equatable {
-  final String id;
-  final String title;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final List<Message> messages;
-  final bool isFavorite;
-  final String? description;
-  final String? previewText;
 
   const Project({
     required this.id,
@@ -21,6 +13,32 @@ class Project extends Equatable {
     this.description,
     this.previewText,
   });
+
+  factory Project.fromJson(Map<String, dynamic> json) {
+    final messages =
+        (json['messages'] as List<dynamic>?)
+            ?.map((m) => Message.fromJson(m as Map<String, dynamic>))
+            .toList() ??
+        const [];
+    return Project(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      messages: messages,
+      isFavorite: json['isFavorite'] as bool? ?? false,
+      description: json['description'] as String?,
+      previewText: json['previewText'] as String?,
+    );
+  }
+  final String id;
+  final String title;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final List<Message> messages;
+  final bool isFavorite;
+  final String? description;
+  final String? previewText;
 
   Project copyWith({
     String? id,
@@ -94,24 +112,6 @@ class Project extends Equatable {
       'description': description,
       'previewText': previewText,
     };
-  }
-
-  factory Project.fromJson(Map<String, dynamic> json) {
-    final messages =
-        (json['messages'] as List<dynamic>?)
-            ?.map((m) => Message.fromJson(m as Map<String, dynamic>))
-            .toList() ??
-        const [];
-    return Project(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      messages: messages,
-      isFavorite: json['isFavorite'] as bool? ?? false,
-      description: json['description'] as String?,
-      previewText: json['previewText'] as String?,
-    );
   }
 
   @override

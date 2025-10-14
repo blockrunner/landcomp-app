@@ -24,6 +24,20 @@ enum AttachmentType {
 
 /// Attachment entity
 class Attachment extends Equatable {
+
+  /// Creates an attachment
+  const Attachment({
+    required this.id,
+    required this.type,
+    required this.name,
+    required this.size,
+    required this.mimeType,
+    this.data,
+    this.url,
+    this.thumbnailData,
+    this.width,
+    this.height,
+  });
   /// Create an image attachment
   factory Attachment.image({
     required String id,
@@ -109,20 +123,6 @@ class Attachment extends Equatable {
       height: json['height'] as int?,
     );
   }
-
-  /// Creates an attachment
-  const Attachment({
-    required this.id,
-    required this.type,
-    required this.name,
-    required this.size,
-    required this.mimeType,
-    this.data,
-    this.url,
-    this.thumbnailData,
-    this.width,
-    this.height,
-  });
 
   /// Unique identifier for the attachment
   final String id;

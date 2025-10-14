@@ -4,9 +4,9 @@
 /// multi-project system by converting existing ChatSession data to Project data.
 library;
 
-import '../../features/chat/domain/entities/chat_session.dart';
-import '../../features/projects/domain/entities/project.dart';
-import 'chat_storage.dart';
+import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+import 'package:landcomp_app/core/storage/chat_storage.dart';
 
 /// Migration helper for data migration
 class MigrationHelper {
@@ -73,7 +73,7 @@ class MigrationHelper {
   /// Convert a ChatSession to a Project
   Project _convertSessionToProject(ChatSession session) {
     // Generate title from first user message or use default
-    String title = session.title;
+    var title = session.title;
     String? previewText;
 
     final firstUserMessage = session.messages
@@ -106,7 +106,6 @@ class MigrationHelper {
       updatedAt: session.updatedAt,
       messages: session.messages,
       previewText: previewText,
-      isFavorite: false,
     );
   }
 

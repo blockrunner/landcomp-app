@@ -11,6 +11,18 @@ import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
 
 /// Response from an agent after processing a request
 class AgentResponse extends Equatable {
+
+  /// Create agent response
+  const AgentResponse({
+    required this.requestId,
+    required this.isSuccess,
+    required this.timestamp,
+    this.message,
+    this.selectedAgent,
+    this.generatedAttachments,
+    this.metadata = const {},
+    this.error,
+  });
   /// Create successful response
   factory AgentResponse.success({
     required String requestId,
@@ -64,18 +76,6 @@ class AgentResponse extends Equatable {
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
   }
-
-  /// Create agent response
-  const AgentResponse({
-    required this.requestId,
-    required this.isSuccess,
-    required this.timestamp,
-    this.message,
-    this.selectedAgent,
-    this.generatedAttachments,
-    this.metadata = const {},
-    this.error,
-  });
 
   /// Request ID this response corresponds to
   final String requestId;

@@ -8,13 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../features/home/presentation/pages/home_page.dart';
-import '../features/chat/presentation/pages/chat_page.dart';
-import '../features/chat/presentation/providers/chat_provider.dart';
-import '../features/projects/presentation/pages/projects_page.dart';
-import '../features/settings/presentation/pages/settings_page.dart';
-import '../features/profile/presentation/pages/profile_page.dart';
-import '../core/localization/language_provider.dart';
+import 'package:landcomp_app/features/home/presentation/pages/home_page.dart';
+import 'package:landcomp_app/features/chat/presentation/pages/chat_page.dart';
+import 'package:landcomp_app/features/chat/presentation/providers/chat_provider.dart';
+import 'package:landcomp_app/features/projects/presentation/pages/projects_page.dart';
+import 'package:landcomp_app/features/settings/presentation/pages/settings_page.dart';
+import 'package:landcomp_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
 
 /// Application router configuration
 class AppRouter {

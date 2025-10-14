@@ -8,12 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/entities/project.dart';
-import '../providers/project_provider.dart';
-import '../widgets/project_list_item.dart';
-import '../widgets/new_project_dialog.dart';
-import '../widgets/projects_sidebar.dart';
-import '../../../../core/localization/language_provider.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+import 'package:landcomp_app/features/projects/presentation/providers/project_provider.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/project_list_item.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/new_project_dialog.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/projects_sidebar.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
 
 /// Projects page widget
 class ProjectsPage extends StatefulWidget {
@@ -217,7 +217,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
 
     // Get filtered and sorted projects
-    List<Project> projects = _searchQuery.isNotEmpty
+    var projects = _searchQuery.isNotEmpty
         ? projectProvider.searchProjects(_searchQuery)
         : projectProvider.getProjectsSortedBy(sortBy: _currentSortBy);
 
@@ -369,7 +369,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           // Open project
           ListTile(
             leading: const Icon(Icons.open_in_new),
-            title: Text('Open Project'),
+            title: const Text('Open Project'),
             onTap: () {
               Navigator.of(context).pop();
               _openProject(context, project);
@@ -491,7 +491,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

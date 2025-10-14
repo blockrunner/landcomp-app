@@ -186,10 +186,10 @@ class _ImageViewerState extends State<ImageViewer> {
           child: Center(
             child: _HoverButton(
               onTap: _previousImage,
-              child: SizedBox(
+              child: const SizedBox(
                 width: 50,
                 height: 50,
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios,
                   color: Colors.white,
                   size: 28,
@@ -207,10 +207,10 @@ class _ImageViewerState extends State<ImageViewer> {
           child: Center(
             child: _HoverButton(
               onTap: _nextImage,
-              child: SizedBox(
+              child: const SizedBox(
                 width: 50,
                 height: 50,
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_forward_ios,
                   color: Colors.white,
                   size: 28,

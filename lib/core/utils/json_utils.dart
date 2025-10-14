@@ -31,7 +31,7 @@ class JsonUtils {
     try {
       // Add padding back
       var decompressed = compressedBase64;
-      var paddingLength = 4 - (decompressed.length % 4);
+      final paddingLength = 4 - (decompressed.length % 4);
       if (paddingLength != 4) {
         decompressed += '=' * paddingLength;
       }

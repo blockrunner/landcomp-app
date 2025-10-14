@@ -6,17 +6,13 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/project.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
 
 /// Project list item widget
 class ProjectListItem extends StatelessWidget {
   /// Creates a project list item
   const ProjectListItem({
-    super.key,
-    required this.project,
-    required this.isActive,
-    required this.onTap,
-    required this.onLongPress,
+    required this.project, required this.isActive, required this.onTap, required this.onLongPress, super.key,
   });
 
   /// The project to display

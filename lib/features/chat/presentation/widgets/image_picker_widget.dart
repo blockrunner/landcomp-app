@@ -55,7 +55,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
         for (final file in result.files) {
           if (file.bytes != null) {
             // Compress image if it's too large
-            var compressedImage = await _compressImage(file.bytes!);
+            final compressedImage = await _compressImage(file.bytes!);
             newImages.add(compressedImage);
           }
         }
@@ -144,9 +144,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
 
   /// Clear all images
   void _clearImages() {
-    setState(() {
-      _selectedImages.clear();
-    });
+    setState(_selectedImages.clear);
     widget.onImagesSelected(_selectedImages);
   }
 

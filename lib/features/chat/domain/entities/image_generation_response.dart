@@ -9,6 +9,19 @@ import 'package:equatable/equatable.dart';
 
 /// Response from image generation API
 class ImageGenerationResponse extends Equatable {
+
+  /// Creates an image generation response
+  const ImageGenerationResponse({
+    required this.textResponse,
+    required this.generatedImages,
+    required this.imageMimeTypes,
+    this.imageAnalysis,
+    this.userIntent,
+    this.intentConfidence,
+    this.intentReasoning,
+    this.suitability,
+    this.recommendations,
+  });
   /// Create response with only text (no images)
   factory ImageGenerationResponse.textOnly(String text) {
     return ImageGenerationResponse(
@@ -72,19 +85,6 @@ class ImageGenerationResponse extends Equatable {
           : null,
     );
   }
-
-  /// Creates an image generation response
-  const ImageGenerationResponse({
-    required this.textResponse,
-    required this.generatedImages,
-    required this.imageMimeTypes,
-    this.imageAnalysis,
-    this.userIntent,
-    this.intentConfidence,
-    this.intentReasoning,
-    this.suitability,
-    this.recommendations,
-  });
 
   /// Text response from the AI
   final String textResponse;

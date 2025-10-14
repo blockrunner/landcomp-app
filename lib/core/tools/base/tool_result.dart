@@ -8,6 +8,16 @@ import 'package:equatable/equatable.dart';
 
 /// Result of tool execution
 class ToolResult extends Equatable {
+
+  /// Create tool result
+  const ToolResult({
+    required this.toolId,
+    required this.isSuccess,
+    required this.executionTime,
+    this.data,
+    this.error,
+    this.metadata = const {},
+  });
   /// Create successful result
   factory ToolResult.success({
     required String toolId,
@@ -51,16 +61,6 @@ class ToolResult extends Equatable {
       metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
     );
   }
-
-  /// Create tool result
-  const ToolResult({
-    required this.toolId,
-    required this.isSuccess,
-    required this.executionTime,
-    this.data,
-    this.error,
-    this.metadata = const {},
-  });
 
   /// Tool ID that produced this result
   final String toolId;

@@ -4,11 +4,10 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:landcomp_app/app/app.dart';
 import 'package:landcomp_app/core/theme/theme_provider.dart';
 import 'package:landcomp_app/features/projects/presentation/providers/project_provider.dart';
+import 'package:provider/provider.dart';
 
 /// Main entry point
 void main() async {

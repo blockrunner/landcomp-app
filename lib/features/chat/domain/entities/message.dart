@@ -21,6 +21,19 @@ enum MessageType {
 
 /// Message entity
 class Message extends Equatable {
+
+  /// Creates a message
+  const Message({
+    required this.id,
+    required this.content,
+    required this.type,
+    required this.timestamp,
+    this.agentId,
+    this.isError = false,
+    this.isTyping = false,
+    this.attachments,
+    this.imageAnalysis,
+  });
   /// Create a user message
   factory Message.user({
     required String id,
@@ -92,7 +105,7 @@ class Message extends Equatable {
     List<Attachment>? attachments;
     if (json['attachments'] != null) {
       try {
-        final List<dynamic> attachmentsList =
+        final attachmentsList =
             json['attachments'] as List<dynamic>;
         attachments = attachmentsList.map((attachmentJson) {
           return Attachment.fromJson(attachmentJson as Map<String, dynamic>);
@@ -129,19 +142,6 @@ class Message extends Equatable {
       imageAnalysis: json['imageAnalysis'] as String?,
     );
   }
-
-  /// Creates a message
-  const Message({
-    required this.id,
-    required this.content,
-    required this.type,
-    required this.timestamp,
-    this.agentId,
-    this.isError = false,
-    this.isTyping = false,
-    this.attachments,
-    this.imageAnalysis,
-  });
 
   /// Unique identifier for the message
   final String id;

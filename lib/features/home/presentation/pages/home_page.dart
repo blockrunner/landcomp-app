@@ -8,12 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/logo_widget.dart';
-import '../../../../shared/widgets/cards/feature_card.dart';
-import '../../../../core/localization/language_provider.dart';
-import '../../../../core/theme/theme_provider.dart';
-import '../../../projects/presentation/widgets/projects_sidebar.dart';
-import '../../../projects/presentation/providers/project_provider.dart';
+import 'package:landcomp_app/shared/widgets/logo_widget.dart';
+import 'package:landcomp_app/shared/widgets/cards/feature_card.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
+import 'package:landcomp_app/core/theme/theme_provider.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/projects_sidebar.dart';
+import 'package:landcomp_app/features/projects/presentation/providers/project_provider.dart';
 
 /// Home page widget
 class HomePage extends StatelessWidget {
@@ -69,7 +69,7 @@ class HomePage extends StatelessWidget {
             children: [
               const SizedBox(width: 56), // Space for menu button
               // Logo
-              const SmallLogoWidget(size: 32),
+              const SmallLogoWidget(),
               const SizedBox(width: 12),
               Text(
                 'LandComp',
@@ -102,7 +102,7 @@ class HomePage extends StatelessWidget {
               languageProvider.getString('homeHeroTitle'),
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onBackground,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),

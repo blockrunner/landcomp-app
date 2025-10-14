@@ -76,7 +76,7 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error initializing ChatProvider: $e');
-      _setError('Failed to initialize chat: ${e}');
+      _setError('Failed to initialize chat: $e');
     }
   }
 
@@ -243,7 +243,7 @@ class ChatProvider extends ChangeNotifier {
       _hideTypingIndicator();
     } catch (e) {
       _hideTypingIndicator();
-      _setError('Failed to get AI response: ${e}');
+      _setError('Failed to get AI response: $e');
 
       // Add error message
       final errorMessage = Message.system(
@@ -326,7 +326,7 @@ class ChatProvider extends ChangeNotifier {
       _hideTypingIndicator();
     } catch (e) {
       _hideTypingIndicator();
-      _setError('Failed to get AI response: ${e}');
+      _setError('Failed to get AI response: $e');
 
       // Add error message
       final errorMessage = Message.system(
@@ -586,7 +586,7 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error deleting session: $e');
-      _setError('Failed to delete session: ${e}');
+      _setError('Failed to delete session: $e');
     }
   }
 
@@ -637,7 +637,7 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('❌ Error clearing history: $e');
-      _setError('Failed to clear history: ${e}');
+      _setError('Failed to clear history: $e');
     }
   }
 

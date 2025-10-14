@@ -8,17 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'dart:typed_data';
-import '../../../../shared/widgets/logo_widget.dart';
-import '../../../../core/localization/language_provider.dart';
-import '../providers/chat_provider.dart';
-import '../widgets/message_bubble.dart';
-import '../widgets/image_picker_widget.dart';
-import '../../domain/entities/message.dart';
-import '../../../projects/presentation/providers/project_provider.dart';
-import '../../../projects/presentation/widgets/projects_sidebar.dart';
-import '../../../projects/presentation/widgets/new_project_dialog.dart';
-import '../../../projects/presentation/widgets/rename_project_dialog.dart';
-import '../../../projects/domain/entities/project.dart';
+import 'package:landcomp_app/shared/widgets/logo_widget.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
+import 'package:landcomp_app/features/chat/presentation/providers/chat_provider.dart';
+import 'package:landcomp_app/features/chat/presentation/widgets/message_bubble.dart';
+import 'package:landcomp_app/features/chat/presentation/widgets/image_picker_widget.dart';
+import 'package:landcomp_app/features/chat/domain/entities/message.dart';
+import 'package:landcomp_app/features/projects/presentation/providers/project_provider.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/projects_sidebar.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/new_project_dialog.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/rename_project_dialog.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
 
 /// Chat page widget
 class ChatPage extends StatefulWidget {
@@ -382,7 +382,7 @@ class _ChatPageState extends State<ChatPage> {
           decoration: BoxDecoration(
             color: Theme.of(
               context,
-            ).colorScheme.surfaceVariant.withOpacity(0.5),
+            ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -400,7 +400,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// Sends a message to the AI
-  void _sendMessage(
+  Future<void> _sendMessage(
     ChatProvider chatProvider,
     ProjectProvider projectProvider,
     String message,

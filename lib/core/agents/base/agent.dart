@@ -4,10 +4,10 @@
 /// including capability checking and request execution.
 library;
 
-import 'package:landcomp_app/shared/models/intent.dart';
-import 'package:landcomp_app/shared/models/context.dart';
 import 'package:landcomp_app/shared/models/agent_request.dart';
 import 'package:landcomp_app/shared/models/agent_response.dart';
+import 'package:landcomp_app/shared/models/context.dart';
+import 'package:landcomp_app/shared/models/intent.dart';
 
 /// Base interface for all agents
 abstract class Agent {

@@ -6,15 +6,13 @@ library;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/localization/language_provider.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
 
 /// Rename project dialog widget
 class RenameProjectDialog extends StatefulWidget {
   /// Creates a rename project dialog
   const RenameProjectDialog({
-    super.key,
-    required this.currentTitle,
-    required this.onRenamed,
+    required this.currentTitle, required this.onRenamed, super.key,
   });
 
   /// Current project title

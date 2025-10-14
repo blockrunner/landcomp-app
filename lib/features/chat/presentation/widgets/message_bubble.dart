@@ -501,10 +501,12 @@ class MessageBubble extends StatelessWidget {
     if (mimeType.startsWith('audio/')) return Icons.audio_file;
     if (mimeType.contains('pdf')) return Icons.picture_as_pdf;
     if (mimeType.contains('word')) return Icons.description;
-    if (mimeType.contains('excel') || mimeType.contains('spreadsheet'))
+    if (mimeType.contains('excel') || mimeType.contains('spreadsheet')) {
       return Icons.table_chart;
-    if (mimeType.contains('zip') || mimeType.contains('rar'))
+    }
+    if (mimeType.contains('zip') || mimeType.contains('rar')) {
       return Icons.archive;
+    }
     return Icons.attach_file;
   }
 

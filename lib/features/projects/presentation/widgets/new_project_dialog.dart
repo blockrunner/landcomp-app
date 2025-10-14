@@ -7,12 +7,12 @@ library;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/localization/language_provider.dart';
+import 'package:landcomp_app/core/localization/language_provider.dart';
 
 /// New project dialog widget
 class NewProjectDialog extends StatefulWidget {
   /// Creates a new project dialog
-  const NewProjectDialog({super.key, required this.onProjectCreated});
+  const NewProjectDialog({required this.onProjectCreated, super.key});
 
   /// Callback when a project is created
   final void Function(String? title) onProjectCreated;

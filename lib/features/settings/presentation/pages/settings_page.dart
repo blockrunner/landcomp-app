@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 
 import 'package:landcomp_app/core/localization/language_provider.dart';
 import 'package:landcomp_app/core/theme/theme_provider.dart';
-import '../../../projects/presentation/widgets/projects_sidebar.dart';
+import 'package:landcomp_app/features/projects/presentation/widgets/projects_sidebar.dart';
 
 /// Settings page widget
 class SettingsPage extends StatefulWidget {

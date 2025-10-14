@@ -6,10 +6,10 @@ library;
 
 import 'dart:convert';
 import 'package:hive/hive.dart';
-import '../../features/chat/domain/entities/chat_session.dart';
-import '../../features/projects/domain/entities/project.dart';
-import '../constants/app_constants.dart';
-import '../utils/json_utils.dart';
+import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
+import 'package:landcomp_app/features/projects/domain/entities/project.dart';
+import 'package:landcomp_app/core/constants/app_constants.dart';
+import 'package:landcomp_app/core/utils/json_utils.dart';
 
 /// Chat storage service
 class ChatStorage {
@@ -48,18 +48,18 @@ class ChatStorage {
       }
 
       // Debug: Check for images in messages
-      int totalImages = 0;
-      int totalImageSize = 0;
+      var totalImages = 0;
+      var totalImageSize = 0;
       for (final message in session.messages) {
         if (message.attachments != null && message.attachments!.isNotEmpty) {
           final imageAttachments = message.attachments!
               .where((a) => a.isImage)
               .toList();
-          totalImages += imageAttachments.length.toInt();
+          totalImages += imageAttachments.length;
           totalImageSize += imageAttachments
               .map((img) => img.size)
               .reduce((a, b) => a + b)
-              .toInt();
+              ;
         }
       }
 
@@ -145,14 +145,14 @@ class ChatStorage {
           }
 
           // Debug: Check for images in loaded session
-          int totalImages = 0;
+          var totalImages = 0;
           for (final message in session.messages) {
             if (message.attachments != null &&
                 message.attachments!.isNotEmpty) {
               final imageAttachments = message.attachments!
                   .where((a) => a.isImage)
                   .toList();
-              totalImages += imageAttachments.length.toInt();
+              totalImages += imageAttachments.length;
             }
           }
 
@@ -246,7 +246,7 @@ class ChatStorage {
 
   /// Get total message count across all sessions
   Future<int> _getTotalMessageCount() async {
-    int totalMessages = 0;
+    var totalMessages = 0;
 
     for (final key in _chatBox.keys) {
       final sessionJson = _chatBox.get(key);
@@ -269,7 +269,7 @@ class ChatStorage {
 
   /// Get approximate storage size in bytes
   Future<int> _getStorageSize() async {
-    int totalSize = 0;
+    var totalSize = 0;
 
     for (final key in _chatBox.keys) {
       final sessionJson = _chatBox.get(key);
@@ -310,7 +310,7 @@ class ChatStorage {
 
         // Check attachment data integrity
         if (message.attachments != null && message.attachments!.isNotEmpty) {
-          for (int i = 0; i < message.attachments!.length; i++) {
+          for (var i = 0; i < message.attachments!.length; i++) {
             final attachment = message.attachments![i];
             if (attachment.data == null || attachment.data!.isEmpty) {
               print(
@@ -352,18 +352,18 @@ class ChatStorage {
       }
 
       // Debug: Check for images in messages
-      int totalImages = 0;
-      int totalImageSize = 0;
+      var totalImages = 0;
+      var totalImageSize = 0;
       for (final message in project.messages) {
         if (message.attachments != null && message.attachments!.isNotEmpty) {
           final imageAttachments = message.attachments!
               .where((a) => a.isImage)
               .toList();
-          totalImages += imageAttachments.length.toInt();
+          totalImages += imageAttachments.length;
           totalImageSize += imageAttachments
               .map((img) => img.size)
               .reduce((a, b) => a + b)
-              .toInt();
+              ;
         }
       }
 
@@ -449,14 +449,14 @@ class ChatStorage {
           }
 
           // Debug: Check for images in loaded project
-          int totalImages = 0;
+          var totalImages = 0;
           for (final message in project.messages) {
             if (message.attachments != null &&
                 message.attachments!.isNotEmpty) {
               final imageAttachments = message.attachments!
                   .where((a) => a.isImage)
                   .toList();
-              totalImages += imageAttachments.length.toInt();
+              totalImages += imageAttachments.length;
             }
           }
 
@@ -569,7 +569,7 @@ class ChatStorage {
 
   /// Get total message count across all projects
   Future<int> _getTotalProjectMessageCount() async {
-    int totalMessages = 0;
+    var totalMessages = 0;
 
     for (final key in _projectsBox.keys) {
       final projectJson = _projectsBox.get(key);
@@ -592,7 +592,7 @@ class ChatStorage {
 
   /// Get approximate project storage size in bytes
   Future<int> _getProjectStorageSize() async {
-    int totalSize = 0;
+    var totalSize = 0;
 
     for (final key in _projectsBox.keys) {
       final projectJson = _projectsBox.get(key);
@@ -638,7 +638,7 @@ class ChatStorage {
 
         // Check attachment data integrity
         if (message.attachments != null && message.attachments!.isNotEmpty) {
-          for (int i = 0; i < message.attachments!.length; i++) {
+          for (var i = 0; i < message.attachments!.length; i++) {
             final attachment = message.attachments![i];
             if (attachment.data == null || attachment.data!.isEmpty) {
               print(

@@ -464,7 +464,7 @@ IMPORTANT:
       final newWidth = (image.width * ratio).toInt();
       final newHeight = (image.height * ratio).toInt();
 
-      print('📸 Resizing to ${newWidth}x${newHeight}');
+      print('📸 Resizing to ${newWidth}x$newHeight');
       final resized = img.copyResize(image, width: newWidth, height: newHeight);
 
       // Encode as JPEG with quality 85
@@ -1184,7 +1184,7 @@ IMPORTANT:
       );
     } catch (e) {
       return SmartAIResponse.error(
-        message: 'Произошла ошибка при обработке запроса: ${e}',
+        message: 'Произошла ошибка при обработке запроса: $e',
       );
     }
   }
@@ -1298,7 +1298,7 @@ $userQuestion
       }
 
       if (response.statusCode == 200) {
-        final responseData = response.data as Map<String, dynamic>;
+        final responseData = response.data! as Map<String, dynamic>;
         final choices = responseData['choices'] as List<dynamic>;
 
         if (choices.isNotEmpty) {
@@ -1347,7 +1347,7 @@ $userQuestion
             'Не удалось проанализировать изображение, намерение пользователя неясно.',
         suitability:
             'Требуется дополнительная информация для оценки пригодности участка.',
-        recommendations: [
+        recommendations: const [
           'Опишите участок подробнее: освещение, тип почвы, размеры',
           'Укажите какие растения вас интересуют',
           'Расскажите о ваших предпочтениях и целях',
@@ -1361,7 +1361,7 @@ $userQuestion
   /// Clean JSON response from markdown formatting
   String _cleanJsonResponse(String content) {
     // Remove markdown code blocks
-    String cleaned = content.trim();
+    var cleaned = content.trim();
 
     // Remove ```json and ``` markers
     if (cleaned.startsWith('```json')) {

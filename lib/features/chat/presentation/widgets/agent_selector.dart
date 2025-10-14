@@ -5,9 +5,9 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
-import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
 import 'package:landcomp_app/core/localization/language_provider.dart';
+import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
+import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
 
 /// Agent selector widget
 class AgentSelector extends StatelessWidget {
