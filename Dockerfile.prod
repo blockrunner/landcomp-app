@@ -65,7 +65,7 @@ RUN echo '#!/bin/sh' > /usr/local/bin/start-services.sh && \
     echo 'echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "GOOGLE_API_KEYS_FALLBACK=${GOOGLE_API_KEYS_FALLBACK}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "ALL_PROXY=${ALL_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
-    echo 'echo "BACKUP_PROXIES=${BACKUP_PROXIES}" >> /usr/share/nginx/html/assets/.env' >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
+    echo 'echo "BACKUP_PROXIES=${BACKUP_PROXIES}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "HTTP_PROXY=${HTTP_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "HTTPS_PROXY=${HTTPS_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "NO_PROXY=${NO_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
@@ -75,8 +75,10 @@ RUN echo '#!/bin/sh' > /usr/local/bin/start-services.sh && \
     echo 'echo "YC_API_KEY=${YC_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "YC_FOLDER_ID=${YC_FOLDER_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
     echo 'echo "PROXY_SERVER_URL=http://localhost:3001" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/start-services.sh && \
-    echo 'cd /app/proxy && node proxy-server.js &' >> /usr/local/bin/start-services.sh && \
-    echo 'sleep 5' >> /usr/local/bin/start-services.sh && \
+    echo 'echo "Starting proxy server..."' >> /usr/local/bin/start-services.sh && \
+    echo 'cd /app/proxy && node proxy-server.js > /var/log/proxy.log 2>&1 &' >> /usr/local/bin/start-services.sh && \
+    echo 'sleep 10' >> /usr/local/bin/start-services.sh && \
+    echo 'echo "Starting nginx..."' >> /usr/local/bin/start-services.sh && \
     echo 'nginx -g "daemon off;"' >> /usr/local/bin/start-services.sh && \
     chmod +x /usr/local/bin/start-services.sh
 
