@@ -2,16 +2,22 @@ version: '3.8'
 
 services:
   landcomp-app:
-    image: ghcr.io/blockrunner/landcomp-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
     container_name: landcomp-app
     ports:
       - "80:80"
+      - "3001:3001"
     environment:
       # Application environment
       - NODE_ENV=production
       - FLUTTER_WEB_RENDERER=html
       - DEBUG=false
       - HOT_RELOAD=false
+      
+      # Proxy server URL for the app to use
+      - PROXY_SERVER_URL=http://landcomp-proxy:3001
       
       # AI API Configuration
       - OPENAI_API_KEY=${OPENAI_API_KEY}
