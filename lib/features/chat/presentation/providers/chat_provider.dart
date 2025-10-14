@@ -46,6 +46,7 @@ class ChatProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   LanguageProvider? _languageProvider;
+  List<Attachment>? _lastGeneratedImages; // Store generated images from last response
   bool _isInitialized = false;
 
   // Getters
@@ -359,8 +360,12 @@ class ChatProvider extends ChangeNotifier {
           id: _uuid.v4(),
           content: smartResponse.message!,
           agentId: smartResponse.agent?.id ?? 'unknown',
+          attachments: _lastGeneratedImages, // Add generated images if any
         );
         _addMessageToCurrentSession(aiMessage);
+        
+        // Clear generated images after use
+        _lastGeneratedImages = null;
       } else {
         final errorMessage = Message.system(
           id: _uuid.v4(),
@@ -435,6 +440,13 @@ class ChatProvider extends ChangeNotifier {
           '✅ Orchestrator response received: $responsePreview...',
         );
         debugPrint('   Selected agent: ${response.selectedAgent?.name}');
+
+        // Check if response has generated images
+        if (response.hasGeneratedImages) {
+          debugPrint('🎨 Response contains generated images: ${response.generatedImageAttachments.length}');
+          // Store generated images for later use in UI
+          _lastGeneratedImages = response.generatedImageAttachments;
+        }
 
         return SmartAIResponse.success(
           agent: response.selectedAgent ?? AIAgentsConfig.getDefaultAgent(),

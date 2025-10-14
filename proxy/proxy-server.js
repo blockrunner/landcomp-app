@@ -11,10 +11,50 @@ const cors = require('cors');
 const app = express();
 const PORT = 3001;
 
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: '100mb' })); // Увеличиваем лимит для больших изображений
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+// Middleware with enhanced mobile support
+app.use(cors({
+  origin: true, // Allow all origins for mobile compatibility
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Proxy-URL', 'X-Proxy-Host', 'X-Proxy-Port', 'X-Proxy-User', 'X-Proxy-Pass'],
+  exposedHeaders: ['Content-Length', 'Content-Type', 'X-Response-Time'],
+  maxAge: 86400 // 24 hours cache for preflight requests
+}));
+
+// Enhanced JSON parsing with mobile device support
+app.use(express.json({ 
+  limit: '100mb',
+  type: ['application/json', 'text/plain', 'application/x-www-form-urlencoded']
+}));
+
+app.use(express.urlencoded({ 
+  limit: '100mb', 
+  extended: true,
+  type: ['application/x-www-form-urlencoded', 'multipart/form-data']
+}));
+
+// Mobile-specific headers
+app.use((req, res, next) => {
+  // Add mobile-friendly headers
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'SAMEORIGIN');
+  res.header('X-XSS-Protection', '1; mode=block');
+  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
+  
+  // Mobile device detection
+  const userAgent = req.headers['user-agent'] || '';
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  
+  if (isMobile) {
+    console.log(`📱 Mobile device detected: ${userAgent}`);
+    // Add mobile-specific optimizations
+    res.header('X-Mobile-Optimized', 'true');
+  }
+  
+  next();
+});
 
 // Конфигурация прокси из переменных окружения
 const PROXY_URL = process.env.ALL_PROXY || 'socks5h://xexEUhKx:AXySXT2c@45.192.51.104:63435';
@@ -69,16 +109,33 @@ app.post('/proxy/openai/*', async (req, res) => {
       return res.status(500).json({ error: 'Proxy agent not available' });
     }
 
+    // Enhanced headers for mobile compatibility
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': req.headers.authorization,
+      'User-Agent': 'LandComp-AI-Client/1.0',
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': req.headers['accept-language'] || 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+    };
+
+    // Add mobile-specific headers if detected
+    const userAgent = req.headers['user-agent'] || '';
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    if (isMobile) {
+      headers['X-Mobile-Client'] = 'true';
+      headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
+
     const response = await fetch(targetUrl, {
       method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': req.headers.authorization,
-        'User-Agent': 'LandComp-AI-Client/1.0',
-      },
+      headers: headers,
       body: JSON.stringify(req.body),
       agent: agent,
-      timeout: 120000, // 2 minutes for large images
+      timeout: isMobile ? 180000 : 120000, // Longer timeout for mobile devices
+      compress: true, // Enable compression for mobile
     });
 
     const data = await response.text();
@@ -155,10 +212,24 @@ app.post('/proxy/gemini/*', async (req, res) => {
     const url = new URL(targetUrl);
     const apiKey = url.searchParams.get('key');
     
+    // Enhanced headers for mobile compatibility
     const headers = {
       'Content-Type': 'application/json',
       'User-Agent': 'LandComp-AI-Client/1.0',
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': req.headers['accept-language'] || 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
     };
+    
+    // Add mobile-specific headers if detected
+    const userAgent = req.headers['user-agent'] || '';
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    if (isMobile) {
+      headers['X-Mobile-Client'] = 'true';
+      headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
     
     // Добавляем API ключ в заголовки
     if (apiKey) {
@@ -178,7 +249,8 @@ app.post('/proxy/gemini/*', async (req, res) => {
       headers: headers,
       body: JSON.stringify(req.body),
       agent: agent,
-      timeout: 120000, // 2 minutes for large images
+      timeout: isMobile ? 180000 : 120000, // Longer timeout for mobile devices
+      compress: true, // Enable compression for mobile
     });
 
     const data = await response.text();
@@ -254,6 +326,34 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     proxy: 'running'
+  });
+});
+
+// Mobile diagnostics endpoint
+app.get('/mobile-diagnostics', (req, res) => {
+  const userAgent = req.headers['user-agent'] || '';
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  
+  res.json({
+    timestamp: new Date().toISOString(),
+    device: {
+      isMobile,
+      userAgent,
+      platform: req.headers['sec-ch-ua-platform'] || 'unknown',
+      language: req.headers['accept-language'] || 'unknown'
+    },
+    proxy: {
+      status: 'running',
+      mainProxy: PROXY_URL,
+      backupProxies: BACKUP_PROXIES.length,
+      currentProxyIndex: currentProxyIndex
+    },
+    capabilities: {
+      cors: true,
+      compression: true,
+      mobileOptimized: true,
+      extendedTimeout: isMobile
+    }
   });
 });
 

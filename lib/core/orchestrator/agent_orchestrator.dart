@@ -14,11 +14,13 @@ import 'package:uuid/uuid.dart';
 import 'package:landcomp_app/core/agents/base/agent.dart';
 import 'package:landcomp_app/core/agents/base/agent_adapter.dart';
 import 'package:landcomp_app/core/agents/base/agent_registry.dart';
+import 'package:landcomp_app/core/network/ai_service.dart';
 import 'package:landcomp_app/core/orchestrator/context_manager.dart';
 import 'package:landcomp_app/core/orchestrator/intent_classifier.dart';
 import 'package:landcomp_app/core/tools/base/tool_registry.dart';
 import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
 import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
+import 'package:landcomp_app/features/chat/domain/entities/image_generation_response.dart';
 import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 import 'package:landcomp_app/shared/models/agent_request.dart';
 import 'package:landcomp_app/shared/models/agent_response.dart';
@@ -140,8 +142,8 @@ class AgentOrchestrator {
       final agent = await _selectAgent(request);
       debugPrint('   Selected agent: ${agent.name}');
 
-      // 5. Execute request
-      final response = await agent.execute(request);
+      // 5. Execute request with intent-aware processing
+      final response = await _executeRequestWithIntent(request, agent);
 
       // 6. Track metrics
       final executionTime = DateTime.now().difference(startTime);
@@ -174,6 +176,184 @@ class AgentOrchestrator {
         },
       );
     }
+  }
+
+  /// Execute request with intent-aware processing
+  Future<AgentResponse> _executeRequestWithIntent(
+    AgentRequest request,
+    Agent agent,
+  ) async {
+    debugPrint('🎯 Executing request with intent: ${request.intent.type.name}');
+    
+    // Check if this is an image generation request
+    if (request.intent.type == IntentType.generation &&
+        request.intent.subtype == IntentSubtype.imageGeneration) {
+      debugPrint('🎨 Detected image generation intent');
+      return await _handleImageGenerationRequest(request, agent);
+    }
+    
+    // Check if this is a generation request based on images
+    if (request.intent.imageIntent == ImageIntent.generateBased) {
+      debugPrint('🎨 Detected image-based generation intent');
+      return await _handleImageGenerationRequest(request, agent);
+    }
+    
+    // Regular request processing
+    debugPrint('💬 Processing regular request');
+    return await agent.execute(request);
+  }
+
+  /// Handle image generation request
+  Future<AgentResponse> _handleImageGenerationRequest(
+    AgentRequest request,
+    Agent agent,
+  ) async {
+    try {
+      debugPrint('🎨 Handling image generation request');
+      
+      // First, get text response from agent
+      final textResponse = await agent.execute(request);
+      
+      if (!textResponse.isSuccess) {
+        return textResponse; // Return error if text generation failed
+      }
+      
+      // Then, generate image based on the request and response
+      final imageResponse = await _generateImageForRequest(
+        originalMessage: request.userMessage,
+        agentResponse: textResponse.message!,
+        selectedImages: request.context.attachments,
+        agent: agent,
+      );
+      
+      if (imageResponse.hasGeneratedImages) {
+        debugPrint('🎨 Successfully generated ${imageResponse.imageCount} image(s)');
+        
+        // Create attachments from generated images
+        final generatedAttachments = <Attachment>[];
+        for (int i = 0; i < imageResponse.generatedImages.length; i++) {
+          final imageData = imageResponse.generatedImages[i];
+          final mimeType = i < imageResponse.imageMimeTypes.length 
+              ? imageResponse.imageMimeTypes[i] 
+              : 'image/jpeg';
+          
+          final attachment = Attachment(
+            id: _uuid.v4(),
+            name: 'generated_design_${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
+            type: AttachmentType.image,
+            data: imageData,
+            mimeType: mimeType,
+            size: imageData.length,
+          );
+          generatedAttachments.add(attachment);
+        }
+        
+        return AgentResponse.success(
+          requestId: request.requestId,
+          message: textResponse.message!,
+          selectedAgent: textResponse.selectedAgent,
+          generatedAttachments: generatedAttachments,
+          metadata: {
+            ...textResponse.metadata,
+            'image_generated': true,
+            'image_generation_method': 'orchestrator_intent_based',
+            'generated_image_count': imageResponse.imageCount,
+          },
+        );
+      } else {
+        debugPrint('🎨 Image generation failed, returning text only');
+        return textResponse;
+      }
+    } catch (e) {
+      debugPrint('🎨 Image generation error: $e');
+      // Fallback to regular agent execution
+      return await agent.execute(request);
+    }
+  }
+
+  /// Generate image for the request
+  Future<ImageGenerationResponse> _generateImageForRequest({
+    required String originalMessage,
+    required String agentResponse,
+    List<Attachment>? selectedImages,
+    required Agent agent,
+  }) async {
+    try {
+      // Import AIService here to avoid circular dependency
+      final aiService = AIService.instance;
+      
+      // Build a comprehensive prompt for image generation
+      final imagePrompt = _buildImageGenerationPrompt(
+        originalMessage: originalMessage,
+        agentResponse: agentResponse,
+        hasInputImages: selectedImages != null && selectedImages.isNotEmpty,
+        agentName: agent.name,
+      );
+      
+      debugPrint('🎨 Image generation prompt: ${imagePrompt.length} characters');
+      
+      // Prepare input images if available
+      final inputImages = <Uint8List>[];
+      if (selectedImages != null) {
+        for (final attachment in selectedImages) {
+          if (attachment.data != null) {
+            inputImages.add(attachment.data!);
+          }
+        }
+      }
+      
+      // Try Gemini first for image generation
+      return await aiService.sendImageGenerationToGemini(
+        prompt: imagePrompt,
+        images: inputImages,
+      );
+    } catch (e) {
+      debugPrint('🎨 Image generation failed: $e');
+      return ImageGenerationResponse.textOnly(
+        'Image generation failed: $e',
+      );
+    }
+  }
+
+  /// Build comprehensive prompt for image generation
+  String _buildImageGenerationPrompt({
+    required String originalMessage,
+    required String agentResponse,
+    required bool hasInputImages,
+    required String agentName,
+  }) {
+    final buffer = StringBuffer();
+    
+    buffer.writeln('Create a professional landscape design visualization based on the following request:');
+    buffer.writeln();
+    buffer.writeln('USER REQUEST: $originalMessage');
+    buffer.writeln();
+    buffer.writeln('DESIGN RECOMMENDATIONS FROM $agentName: $agentResponse');
+    buffer.writeln();
+    
+    if (hasInputImages) {
+      buffer.writeln('INSTRUCTIONS:');
+      buffer.writeln('- Use the uploaded image as a reference for the existing site');
+      buffer.writeln('- Transform the space according to the design recommendations');
+      buffer.writeln('- Show the proposed changes and improvements');
+      buffer.writeln('- Maintain realistic proportions and scale');
+    } else {
+      buffer.writeln('INSTRUCTIONS:');
+      buffer.writeln('- Create a new landscape design from scratch');
+      buffer.writeln('- Follow the design recommendations provided');
+      buffer.writeln('- Show a well-planned outdoor space');
+      buffer.writeln('- Include appropriate plants, hardscape, and features');
+    }
+    
+    buffer.writeln();
+    buffer.writeln('STYLE REQUIREMENTS:');
+    buffer.writeln('- Professional landscape design visualization');
+    buffer.writeln('- Realistic and detailed');
+    buffer.writeln('- Good lighting and composition');
+    buffer.writeln('- Clear view of the design elements');
+    buffer.writeln('- High quality, suitable for presentation');
+    
+    return buffer.toString();
   }
 
   /// Select the best agent for the request using scoring system
