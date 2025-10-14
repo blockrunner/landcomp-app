@@ -24,9 +24,7 @@ services:
 
   # Main Flutter Web Application
   landcomp-app:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/blockrunner/landcomp-app:latest
     container_name: landcomp-app
     ports:
       - "80:80"
