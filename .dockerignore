@@ -1,0 +1,96 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+*.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Test files
+test/
+integration_test/
+coverage/
+
+# Debug files
+debug/
+*.log
+
+# Environment files (keep .env for Docker)
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Build artifacts
+*.apk
+*.ipa
+*.app
+*.dmg
+*.exe
+*.msi
+
+# IDE specific
+*.iml
+*.ipr
+*.iws
+
+# Local configuration
+local.properties
+android/local.properties
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/xcuserdata/
+
+# Generated files
+lib/**/*.g.dart
+lib/**/*.freezed.dart
+lib/**/*.config.dart
+
+# Scripts (except deployment)
+scripts/
+!scripts/deploy.sh
+
+# Makefile
+Makefile
+
+# Package files
+*.tar.gz
+*.zip

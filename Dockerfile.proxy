@@ -5,13 +5,13 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files
-COPY debug/package*.json ./
+COPY proxy/package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy proxy server
-COPY debug/proxy-server.js ./
+COPY proxy/proxy-server.js ./
 
 # Expose port
 EXPOSE 3001
