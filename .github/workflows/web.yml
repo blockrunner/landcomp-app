@@ -55,9 +55,22 @@ jobs:
           name: web-build
           path: build/web/
       
+      - name: Check Firebase configuration
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "⚠️ Firebase Service Account not configured - skipping Firebase deployment"
+            echo "To enable Firebase deployment, add FIREBASE_SERVICE_ACCOUNT secret to repository settings"
+            echo "FIREBASE_DEPLOY=false" >> $GITHUB_ENV
+          else
+            echo "✅ Firebase Service Account configured - proceeding with deployment"
+            echo "FIREBASE_DEPLOY=true" >> $GITHUB_ENV
+          fi
+
       - name: Deploy to Firebase Hosting
         if: github.ref == 'refs/heads/main'
         uses: FirebaseExtended/action-hosting-deploy@v0
+        continue-on-error: true
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
