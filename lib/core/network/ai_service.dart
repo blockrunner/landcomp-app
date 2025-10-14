@@ -149,6 +149,7 @@ class AIService {
   void _configureWebProxy(Uri proxyUri) {
     debugPrint('🌐 Configuring web proxy...');
     debugPrint('   Proxy URI: $proxyUri');
+    debugPrint('   🔄 Dynamic proxy URL detection enabled');
     
     // Определяем URL прокси-сервера динамически
     String proxyServerUrl;
