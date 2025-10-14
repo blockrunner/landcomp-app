@@ -149,32 +149,21 @@ class AIService {
   void _configureWebProxy(Uri proxyUri) {
     debugPrint('🌐 Configuring web proxy...');
     debugPrint('   Proxy URI: $proxyUri');
-    debugPrint('   🔄 Dynamic proxy URL detection enabled');
-    
-    // Определяем URL прокси-сервера динамически
-    String proxyServerUrl;
+    debugPrint('   🔄 Using nginx reverse proxy for web platform');
     
     if (kIsWeb) {
-      // Для веб - используем текущий хост или SERVER_HOST
-      final currentHost = Uri.base.host;
-      final serverHost = EnvConfig.serverHost;
-      
-      if (currentHost == 'localhost' || currentHost == '127.0.0.1') {
-        // Если запущено локально, используем localhost
-        proxyServerUrl = 'http://localhost:3001';
-        debugPrint('   Local development detected, using localhost:3001');
-      } else if (serverHost.isNotEmpty) {
-        // Если указан SERVER_HOST, используем его
-        proxyServerUrl = 'http://$serverHost:3001';
-        debugPrint('   Using configured server host: $serverHost:3001');
-      } else {
-        // Если запущено на сервере, используем тот же хост
-        proxyServerUrl = 'http://$currentHost:3001';
-        debugPrint('   Using current host: $currentHost:3001');
-      }
+      // For web platform, use empty baseUrl to rely on relative URLs
+      // The app will make requests to /proxy/openai/... and /proxy/gemini/...
+      // which nginx will forward to the internal proxy server
+      _dio.options.baseUrl = '';
+      debugPrint(
+        '   Web platform: Using relative URLs through nginx reverse proxy',
+      );
     } else {
-      // Для нативных приложений - используем SERVER_HOST или дефолтный IP
+      // For native platforms, use direct connection to proxy server
       final serverHost = EnvConfig.serverHost;
+      String proxyServerUrl;
+      
       if (serverHost.isNotEmpty) {
         proxyServerUrl = 'http://$serverHost:3001';
         debugPrint(
@@ -186,13 +175,9 @@ class AIService {
           '   Native app using default server: 89.111.171.89:3001',
         );
       }
+      
+      _dio.options.baseUrl = proxyServerUrl;
     }
-    
-    debugPrint('   Setting baseUrl to: $proxyServerUrl');
-    
-    // For web, we set baseUrl to the proxy server
-    // The proxy server will handle the SOCKS5 proxy connection
-    _dio.options.baseUrl = proxyServerUrl;
     
     // Add proxy information to headers for the proxy server
     _dio.options.headers

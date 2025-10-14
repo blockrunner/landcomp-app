@@ -59,7 +59,6 @@ RUN echo '#!/bin/sh' > /usr/local/bin/generate-env.sh && \
     echo 'echo "YC_API_KEY_ID=${YC_API_KEY_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
     echo 'echo "YC_API_KEY=${YC_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
     echo 'echo "YC_FOLDER_ID=${YC_FOLDER_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "PROXY_SERVER_URL=http://landcomp-proxy:3001" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
     chmod +x /usr/local/bin/generate-env.sh
 
 # Expose port 80

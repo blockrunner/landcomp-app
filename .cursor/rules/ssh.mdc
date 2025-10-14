@@ -1,0 +1,8 @@
+---
+alwaysApply: true
+---
+Lанные для входа по ssh
+SERVER_HOST=89.111.171.89  # IP адрес вашего сервера
+SERVER_USER=tonybreza
+SERVER_PORT=22
+SERVER_SSH_KEY_PATH=C:\Users\Admin\.ssh\tonybreza_deploy 
