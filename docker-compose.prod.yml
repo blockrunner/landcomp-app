@@ -3,9 +3,7 @@ version: '3.8'
 services:
   # Proxy Server for AI API requests
   landcomp-proxy:
-    build:
-      context: .
-      dockerfile: Dockerfile.proxy
+    image: ghcr.io/blockrunner/landcomp-app-proxy:latest
     container_name: landcomp-proxy
     ports:
       - "3001:3001"

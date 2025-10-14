@@ -70,15 +70,28 @@ jobs:
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push Docker image
+    - name: Build and push main app Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile.prod
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push proxy Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.proxy
+        platforms: linux/amd64
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-proxy:latest
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-proxy:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -119,8 +132,9 @@ jobs:
           # Login to GitHub Container Registry
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          # Pull latest image
+          # Pull latest images
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-proxy:latest
           
           # Stop and remove old container
           docker-compose -f docker-compose.prod.yml down || true
