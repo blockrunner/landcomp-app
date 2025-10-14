@@ -38,6 +38,9 @@ RUN apk add --no-cache curl
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Verify nginx configuration
+RUN nginx -t
+
 # Copy built web application
 COPY --from=build /app/build/web /usr/share/nginx/html
 
