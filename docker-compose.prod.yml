@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Proxy Server for AI API requests
   landcomp-proxy:
-    image: ghcr.io/blockrunner/landcomp-app-proxy:${PROXY_IMAGE_TAG:-latest}
+    image: ghcr.io/blockrunner/landcomp-app-proxy:${PROXY_IMAGE_TAG}
     container_name: landcomp-proxy
     networks:
       - landcomp-network
@@ -20,10 +20,10 @@ services:
 
   # Main Flutter Web Application
   landcomp-app:
-    image: ghcr.io/blockrunner/landcomp-app:${IMAGE_TAG:-latest}
+    image: ghcr.io/blockrunner/landcomp-app:${IMAGE_TAG}
     container_name: landcomp-app
     ports:
-      - "80:80"
+      - "8080:80"
     environment:
       # Application environment
       - NODE_ENV=production

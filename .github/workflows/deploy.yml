@@ -166,8 +166,12 @@ jobs:
           # Stop old containers
           docker-compose -f docker-compose.prod.yml down || true
           
+          # Set image tags in .env file for persistent use
+          echo "IMAGE_TAG=${{ github.sha }}" >> .env
+          echo "PROXY_IMAGE_TAG=${{ github.sha }}" >> .env
+          
           # Start new containers with SHA-tagged images
-          IMAGE_TAG=${{ github.sha }} PROXY_IMAGE_TAG=${{ github.sha }} docker-compose -f docker-compose.prod.yml up -d
+          docker-compose -f docker-compose.prod.yml up -d
           
           # Clean up old images
           docker image prune -f
@@ -175,7 +179,7 @@ jobs:
           # Health check with retry
           echo "Waiting for application to start..."
           for i in {1..30}; do
-            if curl -f http://localhost/health; then
+            if curl -f http://localhost:8080/health; then
               echo "✅ Health check passed!"
               break
             fi
@@ -184,7 +188,7 @@ jobs:
           done
           
           # Final health check
-          if ! curl -f http://localhost/health; then
+          if ! curl -f http://localhost:8080/health; then
             echo "❌ Final health check failed!"
             docker-compose -f docker-compose.prod.yml logs
             exit 1
