@@ -125,6 +125,21 @@ jobs:
           # Navigate to application directory
           cd /home/landcomp-app
           
+          # Sync code with latest changes from repository
+          echo "🔄 Syncing code with repository..."
+          echo "Current local SHA: $(git rev-parse HEAD 2>/dev/null || echo 'No local repo')"
+          echo "Target SHA: ${{ github.sha }}"
+          
+          git fetch origin
+          git reset --hard origin/main
+          git clean -fd
+          
+          echo "✅ Code synchronized with SHA: $(git rev-parse HEAD)"
+          
+          # Log recent changes
+          echo "📋 Recent changes in this deployment:"
+          git log --oneline -5
+          
           # Login to GitHub Container Registry
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
@@ -165,6 +180,22 @@ jobs:
           
           # Stop old containers
           docker-compose -f docker-compose.prod.yml down || true
+          
+          # Verify file synchronization
+          echo "🔍 Verifying file synchronization..."
+          if [ ! -f "docker-compose.prod.yml" ]; then
+            echo "❌ docker-compose.prod.yml not found after sync!"
+            exit 1
+          fi
+          
+          # Check if docker-compose.prod.yml has the correct port configuration
+          if ! grep -q "8080:80" docker-compose.prod.yml; then
+            echo "⚠️ docker-compose.prod.yml may not have latest port configuration"
+            echo "Current port configuration:"
+            grep -A 2 -B 2 "ports:" docker-compose.prod.yml || echo "No ports section found"
+          else
+            echo "✅ docker-compose.prod.yml has correct port configuration (8080:80)"
+          fi
           
           # Set image tags in .env file for persistent use
           echo "IMAGE_TAG=${{ github.sha }}" >> .env

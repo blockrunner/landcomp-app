@@ -79,21 +79,23 @@ class IntentClassifier {
     debugPrint('📋 [OpenAI] Prompt preview: ${prompt.length > 200 ? '${prompt.substring(0, 200)}...' : prompt}');
 
     debugPrint('🚀 [OpenAI] Sending request to AI service...');
-    final response = await _aiService.sendMessageWithSmartSelection(
+    final response = await _aiService.sendMessage(
       message: prompt,
-      conversationHistory: [],
+      systemPrompt: 'You are an intelligent intent classifier for a '
+          'landscape design AI assistant. Analyze the user\'s message and '
+          'conversation context to understand their true intent.',
     );
 
     final duration = DateTime.now().difference(startTime);
     debugPrint('⏱️ [OpenAI] AI service response received in ${duration.inMilliseconds}ms');
-    debugPrint('📊 [OpenAI] Response status: ${response.isSuccess ? 'SUCCESS' : 'FAILED'}');
+    debugPrint('📊 [OpenAI] Response status: SUCCESS');
     
-    if (response.isSuccess && response.message != null) {
-      debugPrint('📥 [OpenAI] Raw response length: ${response.message!.length} characters');
-      debugPrint('📄 [OpenAI] Raw response preview: ${response.message!.length > 300 ? '${response.message!.substring(0, 300)}...' : response.message!}');
+    if (response.isNotEmpty) {
+      debugPrint('📥 [OpenAI] Raw response length: ${response.length} characters');
+      debugPrint('📄 [OpenAI] Raw response preview: ${response.length > 300 ? '${response.substring(0, 300)}...' : response}');
       
       try {
-        final parsedIntent = _parseClassificationResponse(response.message!, requestId, 'OpenAI');
+        final parsedIntent = _parseClassificationResponse(response, requestId, 'OpenAI');
         debugPrint('✅ [OpenAI] Response parsed successfully');
         return parsedIntent;
       } catch (e) {
@@ -101,8 +103,8 @@ class IntentClassifier {
         throw Exception('OpenAI response parsing failed: $e');
       }
     } else {
-      debugPrint('❌ [OpenAI] AI service returned error: ${response.message}');
-      throw Exception('OpenAI classification failed: ${response.message}');
+      debugPrint('❌ [OpenAI] AI service returned empty response');
+      throw Exception('OpenAI classification failed: Empty response');
     }
   }
 
@@ -120,21 +122,24 @@ class IntentClassifier {
     debugPrint('📋 [Gemini] Prompt preview: ${prompt.length > 200 ? '${prompt.substring(0, 200)}...' : prompt}');
 
     debugPrint('🚀 [Gemini] Sending request to AI service...');
-    final response = await _aiService.sendMessageWithSmartSelection(
+    final response = await _aiService.sendMessage(
       message: prompt,
-      conversationHistory: [],
+      systemPrompt: 'You are an intelligent intent classifier for a '
+          'landscape design AI assistant. Analyze the user\'s message and '
+          'conversation context to understand their true intent.',
+      preferredProvider: 'gemini',
     );
 
     final duration = DateTime.now().difference(startTime);
     debugPrint('⏱️ [Gemini] AI service response received in ${duration.inMilliseconds}ms');
-    debugPrint('📊 [Gemini] Response status: ${response.isSuccess ? 'SUCCESS' : 'FAILED'}');
+    debugPrint('📊 [Gemini] Response status: SUCCESS');
     
-    if (response.isSuccess && response.message != null) {
-      debugPrint('📥 [Gemini] Raw response length: ${response.message!.length} characters');
-      debugPrint('📄 [Gemini] Raw response preview: ${response.message!.length > 300 ? '${response.message!.substring(0, 300)}...' : response.message!}');
+    if (response.isNotEmpty) {
+      debugPrint('📥 [Gemini] Raw response length: ${response.length} characters');
+      debugPrint('📄 [Gemini] Raw response preview: ${response.length > 300 ? '${response.substring(0, 300)}...' : response}');
       
       try {
-        final parsedIntent = _parseClassificationResponse(response.message!, requestId, 'Gemini');
+        final parsedIntent = _parseClassificationResponse(response, requestId, 'Gemini');
         debugPrint('✅ [Gemini] Response parsed successfully');
         return parsedIntent;
       } catch (e) {
@@ -142,8 +147,8 @@ class IntentClassifier {
         throw Exception('Gemini response parsing failed: $e');
       }
     } else {
-      debugPrint('❌ [Gemini] AI service returned error: ${response.message}');
-      throw Exception('Gemini classification failed: ${response.message}');
+      debugPrint('❌ [Gemini] AI service returned empty response');
+      throw Exception('Gemini classification failed: Empty response');
     }
   }
 

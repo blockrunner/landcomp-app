@@ -17,7 +17,6 @@ import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
 import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
 import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
 import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
-import 'package:landcomp_app/features/chat/domain/entities/image_generation_response.dart';
 import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 
 /// Chat provider for state management
@@ -35,7 +34,6 @@ class ChatProvider extends ChangeNotifier {
   }
 
   final _uuid = const Uuid();
-  final _aiService = AIService.instance;
   final _chatStorage = ChatStorage.instance;
   final _orchestrator = AgentOrchestrator.instance;
 
@@ -46,7 +44,8 @@ class ChatProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   LanguageProvider? _languageProvider;
-  List<Attachment>? _lastGeneratedImages; // Store generated images from last response
+  // Store generated images from last response
+  List<Attachment>? _lastGeneratedImages;
   bool _isInitialized = false;
 
   // Getters
@@ -220,65 +219,50 @@ class ChatProvider extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      // STEP 1: Check if this is a visualization request
-      final isVisualizationRequest = _isVisualizationRequest(content.trim());
-      final hasPreviousImages = _hasImagesInRecentMessages();
+      // Use unified AgentOrchestrator for ALL text messages
+      debugPrint('💬 Processing text message through AgentOrchestrator...');
+      final smartResponse = await _getSmartAIResponse(content.trim());
 
-      debugPrint('🔍 Text message analysis:');
-      debugPrint('   Content: ${content.trim()}');
-      debugPrint('   Is visualization request: $isVisualizationRequest');
-      debugPrint('   Has previous images: $hasPreviousImages');
-
-      if (isVisualizationRequest && hasPreviousImages) {
-        // STEP 2: Switch to image generation mode
-        debugPrint('🎨 Switching to image generation mode...');
-        await _handleVisualizationRequest(content.trim());
-      } else {
-        // STEP 3: Regular text response
-        debugPrint('💬 Regular text response...');
-        final smartResponse = await _getSmartAIResponse(content.trim());
-
-        if (smartResponse.isSuccess) {
-          // Update current agent if it changed
-          if (smartResponse.agent != null &&
-              smartResponse.agent != _currentAgent) {
-            _currentAgent = smartResponse.agent;
-            // Update session with new agent
-            if (_currentSession != null) {
-              _currentSession = _currentSession!.copyWith(
-                agentId: _currentAgent!.id,
-              );
-              unawaited(_saveCurrentSession());
-            }
+      if (smartResponse.isSuccess) {
+        // Update current agent if it changed
+        if (smartResponse.agent != null &&
+            smartResponse.agent != _currentAgent) {
+          _currentAgent = smartResponse.agent;
+          // Update session with new agent
+          if (_currentSession != null) {
+            _currentSession = _currentSession!.copyWith(
+              agentId: _currentAgent!.id,
+            );
+            unawaited(_saveCurrentSession());
           }
-
-          // Add AI response
-          final aiMessage = Message.ai(
-            id: _uuid.v4(),
-            content: smartResponse.message!,
-            agentId: _currentAgent?.id ?? 'unknown',
-          );
-
-          _addMessageToCurrentSession(aiMessage);
-        } else if (smartResponse.isOutOfScope) {
-          // Add out-of-scope message
-          final outOfScopeMessage = Message.system(
-            id: _uuid.v4(),
-            content: smartResponse.message!,
-          );
-
-          _addMessageToCurrentSession(outOfScopeMessage);
-        } else {
-          // Add error message
-          final errorMessage = Message.system(
-            id: _uuid.v4(),
-            content:
-                smartResponse.message ?? _getLocalizedError('Unknown error'),
-            isError: true,
-          );
-
-          _addMessageToCurrentSession(errorMessage);
         }
+
+        // Add AI response
+        final aiMessage = Message.ai(
+          id: _uuid.v4(),
+          content: smartResponse.message!,
+          agentId: _currentAgent?.id ?? 'unknown',
+        );
+
+        _addMessageToCurrentSession(aiMessage);
+      } else if (smartResponse.isOutOfScope) {
+        // Add out-of-scope message
+        final outOfScopeMessage = Message.system(
+          id: _uuid.v4(),
+          content: smartResponse.message!,
+        );
+
+        _addMessageToCurrentSession(outOfScopeMessage);
+      } else {
+        // Add error message
+        final errorMessage = Message.system(
+          id: _uuid.v4(),
+          content:
+              smartResponse.message ?? _getLocalizedError('Unknown error'),
+          isError: true,
+        );
+
+        _addMessageToCurrentSession(errorMessage);
       }
 
       // Remove typing indicator
@@ -443,7 +427,10 @@ class ChatProvider extends ChangeNotifier {
 
         // Check if response has generated images
         if (response.hasGeneratedImages) {
-          debugPrint('🎨 Response contains generated images: ${response.generatedImageAttachments.length}');
+          debugPrint(
+            '🎨 Response contains generated images: '
+            '${response.generatedImageAttachments.length}',
+          );
           // Store generated images for later use in UI
           _lastGeneratedImages = response.generatedImageAttachments;
         }
@@ -758,224 +745,10 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Generate visualization
-  Future<void> _generateVisualization(
-    String content,
-    List<Uint8List> images,
-    ImageGenerationResponse? analysis,
-  ) async {
-    // Build enhanced prompt using analysis or context
-    String enhancedPrompt;
-
-    if (analysis != null) {
-      enhancedPrompt =
-          '''
-АНАЛИЗ УЧАСТКА:
-${analysis.imageAnalysis}
-
-ПРИГОДНОСТЬ:
-${analysis.suitability}
-
-ВОПРОС:
-$content
-
-РЕКОМЕНДАЦИИ:
-${analysis.recommendations?.join('\n')}
-
-ЗАДАЧА: Создай реалистичную визуализацию согласно анализу и рекомендациям.
-КРИТИЧНО: Соответствовать контексту разговора!
-''';
-    } else {
-      // Build prompt from conversation context
-      final contextSummary = _buildConversationSummary(
-        _currentSession?.messages,
-      );
-      enhancedPrompt =
-          '''
-КОНТЕКСТ РАЗГОВОРА:
-$contextSummary
-
-ВОПРОС ПОЛЬЗОВАТЕЛЯ:
-$content
-
-ЗАДАЧА: Создай реалистичную визуализацию на основе контекста разговора.
-Покажи как будет выглядеть участок с предложенными растениями.
-''';
-    }
-
-    final generationResponse = await _aiService.sendImageGenerationToGemini(
-      prompt: enhancedPrompt,
-      images: images,
-    );
-
-    // Create attachments
-    final generatedAttachments = <Attachment>[];
-    for (var i = 0; i < generationResponse.generatedImages.length; i++) {
-      generatedAttachments.add(
-        Attachment.image(
-          id: _uuid.v4(),
-          name: 'generated_${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
-          data: generationResponse.generatedImages[i],
-          mimeType: generationResponse.imageMimeTypes[i],
-        ),
-      );
-    }
-
-    final aiMessage = Message.ai(
-      id: _uuid.v4(),
-      content: generationResponse.textResponse,
-      agentId: 'gemini-image-generator',
-      attachments: generatedAttachments.isNotEmpty
-          ? generatedAttachments
-          : null,
-      imageAnalysis: analysis?.imageAnalysis,
-    );
-
-    _addMessageToCurrentSession(aiMessage);
-  }
 
   /// Offer visualization option for unclear cases
 
-  /// Check if text message is a visualization request
-  bool _isVisualizationRequest(String content) {
-    final lowerContent = content.toLowerCase();
 
-    // Direct visualization requests
-    final directRequests = [
-      'сгенерируй картинку',
-      'сгенерируй изображение',
-      'покажи как это будет выглядеть',
-      'покажи визуализацию',
-      'создай картинку',
-      'нарисуй',
-      'покажи результат',
-      'да',
-      'покажи',
-      'визуализация',
-      'картинка',
-      'изображение',
-    ];
 
-    // Leading questions that imply visualization
-    final leadingQuestions = [
-      'как это будет смотреться',
-      'как это будет выглядеть',
-      'как будет выглядеть',
-      'что получится',
-      'какой результат',
-      'покажи результат',
-    ];
 
-    // Check for direct requests
-    for (final request in directRequests) {
-      if (lowerContent.contains(request)) {
-        return true;
-      }
-    }
-
-    // Check for leading questions
-    for (final question in leadingQuestions) {
-      if (lowerContent.contains(question)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /// Check if there are images in recent messages
-  bool _hasImagesInRecentMessages() {
-    if (_currentSession?.messages == null) return false;
-
-    // Look for images in the last 10 messages
-    final recentMessages = _currentSession!.messages
-        .where((m) => !m.isTyping && !m.isError)
-        .toList()
-        .reversed
-        .take(10)
-        .toList();
-
-    for (final message in recentMessages) {
-      if (message.attachments != null &&
-          message.attachments!.any((a) => a.isImage)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /// Handle visualization request using previous images
-  Future<void> _handleVisualizationRequest(String content) async {
-    // Find the most recent message with images
-    final recentMessages = _currentSession!.messages
-        .where((m) => !m.isTyping && !m.isError)
-        .toList()
-        .reversed;
-
-    Message? messageWithImages;
-    for (final message in recentMessages) {
-      if (message.attachments != null &&
-          message.attachments!.any((a) => a.isImage)) {
-        messageWithImages = message;
-        break;
-      }
-    }
-
-    if (messageWithImages?.attachments == null) {
-      // No images found, fallback to text response
-      debugPrint('❌ No images found for visualization request');
-      final fallbackMessage = Message.system(
-        id: _uuid.v4(),
-        content: 'Для создания визуализации нужны изображения участка. '
-            'Пожалуйста, загрузите фото участка.',
-      );
-      _addMessageToCurrentSession(fallbackMessage);
-      return;
-    }
-
-    // Extract image data
-    final imageAttachments = messageWithImages!.attachments!
-        .where((a) => a.isImage)
-        .toList();
-
-    final imageData = imageAttachments
-        .map((a) => a.data)
-        .where((data) => data != null)
-        .cast<Uint8List>()
-        .toList();
-
-    debugPrint('🎨 Found ${imageData.length} images for visualization');
-
-    // Use the existing image generation flow
-    await _generateVisualization(content, imageData, null);
-  }
-
-  /// Build conversation summary for context
-  String _buildConversationSummary(List<Message>? history) {
-    if (history == null || history.isEmpty) {
-      return 'Начало нового разговора';
-    }
-
-    final summary = StringBuffer();
-    final recentMessages = history
-        .where((m) => !m.isTyping && !m.isError)
-        .toList()
-        .reversed
-        .take(5)
-        .toList()
-        .reversed;
-
-    for (final msg in recentMessages) {
-      final role = msg.type == MessageType.user ? 'Пользователь' : 'AI';
-      summary.writeln('$role: ${msg.content}');
-
-      // Добавить анализ изображений если есть
-      if (msg.imageAnalysis != null) {
-        summary.writeln('[Изображение: ${msg.imageAnalysis}]');
-      }
-    }
-
-    return summary.toString();
-  }
 }
