@@ -65,8 +65,7 @@ services:
       - ./logs:/var/log/nginx
     restart: unless-stopped
     depends_on:
-      landcomp-proxy:
-        condition: service_healthy
+      - landcomp-proxy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
