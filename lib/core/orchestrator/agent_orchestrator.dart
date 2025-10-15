@@ -379,11 +379,12 @@ class AgentOrchestrator {
           final contextScore = _getContextScore(agent, request.context);
           final keywordScore = _getKeywordScore(agent, request.userMessage);
           final performanceScore = _getPerformanceScore(agent);
+          final performanceScoreReduced = performanceScore * 0.5;
           debugPrint(
             '     - Intent: ${intentScore.toStringAsFixed(2)}, '
             'Context: ${contextScore.toStringAsFixed(2)}, '
             'Keywords: ${keywordScore.toStringAsFixed(2)}, '
-            'Performance: ${performanceScore.toStringAsFixed(2)}',
+            'Performance: ${performanceScore.toStringAsFixed(2)} (reduced to ${performanceScoreReduced.toStringAsFixed(2)})',
           );
         }
       } catch (e) {
@@ -428,7 +429,7 @@ class AgentOrchestrator {
     score += _getKeywordScore(agent, request.userMessage);
 
     // Agent performance score (from metrics)
-    score += _getPerformanceScore(agent);
+    score += _getPerformanceScore(agent) * 0.5;
 
     return score;
   }
@@ -570,112 +571,211 @@ class AgentOrchestrator {
     final message = userMessage.toLowerCase();
     var score = 0.0;
 
-    // Landscape Designer keywords
+    // Landscape Designer keywords with expanded synonyms
     if (agent.name.toLowerCase().contains('landscape') ||
         agent.name.toLowerCase().contains('дизайн')) {
       final landscapeKeywords = [
-        'участок',
-        'преобразовать',
-        'дизайн',
-        'планировка',
-        'зонирование',
-        'ландшафт',
-        'территория',
-        'площадь',
-        'размещение',
-        'организация',
-        'plot',
-        'transform',
-        'design',
-        'planning',
-        'zoning',
-        'landscape',
+        'участок', 'участки', 'участка', 'участком',
+        'преобразовать', 'преобразование', 'преобразования', 'преобразуй',
+        'дизайн', 'дизайнер', 'дизайна', 'дизайном',
+        'планировка', 'планировки', 'планировку', 'планировкой',
+        'зонирование', 'зонирования', 'зонированием', 'зоны', 'зону', 'зоной',
+        'ландшафт', 'ландшафта', 'ландшафтом', 'ландшафтный',
+        'территория', 'территории', 'территорию', 'территорией',
+        'площадь', 'площади', 'площадью',
+        'размещение', 'размещения', 'размещением', 'разместить', 'размести',
+        'организация', 'организации', 'организацию', 'организацией', 'организовать',
+        'plot', 'plots', 'transform', 'transformation', 'design', 'designer',
+        'planning', 'plan', 'zoning', 'zones', 'landscape', 'landscaping',
       ];
 
-      for (final keyword in landscapeKeywords) {
-        if (message.contains(keyword)) {
-          score += 1.0;
-        }
-      }
+      score += _calculateFuzzyKeywordScore(message, landscapeKeywords);
     }
 
-    // Gardener keywords
+    // Gardener keywords with expanded synonyms
     if (agent.name.toLowerCase().contains('gardener') ||
         agent.name.toLowerCase().contains('садовник')) {
       final gardenerKeywords = [
-        'растение',
-        'цветок',
-        'дерево',
-        'сад',
-        'огород',
-        'посадка',
-        'уход',
-        'полив',
-        'удобрение',
-        'обрезка',
-        'сезон',
-        'plant',
-        'flower',
-        'tree',
-        'garden',
-        'care',
-        'season',
+        'растение', 'растения', 'растений', 'растением', 'растениями',
+        'цветок', 'цветы', 'цветов', 'цветком', 'цветами',
+        'дерево', 'деревья', 'деревьев', 'деревом', 'деревьями',
+        'сад', 'сада', 'саду', 'садом', 'сады', 'садов',
+        'огород', 'огорода', 'огороду', 'огородом', 'огороды', 'огородов',
+        'посадка', 'посадки', 'посадку', 'посадкой', 'посадить', 'посади',
+        'уход', 'ухода', 'уходом', 'ухаживать', 'ухаживай',
+        'полив', 'полива', 'поливом', 'полить', 'поливай',
+        'удобрение', 'удобрения', 'удобрением', 'удобрить', 'удобряй',
+        'обрезка', 'обрезки', 'обрезку', 'обрезкой', 'обрезать', 'обрезай',
+        'сезон', 'сезона', 'сезоном', 'сезоны', 'сезонов',
+        
+        // Розы и кусты
+        'роза', 'розы', 'розовый', 'розовая', 'розовое', 'розовые',
+        'куст', 'кусты', 'кустов', 'кустом', 'кустами', 'кустарник', 'кустарники',
+        'rose', 'roses', 'bush', 'bushes', 'shrub', 'shrubs',
+        
+        // Лечение и болезни
+        'лечить', 'лечение', 'лечения', 'лечением', 'вылечить', 'вылечи',
+        'болезнь', 'болезни', 'болезней', 'болезнью', 'заболевание', 'заболевания',
+        'пятна', 'пятен', 'пятном', 'пятнами', 'пятно', 'пятна',
+        'листья', 'листьев', 'листом', 'листами', 'лист', 'листа',
+        'вредители', 'вредителей', 'вредителем', 'вредителями', 'вредитель',
+        'лечение', 'лечения', 'лечением', 'лечить', 'вылечить',
+        'disease', 'diseases', 'treatment', 'treat', 'cure', 'heal',
+        'pest', 'pests', 'spots', 'spot', 'leaves', 'leaf',
+        
+        'plant', 'plants', 'flower', 'flowers', 'tree', 'trees',
+        'garden', 'gardens', 'care', 'caring', 'season', 'seasons',
       ];
 
-      for (final keyword in gardenerKeywords) {
-        if (message.contains(keyword)) {
-          score += 1.0;
-        }
-      }
+      score += _calculateFuzzyKeywordScore(message, gardenerKeywords);
     }
 
-    // Builder keywords
+    // Builder keywords with expanded synonyms and related terms
     if (agent.name.toLowerCase().contains('builder') ||
         agent.name.toLowerCase().contains('строитель')) {
       final builderKeywords = [
-        'строительство',
-        'дом',
-        'фундамент',
-        'материалы',
-        'конструкция',
-        'building',
-        'construction',
-        'house',
-        'foundation',
-        'materials',
+        'строительство', 'строительства', 'строительством', 'строить', 'строи',
+        'дом', 'дома', 'домов', 'домом', 'домами', 'домик', 'домика', 'домиком',
+        'фундамент', 'фундамента', 'фундаментом', 'фундаменты', 'фундаментов',
+        'материалы', 'материалов', 'материалом', 'материалами', 'материал', 'материала',
+        'строительные материалы', 'строительных материалов', 'строительным материалом',
+        'конструкция', 'конструкции', 'конструкцию', 'конструкцией', 'конструкции',
+        'построить', 'построить', 'построй', 'постройка', 'постройки', 'постройку',
+        'здание', 'здания', 'зданий', 'зданием', 'зданиями',
+        'сооружение', 'сооружения', 'сооружений', 'сооружением', 'сооружениями',
+        'стены', 'стен', 'стеной', 'стенами', 'стена', 'стены',
+        'крыша', 'крыши', 'крыш', 'крышей', 'крышами',
+        'пол', 'пола', 'полом', 'полами', 'полы', 'полов',
+        'building', 'buildings', 'construction', 'construct', 'house', 'houses',
+        'foundation', 'foundations', 'materials', 'material', 'structure', 'structures',
+        'build', 'built', 'builds', 'building', 'construct', 'constructed',
       ];
 
-      for (final keyword in builderKeywords) {
-        if (message.contains(keyword)) {
-          score += 1.0;
-        }
-      }
+      score += _calculateFuzzyKeywordScore(message, builderKeywords);
     }
 
-    // Ecologist keywords
+    // Ecologist keywords with expanded synonyms
     if (agent.name.toLowerCase().contains('ecologist') ||
         agent.name.toLowerCase().contains('эколог')) {
       final ecologistKeywords = [
-        'экология',
-        'экологичный',
-        'устойчивый',
-        'природный',
-        'переработка',
-        'ecology',
-        'ecological',
-        'sustainable',
-        'natural',
-        'recycling',
+        'экология', 'экологии', 'экологией', 'экологический', 'экологическая',
+        'экологичный', 'экологичная', 'экологичного', 'экологичной',
+        'устойчивый', 'устойчивая', 'устойчивого', 'устойчивой', 'устойчивость',
+        'природный', 'природная', 'природного', 'природной', 'природа', 'природы',
+        'переработка', 'переработки', 'переработку', 'переработкой', 'переработать',
+        'отходы', 'отходов', 'отходами', 'отход', 'отхода',
+        'компост', 'компоста', 'компостом', 'компостировать',
+        'био', 'биологический', 'биологическая', 'биологического', 'биологической',
+        'органический', 'органическая', 'органического', 'органической',
+        'натуральный', 'натуральная', 'натурального', 'натуральной',
+        'ecology', 'ecological', 'ecologically', 'sustainable', 'sustainability',
+        'natural', 'naturally', 'recycling', 'recycle', 'waste', 'compost',
+        'organic', 'organically', 'bio', 'biological', 'biologically',
       ];
 
-      for (final keyword in ecologistKeywords) {
-        if (message.contains(keyword)) {
-          score += 1.0;
-        }
-      }
+      score += _calculateFuzzyKeywordScore(message, ecologistKeywords);
     }
 
     return score;
+  }
+
+  /// Calculate fuzzy keyword score with typo tolerance and partial matching
+  double _calculateFuzzyKeywordScore(String message, List<String> keywords) {
+    var totalScore = 0.0;
+    final matchedKeywords = <String>[];
+
+    for (final keyword in keywords) {
+      final keywordLower = keyword.toLowerCase();
+      
+      // Exact match - highest score
+      if (message.contains(keywordLower)) {
+        totalScore += 1.0;
+        matchedKeywords.add(keyword);
+        continue;
+      }
+
+      // Check for partial matches and typos
+      final matchScore = _calculateFuzzyMatch(message, keywordLower);
+      if (matchScore > 0.0) {
+        totalScore += matchScore;
+        matchedKeywords.add('$keyword (fuzzy: ${(matchScore * 100).toInt()}%)');
+      }
+    }
+
+    // Log matched keywords for debugging
+    if (matchedKeywords.isNotEmpty) {
+      debugPrint('     - Matched keywords: ${matchedKeywords.join(', ')}');
+    }
+
+    return totalScore;
+  }
+
+  /// Calculate fuzzy match score between message and keyword
+  double _calculateFuzzyMatch(String message, String keyword) {
+    // Split message into words
+    final words = message.split(RegExp(r'\s+'));
+    
+    for (final word in words) {
+      // Skip very short words
+      if (word.length < 3) continue;
+      
+      // Check for partial matches (keyword contains word or vice versa)
+      if (keyword.contains(word) || word.contains(keyword)) {
+        final similarity = _calculateSimilarity(word, keyword);
+        if (similarity >= 0.7) {
+          return similarity * 0.8; // Partial match gets 80% of similarity score
+        }
+      }
+      
+      // Check for typo tolerance using Levenshtein distance
+      if (word.length >= 4 && keyword.length >= 4) {
+        final similarity = _calculateSimilarity(word, keyword);
+        if (similarity >= 0.8) {
+          return similarity * 0.6; // Typo match gets 60% of similarity score
+        }
+      }
+    }
+    
+    return 0.0;
+  }
+
+  /// Calculate similarity between two strings using Levenshtein distance
+  double _calculateSimilarity(String s1, String s2) {
+    if (s1 == s2) return 1.0;
+    if (s1.isEmpty || s2.isEmpty) return 0.0;
+    
+    final distance = _levenshteinDistance(s1, s2);
+    final maxLength = s1.length > s2.length ? s1.length : s2.length;
+    
+    return 1.0 - (distance / maxLength);
+  }
+
+  /// Calculate Levenshtein distance between two strings
+  int _levenshteinDistance(String s1, String s2) {
+    final matrix = List.generate(
+      s1.length + 1,
+      (i) => List.generate(s2.length + 1, (j) => 0),
+    );
+
+    for (int i = 0; i <= s1.length; i++) {
+      matrix[i][0] = i;
+    }
+    for (int j = 0; j <= s2.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (int i = 1; i <= s1.length; i++) {
+      for (int j = 1; j <= s2.length; j++) {
+        final cost = s1[i - 1] == s2[j - 1] ? 0 : 1;
+        matrix[i][j] = [
+          matrix[i - 1][j] + 1,      // deletion
+          matrix[i][j - 1] + 1,      // insertion
+          matrix[i - 1][j - 1] + cost, // substitution
+        ].reduce((a, b) => a < b ? a : b);
+      }
+    }
+
+    return matrix[s1.length][s2.length];
   }
 
   /// Get score based on agent performance metrics

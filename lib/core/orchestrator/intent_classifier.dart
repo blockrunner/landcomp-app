@@ -6,6 +6,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:landcomp_app/core/network/ai_service.dart';
 import 'package:landcomp_app/features/chat/domain/entities/message.dart';
 import 'package:landcomp_app/shared/models/context.dart';
@@ -26,24 +27,40 @@ class IntentClassifier {
     String userMessage,
     RequestContext context,
   ) async {
-    // Log classification start
-    // TODO(developer): Replace with proper logging framework
+    final startTime = DateTime.now();
+    final requestId = DateTime.now().millisecondsSinceEpoch.toString();
+    
+    debugPrint('🎯 [IntentClassifier] Starting classification (ID: $requestId)');
+    debugPrint('   📝 Message: "${userMessage.length > 100 ? '${userMessage.substring(0, 100)}...' : userMessage}"');
+    debugPrint('   📊 Context: ${context.conversationHistory.length} messages, ${context.attachments?.length ?? 0} attachments');
+    debugPrint('   🌐 Language: ${context.userLanguage ?? 'unknown'}');
 
     try {
       // Try OpenAI first
-      return await _classifyWithOpenAI(userMessage, context);
+      debugPrint('🤖 [IntentClassifier] Attempting OpenAI classification...');
+      final result = await _classifyWithOpenAI(userMessage, context, requestId);
+      final duration = DateTime.now().difference(startTime);
+      debugPrint('✅ [IntentClassifier] OpenAI classification successful in ${duration.inMilliseconds}ms');
+      debugPrint('   🎯 Result: ${result.type.name} (confidence: ${result.confidence})');
+      return result;
     } catch (e) {
-      // Log OpenAI failure and fallback
-      // TODO(developer): Replace with proper logging framework
+      final duration = DateTime.now().difference(startTime);
+      debugPrint('❌ [IntentClassifier] OpenAI classification failed after ${duration.inMilliseconds}ms: $e');
 
       try {
         // Fallback to Gemini
-        return await _classifyWithGemini(userMessage, context);
+        debugPrint('🔄 [IntentClassifier] Attempting Gemini fallback...');
+        final result = await _classifyWithGemini(userMessage, context, requestId);
+        final totalDuration = DateTime.now().difference(startTime);
+        debugPrint('✅ [IntentClassifier] Gemini classification successful in ${totalDuration.inMilliseconds}ms');
+        debugPrint('   🎯 Result: ${result.type.name} (confidence: ${result.confidence})');
+        return result;
       } catch (e) {
-        // Log Gemini failure
-        // TODO(developer): Replace with proper logging framework
+        final totalDuration = DateTime.now().difference(startTime);
+        debugPrint('❌ [IntentClassifier] Gemini classification also failed after ${totalDuration.inMilliseconds}ms: $e');
+        debugPrint('⚠️ [IntentClassifier] Returning default unclear intent');
         // Return default unclear intent
-        return _createDefaultIntent(userMessage, e.toString());
+        return _createDefaultIntent(userMessage, e.toString(), requestId);
       }
     }
   }
@@ -52,20 +69,39 @@ class IntentClassifier {
   Future<Intent> _classifyWithOpenAI(
     String userMessage,
     RequestContext context,
+    String requestId,
   ) async {
+    final startTime = DateTime.now();
+    debugPrint('🔵 [OpenAI] Building classification prompt...');
+    
     final prompt = _buildClassificationPrompt(userMessage, context);
+    debugPrint('📝 [OpenAI] Prompt length: ${prompt.length} characters');
+    debugPrint('📋 [OpenAI] Prompt preview: ${prompt.length > 200 ? '${prompt.substring(0, 200)}...' : prompt}');
 
-    // Log OpenAI request
-    // TODO(developer): Replace with proper logging framework
-
+    debugPrint('🚀 [OpenAI] Sending request to AI service...');
     final response = await _aiService.sendMessageWithSmartSelection(
       message: prompt,
       conversationHistory: [],
     );
 
+    final duration = DateTime.now().difference(startTime);
+    debugPrint('⏱️ [OpenAI] AI service response received in ${duration.inMilliseconds}ms');
+    debugPrint('📊 [OpenAI] Response status: ${response.isSuccess ? 'SUCCESS' : 'FAILED'}');
+    
     if (response.isSuccess && response.message != null) {
-      return _parseClassificationResponse(response.message!);
+      debugPrint('📥 [OpenAI] Raw response length: ${response.message!.length} characters');
+      debugPrint('📄 [OpenAI] Raw response preview: ${response.message!.length > 300 ? '${response.message!.substring(0, 300)}...' : response.message!}');
+      
+      try {
+        final parsedIntent = _parseClassificationResponse(response.message!, requestId, 'OpenAI');
+        debugPrint('✅ [OpenAI] Response parsed successfully');
+        return parsedIntent;
+      } catch (e) {
+        debugPrint('❌ [OpenAI] Failed to parse response: $e');
+        throw Exception('OpenAI response parsing failed: $e');
+      }
     } else {
+      debugPrint('❌ [OpenAI] AI service returned error: ${response.message}');
       throw Exception('OpenAI classification failed: ${response.message}');
     }
   }
@@ -74,20 +110,39 @@ class IntentClassifier {
   Future<Intent> _classifyWithGemini(
     String userMessage,
     RequestContext context,
+    String requestId,
   ) async {
+    final startTime = DateTime.now();
+    debugPrint('🟡 [Gemini] Building classification prompt...');
+    
     final prompt = _buildClassificationPrompt(userMessage, context);
+    debugPrint('📝 [Gemini] Prompt length: ${prompt.length} characters');
+    debugPrint('📋 [Gemini] Prompt preview: ${prompt.length > 200 ? '${prompt.substring(0, 200)}...' : prompt}');
 
-    // Log Gemini request
-    // TODO(developer): Replace with proper logging framework
-
+    debugPrint('🚀 [Gemini] Sending request to AI service...');
     final response = await _aiService.sendMessageWithSmartSelection(
       message: prompt,
       conversationHistory: [],
     );
 
+    final duration = DateTime.now().difference(startTime);
+    debugPrint('⏱️ [Gemini] AI service response received in ${duration.inMilliseconds}ms');
+    debugPrint('📊 [Gemini] Response status: ${response.isSuccess ? 'SUCCESS' : 'FAILED'}');
+    
     if (response.isSuccess && response.message != null) {
-      return _parseClassificationResponse(response.message!);
+      debugPrint('📥 [Gemini] Raw response length: ${response.message!.length} characters');
+      debugPrint('📄 [Gemini] Raw response preview: ${response.message!.length > 300 ? '${response.message!.substring(0, 300)}...' : response.message!}');
+      
+      try {
+        final parsedIntent = _parseClassificationResponse(response.message!, requestId, 'Gemini');
+        debugPrint('✅ [Gemini] Response parsed successfully');
+        return parsedIntent;
+      } catch (e) {
+        debugPrint('❌ [Gemini] Failed to parse response: $e');
+        throw Exception('Gemini response parsing failed: $e');
+      }
     } else {
+      debugPrint('❌ [Gemini] AI service returned error: ${response.message}');
       throw Exception('Gemini classification failed: ${response.message}');
     }
   }
@@ -290,27 +345,37 @@ class IntentClassifier {
   }
 
   /// Parse classification response from AI
-  Intent _parseClassificationResponse(String response) {
+  Intent _parseClassificationResponse(String response, String requestId, String apiProvider) {
+    final startTime = DateTime.now();
+    debugPrint('🔍 [Parse] Starting response parsing (ID: $requestId, Provider: $apiProvider)');
+    debugPrint('📄 [Parse] Raw response length: ${response.length} characters');
+    
     try {
       // Clean the response - remove any markdown formatting
       var cleanResponse = response.trim();
+      debugPrint('🧹 [Parse] Original response: ${response.length > 200 ? '${response.substring(0, 200)}...' : response}');
+      
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.substring(7);
+        debugPrint('📝 [Parse] Removed ```json prefix');
       }
       if (cleanResponse.endsWith('```')) {
         cleanResponse = cleanResponse.substring(0, cleanResponse.length - 3);
+        debugPrint('📝 [Parse] Removed ``` suffix');
       }
       cleanResponse = cleanResponse.trim();
-
-      // Log parsing response
-      // TODO(developer): Replace with proper logging framework
+      
+      debugPrint('✨ [Parse] Cleaned response: ${cleanResponse.length > 200 ? '${cleanResponse.substring(0, 200)}...' : cleanResponse}');
 
       final json = jsonDecode(cleanResponse) as Map<String, dynamic>;
+      debugPrint('✅ [Parse] JSON parsed successfully');
+      debugPrint('📊 [Parse] JSON keys: ${json.keys.toList()}');
 
       final type = IntentType.values.firstWhere(
         (e) => e.name == json['type'],
         orElse: () => IntentType.unclear,
       );
+      debugPrint('🎯 [Parse] Intent type: ${type.name}');
 
       final subtype = json['subtype'] != null
           ? IntentSubtype.values.firstWhere(
@@ -318,12 +383,16 @@ class IntentClassifier {
               orElse: () => IntentSubtype.generalQuestion,
             )
           : null;
+      debugPrint('🏷️ [Parse] Intent subtype: ${subtype?.name ?? 'null'}');
 
       final confidence = (json['confidence'] as num).toDouble().clamp(0.0, 1.0);
       final reasoning = json['reasoning'] as String? ?? 'No reasoning provided';
       final extractedEntities = List<String>.from(
         json['extracted_entities'] as List? ?? [],
       );
+      debugPrint('📈 [Parse] Confidence: $confidence');
+      debugPrint('💭 [Parse] Reasoning: ${reasoning.length > 100 ? '${reasoning.substring(0, 100)}...' : reasoning}');
+      debugPrint('🏷️ [Parse] Extracted entities: $extractedEntities');
 
       // Parse image intent fields
       final imageIntent = json['imageIntent'] != null
@@ -332,16 +401,22 @@ class IntentClassifier {
               orElse: () => ImageIntent.unclear,
             )
           : null;
+      debugPrint('🖼️ [Parse] Image intent: ${imageIntent?.name ?? 'null'}');
 
       final referencedImageIndices = json['referencedImageIndices'] != null
           ? List<int>.from(json['referencedImageIndices'] as List)
           : null;
+      debugPrint('🔗 [Parse] Referenced image indices: $referencedImageIndices');
 
       final imagesNeeded = json['imagesNeeded'] as int?;
+      debugPrint('📸 [Parse] Images needed: $imagesNeeded');
 
       final metadata = <String, dynamic>{
         'classification_method': 'ai_classification',
         'raw_response': response,
+        'api_provider': apiProvider,
+        'request_id': requestId,
+        'parsing_time_ms': DateTime.now().difference(startTime).inMilliseconds,
       };
 
       final intent = Intent(
@@ -356,20 +431,23 @@ class IntentClassifier {
         imagesNeeded: imagesNeeded,
       );
 
-      // Log successful classification
-      // TODO(developer): Replace with proper logging framework
+      final duration = DateTime.now().difference(startTime);
+      debugPrint('✅ [Parse] Intent created successfully in ${duration.inMilliseconds}ms');
+      debugPrint('🎯 [Parse] Final intent: ${intent.type.name} (${intent.confidence})');
       return intent;
     } catch (e) {
-      // Log parsing failure
-      // TODO(developer): Replace with proper logging framework
+      final duration = DateTime.now().difference(startTime);
+      debugPrint('❌ [Parse] Failed to parse response after ${duration.inMilliseconds}ms: $e');
+      debugPrint('📄 [Parse] Raw response that failed: ${response.length > 500 ? '${response.substring(0, 500)}...' : response}');
       throw Exception('Failed to parse classification response: $e');
     }
   }
 
   /// Create default intent when classification fails
-  Intent _createDefaultIntent(String userMessage, String error) {
-    // Log default intent creation
-    // TODO(developer): Replace with proper logging framework
+  Intent _createDefaultIntent(String userMessage, String error, String requestId) {
+    debugPrint('⚠️ [DefaultIntent] Creating fallback intent (ID: $requestId)');
+    debugPrint('❌ [DefaultIntent] Error: $error');
+    debugPrint('📝 [DefaultIntent] User message: ${userMessage.length > 100 ? '${userMessage.substring(0, 100)}...' : userMessage}');
 
     return Intent(
       type: IntentType.unclear,
@@ -379,6 +457,8 @@ class IntentClassifier {
         'classification_method': 'default_fallback',
         'error': error,
         'user_message': userMessage,
+        'request_id': requestId,
+        'fallback_reason': 'Both OpenAI and Gemini classification failed',
       }
     );
   }
