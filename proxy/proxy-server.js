@@ -1,11 +1,11 @@
 /// Простой прокси-сервер для веб-версии Flutter приложения
 /// 
 /// Этот сервер принимает запросы от веб-приложения и проксирует их
-/// через указанный SOCKS5 прокси к API сервисам.
+/// через указанный HTTP/HTTPS прокси к API сервисам.
 
 const express = require('express');
-const { SocksProxyAgent } = require('socks-proxy-agent');
-const fetch = require('node-fetch');
+const { fetch } = require('undici');
+const { ProxyAgent: AnyProxyAgent } = require('proxy-agent');
 const cors = require('cors');
 
 const app = express();
@@ -21,16 +21,24 @@ app.use(cors({
   maxAge: 86400 // 24 hours cache for preflight requests
 }));
 
+// Debug middleware to see what's coming in (before body parsing)
+app.use((req, res, next) => {
+  console.log(`🔍 Request: ${req.method} ${req.path}`);
+  console.log(`🔍 Content-Type: ${req.headers['content-type']}`);
+  console.log(`🔍 Content-Length: ${req.headers['content-length']}`);
+  console.log(`🔍 User-Agent: ${req.headers['user-agent']}`);
+  next();
+});
+
 // Enhanced JSON parsing with mobile device support
 app.use(express.json({ 
   limit: '100mb',
-  type: ['application/json', 'text/plain', 'application/x-www-form-urlencoded']
+  type: 'application/json' // Only parse application/json, not text/plain
 }));
 
 app.use(express.urlencoded({ 
   limit: '100mb', 
-  extended: true,
-  type: ['application/x-www-form-urlencoded', 'multipart/form-data']
+  extended: true
 }));
 
 // Mobile-specific headers
@@ -57,58 +65,119 @@ app.use((req, res, next) => {
 });
 
 // Конфигурация прокси из переменных окружения
-const PROXY_URL = process.env.ALL_PROXY || 'socks5h://xexEUhKx:AXySXT2c@45.192.51.104:63435';
-const BACKUP_PROXIES = (process.env.BACKUP_PROXIES || '').split(',').filter(p => p.trim());
+const RAW_PROXY_LIST = process.env.HTTP_PROXY || process.env.ALL_PROXY || '';
+const PROXY_URLS = RAW_PROXY_LIST.split(',').map(s => s.trim()).filter(Boolean);
 
 console.log('🔧 Proxy Server Configuration:');
-console.log('   Main Proxy:', PROXY_URL);
-console.log('   Backup Proxies:', BACKUP_PROXIES.length);
+console.log('   Proxies:', PROXY_URLS.length);
 
-// Создаем агент для прокси
-let currentProxyAgent = null;
+// Создаем агенты для прокси
 let currentProxyIndex = 0;
 
-function createProxyAgent(proxyUrl) {
+// Build proxy URL candidates from host:port:user:pass (socks5h and http)
+function buildProxyUrlCandidates(proxyStr) {
+  const parts = proxyStr.trim().split(':');
+  if (parts.length === 4) {
+    const [host, port, username, password] = parts;
+    return [ `socks5h://${username}:${password}@${host}:${port}` ];
+  }
+  // If already URL, use as-is
+  return [proxyStr];
+}
+
+// Try fetch through proxies with parallel fast failover (Promise.any)
+async function fetchThroughProxies(targetUrl, baseOptions) {
+  const proxies = PROXY_URLS.length > 0 ? PROXY_URLS : [null];
+
+  let lastError = null;
+  const perProxyTimeoutMs = 8000; // 8s per proxy
+  const attempts = proxies.flatMap((proxy) => {
+    const urls = proxy ? buildProxyUrlCandidates(proxy) : [null];
+    return urls.map((candidateUrl) => {
+    return new Promise(async (resolve, reject) => {
+      const options = { ...baseOptions };
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(new Error('proxy_timeout')),
+        perProxyTimeoutMs);
+      options.signal = controller.signal;
+
+      if (candidateUrl) {
+        try {
+          const agent = new AnyProxyAgent(candidateUrl);
+          options.dispatcher = agent;
+          console.log(`🌐 Trying proxy: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
+        } catch (e) {
+          clearTimeout(timeoutId);
+          return reject(e);
+        }
+      } else {
+        console.log('🌐 No proxy configured, direct connection');
+      }
+
+      try {
+        const response = await fetch(targetUrl, options);
+        clearTimeout(timeoutId);
+        if (candidateUrl) {
+          console.log(`✅ Proxy OK: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
+        }
+        resolve(response);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        lastError = error;
+        console.error(`❌ Request via ${candidateUrl || 'direct'} failed: ${error.message}`);
+        reject(error);
+      }
+    });
+  });
+  });
+
   try {
-    return new SocksProxyAgent(proxyUrl);
-  } catch (error) {
-    console.error('❌ Error creating proxy agent:', error.message);
-    return null;
+    return Promise.any(attempts);
+  } catch (e) {
+    throw lastError || e || new Error('All proxies failed');
   }
 }
 
+// (Legacy helper no longer needed with parallel attempts)
+
 function getCurrentProxyAgent() {
-  if (!currentProxyAgent) {
-    currentProxyAgent = createProxyAgent(PROXY_URL);
+  if (PROXY_URLS.length === 0) {
+    return null; // No proxy configured
   }
-  return currentProxyAgent;
+  return null;
+}
+
+// Temporary function to test without proxy
+function getTestProxyAgent() {
+  console.log('🧪 Testing without HTTP proxy...');
+  return null; // No proxy for testing
 }
 
 function switchToNextProxy() {
-  if (BACKUP_PROXIES.length > 0) {
-    currentProxyIndex = (currentProxyIndex + 1) % BACKUP_PROXIES.length;
-    const nextProxy = BACKUP_PROXIES[currentProxyIndex];
+  if (PROXY_URLS.length > 1) {
+    currentProxyIndex = (currentProxyIndex + 1) % PROXY_URLS.length;
+    const nextProxy = PROXY_URLS[currentProxyIndex];
     console.log(`🔄 Switching to backup proxy: ${nextProxy}`);
-    currentProxyAgent = createProxyAgent(nextProxy);
-    return currentProxyAgent;
+    const url = buildProxyUrlCandidates(nextProxy)[0];
+    return new AnyProxyAgent(url);
   }
   return null;
 }
 
 // Маршрут для проксирования запросов к OpenAI
-app.post('/proxy/openai/*', async (req, res) => {
+app.post('/openai/*', async (req, res) => {
   try {
-    const targetUrl = 'https://api.openai.com' + req.path.replace('/proxy/openai', '');
+    console.log(`🚀 Received OpenAI request: ${req.path}`);
+    console.log(`📤 Request method: ${req.method}`);
+    console.log(`📤 Request headers:`, req.headers);
+    console.log(`📤 Request body type:`, typeof req.body);
+    console.log(`📤 Request body:`, req.body);
+    console.log(`📤 Raw body length:`, req.body ? JSON.stringify(req.body).length : 'undefined');
+    
+    const targetUrl = 'https://api.openai.com' + req.path.replace('/openai', '');
     
     console.log(`🚀 Proxying OpenAI request to: ${targetUrl}`);
-    console.log(`📤 Request body:`, JSON.stringify(req.body, null, 2));
-    console.log(`📤 Request headers:`, req.headers);
     
-    const agent = getCurrentProxyAgent();
-    if (!agent) {
-      return res.status(500).json({ error: 'Proxy agent not available' });
-    }
-
     // Enhanced headers for mobile compatibility
     const headers = {
       'Content-Type': 'application/json',
@@ -129,14 +198,15 @@ app.post('/proxy/openai/*', async (req, res) => {
       headers['X-Requested-With'] = 'XMLHttpRequest';
     }
 
-    const response = await fetch(targetUrl, {
+    const fetchOptions = {
       method: req.method,
       headers: headers,
       body: JSON.stringify(req.body),
-      agent: agent,
-      timeout: isMobile ? 180000 : 120000, // Longer timeout for mobile devices
+      timeout: 300000, // 5 minutes total upper bound (per-proxy is shorter)
       compress: true, // Enable compression for mobile
-    });
+    };
+    
+    const response = await fetchThroughProxies(targetUrl, fetchOptions);
 
     const data = await response.text();
     
@@ -151,38 +221,7 @@ app.post('/proxy/openai/*', async (req, res) => {
   } catch (error) {
     console.error('❌ OpenAI proxy error:', error.message);
     
-    // Попробуем переключиться на резервный прокси
-    const backupAgent = switchToNextProxy();
-    if (backupAgent) {
-      try {
-        const targetUrl = 'https://api.openai.com' + req.path.replace('/proxy/openai', '');
-        const response = await fetch(targetUrl, {
-          method: req.method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': req.headers.authorization,
-            'User-Agent': 'LandComp-AI-Client/1.0',
-          },
-          body: JSON.stringify(req.body),
-          agent: backupAgent,
-          timeout: 120000, // 2 minutes for large images
-        });
-
-        const data = await response.text();
-        
-        // Проверяем, является ли ответ JSON
-        try {
-          const jsonData = JSON.parse(data);
-          res.status(response.status).json(jsonData);
-        } catch (e) {
-          res.status(response.status).send(data);
-        }
-        return;
-      } catch (backupError) {
-        console.error('❌ Backup proxy also failed:', backupError.message);
-      }
-    }
-    
+    // Быстрый отказ уже выполнен в fetchThroughProxies
     res.status(500).json({ 
       error: 'Proxy request failed', 
       details: error.message 
@@ -191,10 +230,10 @@ app.post('/proxy/openai/*', async (req, res) => {
 });
 
 // Маршрут для проксирования запросов к Google Gemini
-app.post('/proxy/gemini/*', async (req, res) => {
+app.post('/gemini/*', async (req, res) => {
   try {
     // Строим полный URL с query параметрами
-    const pathWithoutProxy = req.path.replace('/proxy/gemini', '');
+    const pathWithoutProxy = req.path.replace('/gemini', '');
     const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
     const targetUrl = 'https://generativelanguage.googleapis.com' + pathWithoutProxy + queryString;
     
@@ -203,10 +242,7 @@ app.post('/proxy/gemini/*', async (req, res) => {
     console.log(`🔍 Query params: ${req.query}`);
     console.log(`🔍 Full URL: ${req.url}`);
     
-    const agent = getCurrentProxyAgent();
-    if (!agent) {
-      return res.status(500).json({ error: 'Proxy agent not available' });
-    }
+    // Прокси агент создается внутри fast-failover функции
 
     // Извлекаем API ключ из URL
     const url = new URL(targetUrl);
@@ -241,17 +277,18 @@ app.post('/proxy/gemini/*', async (req, res) => {
     }
     
     // Убираем API ключ из URL для безопасности
-    url.searchParams.delete('key');
+    // Сохраняем key и в query, и в заголовке для совместимости
     const cleanTargetUrl = url.toString();
 
-    const response = await fetch(cleanTargetUrl, {
+    const fetchOptions = {
       method: req.method,
       headers: headers,
       body: JSON.stringify(req.body),
-      agent: agent,
-      timeout: isMobile ? 180000 : 120000, // Longer timeout for mobile devices
+      timeout: 300000, // 5 minutes total upper bound (per-proxy is shorter)
       compress: true, // Enable compression for mobile
-    });
+    };
+    
+    const response = await fetchThroughProxies(cleanTargetUrl, fetchOptions);
 
     const data = await response.text();
     
@@ -260,49 +297,7 @@ app.post('/proxy/gemini/*', async (req, res) => {
   } catch (error) {
     console.error('❌ Gemini proxy error:', error.message);
     
-    // Попробуем переключиться на резервный прокси
-    const backupAgent = switchToNextProxy();
-    if (backupAgent) {
-      try {
-        const targetUrl = 'https://generativelanguage.googleapis.com' + req.path.replace('/proxy/gemini', '');
-        const url = new URL(targetUrl);
-        const apiKey = url.searchParams.get('key');
-        
-        const headers = {
-          'Content-Type': 'application/json',
-          'User-Agent': 'LandComp-AI-Client/1.0',
-        };
-        
-        if (apiKey) {
-          headers['x-goog-api-key'] = apiKey;
-        }
-        
-        url.searchParams.delete('key');
-        const cleanTargetUrl = url.toString();
-        
-        const response = await fetch(cleanTargetUrl, {
-          method: req.method,
-          headers: headers,
-          body: JSON.stringify(req.body),
-          agent: backupAgent,
-          timeout: 120000, // 2 minutes for large images
-        });
-
-        const data = await response.text();
-        
-        // Проверяем, является ли ответ JSON
-        try {
-          const jsonData = JSON.parse(data);
-          res.status(response.status).json(jsonData);
-        } catch (e) {
-          res.status(response.status).send(data);
-        }
-        return;
-      } catch (backupError) {
-        console.error('❌ Backup proxy also failed:', backupError.message);
-      }
-    }
-    
+    // Быстрый отказ уже выполнен в fetchThroughProxies
     res.status(500).json({ 
       error: 'Proxy request failed', 
       details: error.message 
@@ -314,10 +309,17 @@ app.post('/proxy/gemini/*', async (req, res) => {
 app.get('/proxy/status', (req, res) => {
   res.json({
     status: 'running',
-    mainProxy: PROXY_URL,
-    backupProxies: BACKUP_PROXIES.length,
+    mainProxy: PROXY_URLS[0] || null,
+    backupProxies: Math.max(0, PROXY_URLS.length - 1),
     currentProxyIndex: currentProxyIndex,
   });
+});
+
+// Test route for debugging
+app.post('/test', (req, res) => {
+  console.log('🚀 Test route hit!');
+  console.log('📤 Request body:', req.body);
+  res.json({ message: 'Test route working', body: req.body });
 });
 
 // Health check endpoint
@@ -344,8 +346,8 @@ app.get('/mobile-diagnostics', (req, res) => {
     },
     proxy: {
       status: 'running',
-      mainProxy: PROXY_URL,
-      backupProxies: BACKUP_PROXIES.length,
+      mainProxy: PROXY_URLS[0] || null,
+      backupProxies: Math.max(0, PROXY_URLS.length - 1),
       currentProxyIndex: currentProxyIndex
     },
     capabilities: {
@@ -358,9 +360,9 @@ app.get('/mobile-diagnostics', (req, res) => {
 });
 
 // Запуск сервера
-app.listen(PORT, () => {
-  console.log(`🚀 Proxy server running on http://localhost:${PORT}`);
-  console.log(`📡 Ready to proxy requests through: ${PROXY_URL}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Proxy server running on http://0.0.0.0:${PORT}`);
+  console.log(`📡 Ready to proxy requests through: ${PROXY_URLS[0] || 'direct'}`);
 });
 
 // Обработка ошибок

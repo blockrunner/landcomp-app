@@ -70,10 +70,10 @@ class AIService {
       }
     }
 
-    // Configure timeouts
-    _dio.options.connectTimeout = const Duration(seconds: 30);
-    _dio.options.receiveTimeout = const Duration(seconds: 60);
-    _dio.options.sendTimeout = const Duration(seconds: 30);
+    // Configure timeouts - increased for AI requests
+    _dio.options.connectTimeout = const Duration(seconds: 60);
+    _dio.options.receiveTimeout = const Duration(seconds: 300); // 5 minutes for AI responses
+    _dio.options.sendTimeout = const Duration(seconds: 60);
 
     // Add interceptors
     _dio.interceptors
