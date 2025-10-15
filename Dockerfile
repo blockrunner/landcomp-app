@@ -41,21 +41,27 @@ COPY --from=build /app/build/web /usr/share/nginx/html
 # Create directory for logs
 RUN mkdir -p /var/log/nginx
 
-# Create startup script to generate .env file
+# Create startup script to generate env.js file (FIXED for Flutter Web)
 RUN echo '#!/bin/sh' > /usr/local/bin/generate-env.sh && \
-    echo 'echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "GOOGLE_API_KEY=${GOOGLE_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "GOOGLE_API_KEYS_FALLBACK=${GOOGLE_API_KEYS_FALLBACK}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "ALL_PROXY=${ALL_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "BACKUP_PROXIES=${BACKUP_PROXIES}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "HTTP_PROXY=${HTTP_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "HTTPS_PROXY=${HTTPS_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "NO_PROXY=${NO_PROXY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "STABILITY_API_KEY=${STABILITY_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "YC_API_KEY_ID=${YC_API_KEY_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "YC_API_KEY=${YC_API_KEY}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
-    echo 'echo "YC_FOLDER_ID=${YC_FOLDER_ID}" >> /usr/share/nginx/html/assets/.env' >> /usr/local/bin/generate-env.sh && \
+    echo 'cat > /usr/share/nginx/html/env.js <<EOF' >> /usr/local/bin/generate-env.sh && \
+    echo '// Environment configuration generated at runtime' >> /usr/local/bin/generate-env.sh && \
+    echo 'window.ENV = {' >> /usr/local/bin/generate-env.sh && \
+    echo '  OPENAI_API_KEY: "${OPENAI_API_KEY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  GOOGLE_API_KEY: "${GOOGLE_API_KEY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  GOOGLE_API_KEYS_FALLBACK: "${GOOGLE_API_KEYS_FALLBACK:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  ALL_PROXY: "${ALL_PROXY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  BACKUP_PROXIES: "${BACKUP_PROXIES:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  HTTP_PROXY: "${HTTP_PROXY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  HTTPS_PROXY: "${HTTPS_PROXY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  NO_PROXY: "${NO_PROXY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  SERVER_HOST: "${SERVER_HOST:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  STABILITY_API_KEY: "${STABILITY_API_KEY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  HUGGINGFACE_API_KEY: "${HUGGINGFACE_API_KEY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  YC_API_KEY_ID: "${YC_API_KEY_ID:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  YC_API_KEY: "${YC_API_KEY:-}",' >> /usr/local/bin/generate-env.sh && \
+    echo '  YC_FOLDER_ID: "${YC_FOLDER_ID:-}"' >> /usr/local/bin/generate-env.sh && \
+    echo '};' >> /usr/local/bin/generate-env.sh && \
+    echo 'EOF' >> /usr/local/bin/generate-env.sh && \
     chmod +x /usr/local/bin/generate-env.sh
 
 # Expose port 80

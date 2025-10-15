@@ -7,6 +7,8 @@ library;
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:js_util' as js_util;
+import 'dart:html' as html;
 
 /// Environment configuration class
 class EnvConfig {
@@ -15,19 +17,44 @@ class EnvConfig {
   // Helper method to get environment variable
   static String _getEnvVar(String key) {
     try {
-      // For web platform, use dotenv
+      // For web platform, read from window.ENV (generated at runtime)
       if (kIsWeb) {
-        return dotenv.env[key] ?? '';
+        try {
+          // Используем dart:js_util для безопасного доступа
+          final env = js_util.getProperty(html.window, 'ENV');
+          if (env != null) {
+            final value = js_util.getProperty(env, key);
+            if (value != null && value is js.JSString) {
+              final stringValue = value.toDart;
+              // Игнорируем пустые строки
+              if (stringValue.isNotEmpty && stringValue != 'null' && stringValue != 'undefined') {
+                return stringValue;
+              }
+            }
+          } else {
+            // window.ENV не загружен, возможно env.js еще не выполнился
+            debugPrint('⚠️ window.ENV is not available yet for key: $key');
+          }
+        } catch (e) {
+          debugPrint('❌ Error reading from window.ENV[$key]: $e');
+        }
+        return '';
       }
 
       // For mobile/desktop, try dotenv first, then Platform.environment
       if (dotenv.env.containsKey(key)) {
-        return dotenv.env[key] ?? '';
+        final value = dotenv.env[key] ?? '';
+        // Игнорируем пустые строки
+        if (value.isNotEmpty) {
+          return value;
+        }
       }
 
       // Fallback to Platform.environment (for mobile/desktop)
-      return Platform.environment[key] ?? '';
+      final envValue = Platform.environment[key] ?? '';
+      return envValue;
     } catch (e) {
+      debugPrint('❌ Error in _getEnvVar[$key]: $e');
       // If dotenv is not loaded and we're on web, return empty
       if (kIsWeb) {
         return '';

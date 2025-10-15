@@ -16,6 +16,10 @@ COPY proxy/proxy-server.js ./
 # Expose port
 EXPOSE 3001
 
+# Health check для Docker Compose
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"
+
 # Start proxy server
 CMD ["node", "proxy-server.js"]
 

@@ -4,8 +4,8 @@ services:
   # Proxy Server for AI API requests
   landcomp-proxy:
     build:
-      context: ./proxy
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.proxy
     container_name: landcomp-proxy
     networks:
       - landcomp-network
@@ -79,6 +79,8 @@ services:
 networks:
   landcomp-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450
 
 volumes:
   logs:

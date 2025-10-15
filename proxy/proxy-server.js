@@ -65,8 +65,32 @@ app.use((req, res, next) => {
 });
 
 // Конфигурация прокси из переменных окружения
-const RAW_PROXY_LIST = process.env.HTTP_PROXY || process.env.ALL_PROXY || '';
-const PROXY_URLS = RAW_PROXY_LIST.split(',').map(s => s.trim()).filter(Boolean);
+// FIXED: Правильное чтение переменных (игнорируем пустые строки)
+const getProxyList = () => {
+  const httpProxy = (process.env.HTTP_PROXY || '').trim();
+  const allProxy = (process.env.ALL_PROXY || '').trim();
+  
+  // Приоритет: HTTP_PROXY, затем ALL_PROXY (только если не пустые)
+  let rawProxyList = '';
+  if (httpProxy.length > 0) {
+    rawProxyList = httpProxy;
+    console.log('🔧 Using HTTP_PROXY');
+  } else if (allProxy.length > 0) {
+    rawProxyList = allProxy;
+    console.log('🔧 Using ALL_PROXY');
+  } else {
+    console.log('⚠️  No proxy configured (HTTP_PROXY and ALL_PROXY are empty)');
+  }
+  
+  // Разбираем список прокси (может быть несколько через запятую)
+  const proxyUrls = rawProxyList.length > 0
+    ? rawProxyList.split(',').map(s => s.trim()).filter(s => s.length > 0)
+    : [];
+  
+  return proxyUrls;
+};
+
+const PROXY_URLS = getProxyList();
 
 console.log('🔧 Proxy Server Configuration:');
 console.log('   Proxies:', PROXY_URLS.length);

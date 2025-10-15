@@ -179,20 +179,9 @@ class AIService {
       _dio.options.baseUrl = proxyServerUrl;
     }
     
-    // Add proxy information to headers for the proxy server
-    _dio.options.headers
-      ..['X-Proxy-URL'] = _currentProxy
-      ..['X-Proxy-Host'] = proxyUri.host
-      ..['X-Proxy-Port'] = proxyUri.port.toString();
-
-    if (proxyUri.userInfo.isNotEmpty) {
-      final credentials = proxyUri.userInfo.split(':');
-      if (credentials.length == 2) {
-        _dio.options.headers
-          ..['X-Proxy-User'] = credentials[0]
-          ..['X-Proxy-Pass'] = credentials[1];
-      }
-    }
+    // REMOVED: X-Proxy-* headers are not used by proxy-server
+    // Proxy server reads configuration from environment variables,
+    // not from request headers
   }
 
   /// Create logging interceptor
