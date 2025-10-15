@@ -4,8 +4,9 @@
 /// через указанный HTTP/HTTPS прокси к API сервисам.
 
 const express = require('express');
-const { fetch } = require('undici');
-const { ProxyAgent: AnyProxyAgent } = require('proxy-agent');
+const fetch = require('node-fetch');
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const { SocksProxyAgent } = require('socks-proxy-agent');
 const cors = require('cors');
 
 const app = express();
@@ -129,7 +130,7 @@ function buildProxyUrlCandidates(proxyStr) {
   return [trimmed];
 }
 
-// Try fetch through proxies with parallel fast failover (Promise.any)
+// Try node-fetch through proxies with parallel fast failover (Promise.any)
 async function fetchThroughProxies(targetUrl, baseOptions) {
   const proxies = PROXY_URLS.length > 0 ? PROXY_URLS : [null];
 
@@ -138,41 +139,54 @@ async function fetchThroughProxies(targetUrl, baseOptions) {
   const attempts = proxies.flatMap((proxy) => {
     const urls = proxy ? buildProxyUrlCandidates(proxy) : [null];
     return urls.map((candidateUrl) => {
-    return new Promise(async (resolve, reject) => {
-      const options = { ...baseOptions };
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(new Error('proxy_timeout')),
-        perProxyTimeoutMs);
-      options.signal = controller.signal;
+      return new Promise(async (resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error('proxy_timeout'));
+        }, perProxyTimeoutMs);
 
-      if (candidateUrl) {
         try {
-          const agent = new AnyProxyAgent(candidateUrl);
-          options.dispatcher = agent;
-          console.log(`🌐 Trying proxy: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
-        } catch (e) {
-          clearTimeout(timeoutId);
-          return reject(e);
-        }
-      } else {
-        console.log('🌐 No proxy configured, direct connection');
-      }
+          let agent = null;
+          
+          if (candidateUrl) {
+            console.log(`🌐 Trying proxy: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
+            
+            if (candidateUrl.startsWith('socks5h://') || candidateUrl.startsWith('socks5://')) {
+              agent = new SocksProxyAgent(candidateUrl);
+            } else if (candidateUrl.startsWith('http://') || candidateUrl.startsWith('https://')) {
+              agent = new HttpsProxyAgent(candidateUrl);
+            }
+          } else {
+            console.log('🌐 No proxy configured, direct connection');
+          }
 
-      try {
-        const response = await fetch(targetUrl, options);
-        clearTimeout(timeoutId);
-        if (candidateUrl) {
-          console.log(`✅ Proxy OK: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
+          console.log(`🔍 Target URL: ${targetUrl}`);
+          console.log(`🔍 Method: ${baseOptions.method || 'POST'}`);
+          console.log(`🔍 Headers:`, baseOptions.headers || {});
+          
+          const fetchOptions = {
+            method: baseOptions.method || 'POST',
+            headers: baseOptions.headers || {},
+            body: baseOptions.body || JSON.stringify(baseOptions.data),
+            timeout: perProxyTimeoutMs,
+            agent: agent,
+          };
+
+          const response = await fetch(targetUrl, fetchOptions);
+          clearTimeout(timeoutId);
+          
+          if (candidateUrl) {
+            console.log(`✅ Proxy OK: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
+          }
+          
+          resolve(response);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          lastError = error;
+          console.error(`❌ Request via ${candidateUrl || 'direct'} failed: ${error.message}`);
+          reject(error);
         }
-        resolve(response);
-      } catch (error) {
-        clearTimeout(timeoutId);
-        lastError = error;
-        console.error(`❌ Request via ${candidateUrl || 'direct'} failed: ${error.message}`);
-        reject(error);
-      }
+      });
     });
-  });
   });
 
   try {
@@ -350,7 +364,7 @@ app.post('/gemini/*', async (req, res) => {
 });
 
 // Маршрут для проверки статуса прокси
-app.get('/proxy/status', (req, res) => {
+app.get('/status', (req, res) => {
   res.json({
     status: 'running',
     mainProxy: PROXY_URLS[0] || null,

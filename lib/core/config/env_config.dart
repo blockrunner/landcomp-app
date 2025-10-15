@@ -133,7 +133,15 @@ class EnvConfig {
   /// Get current proxy configuration
   static String getCurrentProxy() {
     if (allProxy.isNotEmpty) {
-      return allProxy;
+      // Parse the first proxy from comma-separated list
+      final proxyList = allProxy
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (proxyList.isNotEmpty) {
+        return proxyList.first;
+      }
     }
     if (backupProxies.isNotEmpty) {
       return backupProxies.first;
@@ -143,6 +151,20 @@ class EnvConfig {
 
   /// Get next backup proxy
   static String? getNextBackupProxy(String currentProxy) {
+    // First try to find next proxy in ALL_PROXY list
+    if (allProxy.isNotEmpty) {
+      final proxyList = allProxy
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      final currentIndex = proxyList.indexOf(currentProxy);
+      if (currentIndex >= 0 && currentIndex < proxyList.length - 1) {
+        return proxyList[currentIndex + 1];
+      }
+    }
+    
+    // Then try backup proxies
     final currentIndex = backupProxies.indexOf(currentProxy);
     if (currentIndex >= 0 && currentIndex < backupProxies.length - 1) {
       return backupProxies[currentIndex + 1];
