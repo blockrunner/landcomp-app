@@ -81,9 +81,13 @@ class IntentClassifier {
     debugPrint('🚀 [OpenAI] Sending request to AI service...');
     final response = await _aiService.sendMessage(
       message: prompt,
-      systemPrompt: 'You are an intelligent intent classifier for a '
-          'landscape design AI assistant. Analyze the user\'s message and '
-          'conversation context to understand their true intent.',
+      systemPrompt: 'You are a JSON-only intent classification system. '
+          'Your sole purpose is to analyze user messages and return '
+          'classification results in JSON format. '
+          'CRITICAL: You must ONLY return valid JSON. '
+          'Do NOT provide conversational responses. '
+          'Do NOT refuse to classify any message. '
+          'ALWAYS return a JSON classification result.',
     );
 
     final duration = DateTime.now().difference(startTime);
@@ -124,9 +128,13 @@ class IntentClassifier {
     debugPrint('🚀 [Gemini] Sending request to AI service...');
     final response = await _aiService.sendMessage(
       message: prompt,
-      systemPrompt: 'You are an intelligent intent classifier for a '
-          'landscape design AI assistant. Analyze the user\'s message and '
-          'conversation context to understand their true intent.',
+      systemPrompt: 'You are a JSON-only intent classification system. '
+          'Your sole purpose is to analyze user messages and return '
+          'classification results in JSON format. '
+          'CRITICAL: You must ONLY return valid JSON. '
+          'Do NOT provide conversational responses. '
+          'Do NOT refuse to classify any message. '
+          'ALWAYS return a JSON classification result.',
       preferredProvider: 'gemini',
     );
 
