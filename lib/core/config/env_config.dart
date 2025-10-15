@@ -24,8 +24,8 @@ class EnvConfig {
           final env = js_util.getProperty(html.window, 'ENV');
           if (env != null) {
             final value = js_util.getProperty(env, key);
-            if (value != null && value is js.JSString) {
-              final stringValue = value.toDart;
+            if (value != null && value is String) {
+              final stringValue = value;
               // Игнорируем пустые строки
               if (stringValue.isNotEmpty && stringValue != 'null' && stringValue != 'undefined') {
                 return stringValue;
