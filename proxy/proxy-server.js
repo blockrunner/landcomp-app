@@ -68,27 +68,18 @@ app.use((req, res, next) => {
 // Конфигурация прокси из переменных окружения
 // FIXED: Правильное чтение переменных (игнорируем пустые строки)
 const getProxyList = () => {
-  const httpProxy = (process.env.HTTP_PROXY || '').trim();
   const allProxy = (process.env.ALL_PROXY || '').trim();
   
-  // Приоритет: HTTP_PROXY, затем ALL_PROXY (только если не пустые)
-  let rawProxyList = '';
-  if (httpProxy.length > 0) {
-    rawProxyList = httpProxy;
-    console.log('🔧 Using HTTP_PROXY');
-  } else if (allProxy.length > 0) {
-    rawProxyList = allProxy;
+  // Используем ТОЛЬКО ALL_PROXY, никаких fallback на HTTP_PROXY или прямые запросы
+  if (allProxy.length > 0) {
     console.log('🔧 Using ALL_PROXY');
+    // Разбираем список прокси (может быть несколько через запятую)
+    const proxyUrls = allProxy.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    return proxyUrls;
   } else {
-    console.log('⚠️  No proxy configured (HTTP_PROXY and ALL_PROXY are empty)');
+    console.log('❌ ALL_PROXY is empty - NO PROXY CONFIGURED');
+    return []; // Возвращаем пустой массив, НЕ [null]
   }
-  
-  // Разбираем список прокси (может быть несколько через запятую)
-  const proxyUrls = rawProxyList.length > 0
-    ? rawProxyList.split(',').map(s => s.trim()).filter(s => s.length > 0)
-    : [];
-  
-  return proxyUrls;
 };
 
 const PROXY_URLS = getProxyList();
@@ -101,91 +92,75 @@ let currentProxyIndex = 0;
 
 // Build proxy URL candidates from various formats.
 // - If full URL provided, use as-is
-// - If in host:port:user:pass form (common for HTTP proxies), try BOTH http and socks5h
-//   to maximize compatibility with mixed proxy lists
+// - If in host:port:user:pass form, convert to socks5h
 function buildProxyUrlCandidates(proxyStr) {
   const trimmed = (proxyStr || '').trim();
+  
+  // Если URL уже с протоколом - использовать как есть
   if (trimmed.includes('://')) {
     return [trimmed];
   }
 
+  // Если формат host:port:user:pass - конвертировать в socks5h
   const parts = trimmed.split(':');
   if (parts.length === 4) {
     const [host, port, username, password] = parts;
-    return [
-      `http://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}:${port}`,
-      `socks5h://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}:${port}`,
-    ];
+    return [`socks5h://${username}:${password}@${host}:${port}`];
   }
 
+  // Если формат host:port - использовать без аутентификации
   if (parts.length === 2) {
     const [host, port] = parts;
-    return [
-      `http://${host}:${port}`,
-      `socks5h://${host}:${port}`,
-    ];
+    return [`socks5h://${host}:${port}`];
   }
 
-  // Fallback: return as-is
   return [trimmed];
 }
 
 // Try node-fetch through proxies with parallel fast failover (Promise.any)
 async function fetchThroughProxies(targetUrl, baseOptions) {
-  const proxies = PROXY_URLS.length > 0 ? PROXY_URLS : [null];
+  const proxies = PROXY_URLS; // Используем ТОЛЬКО прокси из ALL_PROXY, никаких fallback
 
   let lastError = null;
-  const perProxyTimeoutMs = 8000; // 8s per proxy
-  const attempts = proxies.flatMap((proxy) => {
-    const urls = proxy ? buildProxyUrlCandidates(proxy) : [null];
-    return urls.map((candidateUrl) => {
-      return new Promise(async (resolve, reject) => {
-        const timeoutId = setTimeout(() => {
-          reject(new Error('proxy_timeout'));
-        }, perProxyTimeoutMs);
+  const perProxyTimeoutMs = 15000; // 15s per proxy
+  const attempts = proxies.map((proxy) => {
+    return new Promise(async (resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('proxy_timeout'));
+      }, perProxyTimeoutMs);
 
-        try {
-          let agent = null;
-          
-          if (candidateUrl) {
-            console.log(`🌐 Trying proxy: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
-            
-            if (candidateUrl.startsWith('socks5h://') || candidateUrl.startsWith('socks5://')) {
-              agent = new SocksProxyAgent(candidateUrl);
-            } else if (candidateUrl.startsWith('http://') || candidateUrl.startsWith('https://')) {
-              agent = new HttpsProxyAgent(candidateUrl);
-            }
-          } else {
-            console.log('🌐 No proxy configured, direct connection');
-          }
-
-          console.log(`🔍 Target URL: ${targetUrl}`);
-          console.log(`🔍 Method: ${baseOptions.method || 'POST'}`);
-          console.log(`🔍 Headers:`, baseOptions.headers || {});
-          
-          const fetchOptions = {
-            method: baseOptions.method || 'POST',
-            headers: baseOptions.headers || {},
-            body: baseOptions.body || JSON.stringify(baseOptions.data),
-            timeout: perProxyTimeoutMs,
-            agent: agent,
-          };
-
-          const response = await fetch(targetUrl, fetchOptions);
-          clearTimeout(timeoutId);
-          
-          if (candidateUrl) {
-            console.log(`✅ Proxy OK: ${candidateUrl.replace(/:[^:@]+@/, ':****@')}`);
-          }
-          
-          resolve(response);
-        } catch (error) {
-          clearTimeout(timeoutId);
-          lastError = error;
-          console.error(`❌ Request via ${candidateUrl || 'direct'} failed: ${error.message}`);
-          reject(error);
+      try {
+        let agent = null;
+        const proxyUrl = proxy; // Всегда есть прокси, никаких null
+        
+        console.log(`🌐 Trying proxy: ${proxyUrl.replace(/:[^:@]+@/, ':****@')}`);
+        
+        if (proxyUrl.startsWith('socks5h://') || proxyUrl.startsWith('socks5://')) {
+          agent = new SocksProxyAgent(proxyUrl);
+        } else if (proxyUrl.startsWith('http://') || proxyUrl.startsWith('https://')) {
+          agent = new HttpsProxyAgent(proxyUrl);
         }
-      });
+
+        const fetchOptions = {
+          method: baseOptions.method || 'POST',
+          headers: baseOptions.headers || {},
+          body: baseOptions.body || JSON.stringify(baseOptions.data),
+          timeout: perProxyTimeoutMs,
+          agent: agent,
+        };
+
+        const response = await fetch(targetUrl, fetchOptions);
+        clearTimeout(timeoutId);
+        
+        console.log(`✅ Proxy OK: ${proxyUrl.replace(/:[^:@]+@/, ':****@')}`);
+        
+        resolve(response);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        lastError = error;
+        console.error(`❌ Request via ${proxy} failed: ${error.message}`);
+        reject(error);
+      }
     });
   });
 
