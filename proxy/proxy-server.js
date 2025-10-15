@@ -98,15 +98,35 @@ console.log('   Proxies:', PROXY_URLS.length);
 // Создаем агенты для прокси
 let currentProxyIndex = 0;
 
-// Build proxy URL candidates from host:port:user:pass (socks5h and http)
+// Build proxy URL candidates from various formats.
+// - If full URL provided, use as-is
+// - If in host:port:user:pass form (common for HTTP proxies), try BOTH http and socks5h
+//   to maximize compatibility with mixed proxy lists
 function buildProxyUrlCandidates(proxyStr) {
-  const parts = proxyStr.trim().split(':');
+  const trimmed = (proxyStr || '').trim();
+  if (trimmed.includes('://')) {
+    return [trimmed];
+  }
+
+  const parts = trimmed.split(':');
   if (parts.length === 4) {
     const [host, port, username, password] = parts;
-    return [ `socks5h://${username}:${password}@${host}:${port}` ];
+    return [
+      `http://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}:${port}`,
+      `socks5h://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}:${port}`,
+    ];
   }
-  // If already URL, use as-is
-  return [proxyStr];
+
+  if (parts.length === 2) {
+    const [host, port] = parts;
+    return [
+      `http://${host}:${port}`,
+      `socks5h://${host}:${port}`,
+    ];
+  }
+
+  // Fallback: return as-is
+  return [trimmed];
 }
 
 // Try fetch through proxies with parallel fast failover (Promise.any)
