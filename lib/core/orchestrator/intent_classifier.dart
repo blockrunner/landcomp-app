@@ -277,6 +277,37 @@ class IntentClassifier {
         'noImageNeeded',
       )
       ..writeln()
+      ..writeln('EXECUTION PLAN GENERATION:')
+      ..writeln('Based on your classification, create a detailed execution plan:')
+      ..writeln()
+      ..writeln('Action types:')
+      ..writeln('- generateImage: User wants to create/modify images')
+      ..writeln('- analyzeImage: User wants to analyze/understand images')
+      ..writeln('- consultText: User wants text advice/information')
+      ..writeln()
+      ..writeln('Image Selection Strategy:')
+      ..writeln('- If user uploaded images NOW → include them')
+      ..writeln('- If user says "combine", "merge", "mix" → all from current + recent')
+      ..writeln('- If user says "this", "that one", "first", "previous" → specific indices')
+      ..writeln('- If user wants to "apply style from X to Y" → select both X and Y')
+      ..writeln('- If generation from text only → no images needed')
+      ..writeln()
+      ..writeln('Enhanced Prompt:')
+      ..writeln('Create an optimized prompt for the AI model that will execute this task.')
+      ..writeln('Include relevant context, style requirements, and technical details.')
+      ..writeln('Support both Russian and English, handle typos and fuzzy language.')
+      ..writeln()
+      ..writeln('Image Count Guidelines:')
+      ..writeln('- If user asks for "3 variants", "несколько вариантов", "different designs" → imageCount = 3-5')
+      ..writeln('- If user asks for "more options", "еще варианты" → imageCount = 2-3')
+      ..writeln('- If user asks for "one design" → imageCount = 1')
+      ..writeln('- Default: imageCount = 1')
+      ..writeln()
+      ..writeln('Keywords for generation (fuzzy matching):')
+      ..writeln('Russian: создай, сделай, нарисуй, сгенерируй, покажи как будет, измени, адаптируй, примени, объедини, смешай, стилизуй')
+      ..writeln('English: create, make, draw, generate, show how it will look, modify, change, adapt, apply, combine, merge, stylize')
+      ..writeln('(Also match with typos and variations)')
+      ..writeln()
       ..writeln('Current user message: "$userMessage"')
       ..writeln()
       ..writeln('Return JSON response:')
@@ -293,6 +324,24 @@ class IntentClassifier {
       ..writeln('  "confidence": 0.0-1.0,')
       ..writeln('  "reasoning": "explanation of classification",')
       ..writeln('  "extracted_entities": ["entity1", "entity2"],')
+      ..writeln()
+      ..writeln('  "executionPlan": {')
+      ..writeln('    "action": "generateImage|analyzeImage|consultText",')
+      ..writeln('    "targetAPI": "gemini|openai",')
+      ..writeln('    "imageSelection": {')
+      ..writeln('      "sources": ["user_current", "history_recent", "history_specific"],')
+      ..writeln('      "allFromUserMessage": true|false,')
+      ..writeln('      "indices": [0, 1, 2],')
+      ..writeln('      "explanation": "Why these images were selected"')
+      ..writeln('    },')
+      ..writeln('    "enhancedPrompt": "Optimized prompt for execution",')
+      ..writeln('    "expectedOutputs": {')
+      ..writeln('      "imageCount": 1-5,  // Number of images to generate (1-5)')
+      ..writeln('      "includeText": true')
+      ..writeln('    }')
+      ..writeln('  },')
+      ..writeln()
+      ..writeln('  // Legacy fields (keep for compatibility)')
       ..writeln(
         '  "imageIntent": "analyzeNew|analyzeRecent|compareMultiple| '
         'referenceSpecific|generateBased|noImageNeeded|unclear",',
@@ -378,7 +427,9 @@ class IntentClassifier {
       }
       cleanResponse = cleanResponse.trim();
       
-      debugPrint('✨ [Parse] Cleaned response: ${cleanResponse.length > 200 ? '${cleanResponse.substring(0, 200)}...' : cleanResponse}');
+      debugPrint(
+        '✨ [Parse] Cleaned response: ${cleanResponse.length > 200 ? '${cleanResponse.substring(0, 200)}...' : cleanResponse}',
+      );
 
       final json = jsonDecode(cleanResponse) as Map<String, dynamic>;
       debugPrint('✅ [Parse] JSON parsed successfully');
@@ -404,7 +455,9 @@ class IntentClassifier {
         json['extracted_entities'] as List? ?? [],
       );
       debugPrint('📈 [Parse] Confidence: $confidence');
-      debugPrint('💭 [Parse] Reasoning: ${reasoning.length > 100 ? '${reasoning.substring(0, 100)}...' : reasoning}');
+      debugPrint(
+        '💭 [Parse] Reasoning: ${reasoning.length > 100 ? '${reasoning.substring(0, 100)}...' : reasoning}',
+      );
       debugPrint('🏷️ [Parse] Extracted entities: $extractedEntities');
 
       // Parse image intent fields
@@ -424,6 +477,23 @@ class IntentClassifier {
       final imagesNeeded = json['imagesNeeded'] as int?;
       debugPrint('📸 [Parse] Images needed: $imagesNeeded');
 
+      // Parse execution plan
+      ExecutionPlan? executionPlan;
+      if (json['executionPlan'] != null) {
+        try {
+          final planJson = json['executionPlan'] as Map<String, dynamic>;
+          executionPlan = _parseExecutionPlan(planJson);
+          debugPrint('📋 [Parse] Execution plan: ${executionPlan.action.name}');
+          debugPrint('📋 [Parse] Expected image count: ${executionPlan.expectedOutputs.imageCount}');
+          debugPrint('📋 [Parse] Target API: ${executionPlan.targetAPI}');
+        } catch (e) {
+          debugPrint('❌ [Parse] Failed to parse execution plan: $e');
+          // Continue without execution plan - will use defaults
+        }
+      } else {
+        debugPrint('📋 [Parse] No execution plan provided by AI');
+      }
+
       final metadata = <String, dynamic>{
         'classification_method': 'ai_classification',
         'raw_response': response,
@@ -442,6 +512,7 @@ class IntentClassifier {
         imageIntent: imageIntent,
         referencedImageIndices: referencedImageIndices,
         imagesNeeded: imagesNeeded,
+        executionPlan: executionPlan,
       );
 
       final duration = DateTime.now().difference(startTime);
@@ -451,8 +522,73 @@ class IntentClassifier {
     } catch (e) {
       final duration = DateTime.now().difference(startTime);
       debugPrint('❌ [Parse] Failed to parse response after ${duration.inMilliseconds}ms: $e');
-      debugPrint('📄 [Parse] Raw response that failed: ${response.length > 500 ? '${response.substring(0, 500)}...' : response}');
+      debugPrint(
+        '📄 [Parse] Raw response that failed: ${response.length > 500 ? '${response.substring(0, 500)}...' : response}',
+      );
       throw Exception('Failed to parse classification response: $e');
+    }
+  }
+
+  /// Parse execution plan from JSON with validation and smart defaults
+  ExecutionPlan _parseExecutionPlan(Map<String, dynamic> json) {
+    try {
+      // Apply smart defaults (strategy d)
+      final action = ExecutionAction.values.firstWhere(
+        (e) => e.name == json['action'],
+        orElse: () => ExecutionAction.consultText,
+      );
+
+      final targetAPI = json['targetAPI'] as String? ?? 'gemini';
+
+      // Parse image selection with defaults
+      final imageSelectionJson = json['imageSelection'] as Map<String, dynamic>? ?? {};
+      final imageSelection = ImageSelectionPlan.fromJson(imageSelectionJson);
+
+      // Apply smart defaults for image selection
+      final enhancedImageSelection = ImageSelectionPlan(
+        sources: imageSelection.sources.isEmpty 
+            ? [ImageSource.userCurrent] 
+            : imageSelection.sources,
+        allFromUserMessage: imageSelection.allFromUserMessage,
+        indices: imageSelection.indices,
+        explanation: imageSelection.explanation ?? 'Default image selection',
+      );
+
+      final enhancedPrompt = json['enhancedPrompt'] as String? ?? '';
+
+      // Parse expected outputs with defaults
+      final expectedOutputsJson = json['expectedOutputs'] as Map<String, dynamic>? ?? {};
+      final expectedOutputs = ExpectedOutputs.fromJson(expectedOutputsJson);
+
+      // Apply smart defaults for expected outputs
+      final enhancedExpectedOutputs = ExpectedOutputs(
+        imageCount: expectedOutputs.imageCount == 0 ? 1 : expectedOutputs.imageCount,
+        includeText: expectedOutputs.includeText,
+      );
+
+      return ExecutionPlan(
+        action: action,
+        targetAPI: targetAPI,
+        imageSelection: enhancedImageSelection,
+        enhancedPrompt: enhancedPrompt,
+        expectedOutputs: enhancedExpectedOutputs,
+      );
+    } catch (e) {
+      debugPrint('❌ [ParseExecutionPlan] Error parsing execution plan: $e');
+      // Return default execution plan
+      return const ExecutionPlan(
+        action: ExecutionAction.consultText,
+        targetAPI: 'gemini',
+        imageSelection: ImageSelectionPlan(
+          sources: [ImageSource.userCurrent],
+          allFromUserMessage: false,
+        ),
+        enhancedPrompt: '',
+        expectedOutputs: ExpectedOutputs(
+          imageCount: 1,
+          includeText: true,
+        ),
+      );
     }
   }
 
@@ -460,7 +596,9 @@ class IntentClassifier {
   Intent _createDefaultIntent(String userMessage, String error, String requestId) {
     debugPrint('⚠️ [DefaultIntent] Creating fallback intent (ID: $requestId)');
     debugPrint('❌ [DefaultIntent] Error: $error');
-    debugPrint('📝 [DefaultIntent] User message: ${userMessage.length > 100 ? '${userMessage.substring(0, 100)}...' : userMessage}');
+      debugPrint(
+        '📝 [DefaultIntent] User message: ${userMessage.length > 100 ? '${userMessage.substring(0, 100)}...' : userMessage}',
+      );
 
     return Intent(
       type: IntentType.unclear,

@@ -33,6 +33,7 @@ class Message extends Equatable {
     this.isTyping = false,
     this.attachments,
     this.imageAnalysis,
+    this.processingStatus,
   });
   /// Create a user message
   factory Message.user({
@@ -140,6 +141,7 @@ class Message extends Equatable {
       isTyping: json['isTyping'] as bool? ?? false,
       attachments: attachments,
       imageAnalysis: json['imageAnalysis'] as String?,
+      processingStatus: json['processingStatus'] as String?,
     );
   }
 
@@ -170,6 +172,9 @@ class Message extends Equatable {
   /// Analysis of images in this message (for context preservation)
   final String? imageAnalysis;
 
+  /// Processing status for typing messages (e.g., "Analyzing request...")
+  final String? processingStatus;
+
   /// Create a copy of this message with updated fields
   Message copyWith({
     String? id,
@@ -181,6 +186,7 @@ class Message extends Equatable {
     bool? isTyping,
     List<Attachment>? attachments,
     String? imageAnalysis,
+    String? processingStatus,
   }) {
     return Message(
       id: id ?? this.id,
@@ -192,6 +198,7 @@ class Message extends Equatable {
       isTyping: isTyping ?? this.isTyping,
       attachments: attachments ?? this.attachments,
       imageAnalysis: imageAnalysis ?? this.imageAnalysis,
+      processingStatus: processingStatus ?? this.processingStatus,
     );
   }
 
@@ -222,6 +229,7 @@ class Message extends Equatable {
       'isTyping': isTyping,
       'attachments': attachmentsJson,
       'imageAnalysis': imageAnalysis,
+      'processingStatus': processingStatus,
     };
   }
 
@@ -236,6 +244,7 @@ class Message extends Equatable {
     isTyping,
     attachments,
     imageAnalysis,
+    processingStatus,
   ];
 
   @override

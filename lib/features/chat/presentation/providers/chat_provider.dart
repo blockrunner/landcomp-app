@@ -18,6 +18,7 @@ import 'package:landcomp_app/features/chat/domain/entities/ai_agent.dart';
 import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
 import 'package:landcomp_app/features/chat/domain/entities/chat_session.dart';
 import 'package:landcomp_app/features/chat/domain/entities/message.dart';
+import 'package:landcomp_app/features/projects/presentation/providers/project_provider.dart';
 
 /// Chat provider for state management
 ///
@@ -44,6 +45,7 @@ class ChatProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   LanguageProvider? _languageProvider;
+  ProjectProvider? _projectProvider; // For instant UI updates
   // Store generated images from last response
   List<Attachment>? _lastGeneratedImages;
   bool _isInitialized = false;
@@ -75,6 +77,9 @@ class ChatProvider extends ChangeNotifier {
   
   /// Whether the provider has been initialized
   bool get isInitialized => _isInitialized;
+
+  /// Last generated images from the most recent response
+  List<Attachment>? get lastGeneratedImages => _lastGeneratedImages;
 
   /// Initialize the provider
   Future<void> _initializeProvider() async {
@@ -149,6 +154,16 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  /// Set project provider for instant UI updates
+  ///
+  /// [projectProvider] The project provider instance to use for instant UI updates.
+  void setProjectProvider(ProjectProvider projectProvider) {
+    if (_projectProvider != projectProvider) {
+      _projectProvider = projectProvider;
+      // Don't notify listeners here to avoid setState during build
+    }
+  }
+
   /// Create a new chat session
   void _createNewSession() {
     final sessionId = _uuid.v4();
@@ -209,15 +224,14 @@ class ChatProvider extends ChangeNotifier {
 
     final userMessage = Message.user(id: _uuid.v4(), content: content.trim());
 
-    // Add user message to current session
-    _addMessageToCurrentSession(userMessage);
-
-    // Show typing indicator
-    _showTypingIndicator();
-
     try {
+      // FIRST: Add user message to current session (this will also update ProjectProvider)
+      _addMessageToCurrentSession(userMessage);
+
+      // THEN: Set loading state and show typing indicator
       _setLoading(true);
       _clearError();
+      _showTypingIndicator();
 
       // Use unified AgentOrchestrator for ALL text messages
       debugPrint('💬 Processing text message through AgentOrchestrator...');
@@ -238,13 +252,21 @@ class ChatProvider extends ChangeNotifier {
         }
 
         // Add AI response
+        debugPrint(
+          '💬 Adding AI message with '
+          '${_lastGeneratedImages?.length ?? 0} generated images',
+        );
         final aiMessage = Message.ai(
           id: _uuid.v4(),
           content: smartResponse.message!,
           agentId: _currentAgent?.id ?? 'unknown',
+          attachments: _lastGeneratedImages, // Add generated images if any
         );
 
         _addMessageToCurrentSession(aiMessage);
+        
+        // Clear generated images after use
+        _lastGeneratedImages = null;
       } else if (smartResponse.isOutOfScope) {
         // Add out-of-scope message
         final outOfScopeMessage = Message.system(
@@ -322,15 +344,14 @@ class ChatProvider extends ChangeNotifier {
       '${userMessage.attachments?.length ?? 0}',
     );
 
-    // Add user message to current session
-    _addMessageToCurrentSession(userMessage);
-
-    // Show typing indicator
-    _showTypingIndicator();
-
     try {
+      // FIRST: Add user message to current session (this will also update ProjectProvider)
+      _addMessageToCurrentSession(userMessage);
+
+      // THEN: Set loading state and show typing indicator
       _setLoading(true);
       _clearError();
+      _showTypingIndicator();
 
       // Use new AgentOrchestrator for ALL requests (with or without images)
       debugPrint('🤖 Processing message with AgentOrchestrator...');
@@ -340,6 +361,10 @@ class ChatProvider extends ChangeNotifier {
       );
 
       if (smartResponse.isSuccess) {
+        debugPrint(
+          '📸 Adding AI message with '
+          '${_lastGeneratedImages?.length ?? 0} generated images',
+        );
         final aiMessage = Message.ai(
           id: _uuid.v4(),
           content: smartResponse.message!,
@@ -480,7 +505,7 @@ class ChatProvider extends ChangeNotifier {
     return 'An error occurred while getting AI response. Please try again.';
   }
 
-  /// Add message to current session
+  /// Add message to current session and ProjectProvider
   void _addMessageToCurrentSession(Message message) {
     if (_currentSession == null) return;
 
@@ -497,6 +522,22 @@ class ChatProvider extends ChangeNotifier {
     // Create new session with added message
     final updatedSession = _currentSession!.addMessage(message);
     _currentSession = updatedSession;
+
+    // ALSO add message to ProjectProvider for UI updates
+    if (_projectProvider?.currentProject != null) {
+      final currentProject = _projectProvider!.currentProject!;
+      
+      // Проверяем, нет ли уже этого сообщения в проекте
+      final messageExists = currentProject.messages.any((m) => m.id == message.id);
+      
+      if (!messageExists) {
+        final projectWithMessage = currentProject.copyWith(
+          messages: [...currentProject.messages, message],
+          updatedAt: DateTime.now(),
+        );
+        _projectProvider!.updateCurrentProjectWithMessage(projectWithMessage);
+      }
+    }
 
     // Update session in sessions list
     final sessionIndex = _sessions.indexWhere(
@@ -553,6 +594,25 @@ class ChatProvider extends ChangeNotifier {
     );
     if (sessionIndex >= 0) {
       _sessions[sessionIndex] = _currentSession!;
+    }
+
+    // ALSO update ProjectProvider to hide typing indicator in UI
+    if (_projectProvider?.currentProject != null) {
+      final currentProject = _projectProvider!.currentProject!;
+      
+      // Фильтруем typing indicator из сообщений проекта
+      final messagesWithoutTyping = currentProject.messages
+          .where((m) => !m.isTyping)
+          .toList();
+      
+      // Обновляем только если есть изменения
+      if (messagesWithoutTyping.length != currentProject.messages.length) {
+        final projectWithoutTyping = currentProject.copyWith(
+          messages: messagesWithoutTyping,
+          updatedAt: DateTime.now(),
+        );
+        _projectProvider!.updateCurrentProjectWithMessage(projectWithoutTyping);
+      }
     }
 
     notifyListeners();
@@ -733,16 +793,40 @@ class ChatProvider extends ChangeNotifier {
   ///
   /// [projectMessages] List of messages to load into the current session.
   void loadMessagesFromProject(List<Message> projectMessages) {
-    if (_currentSession == null) {
-      _createNewSession();
-    }
-
-    // Update current session with project messages
+    // ВСЕГДА создаем новую сессию при переключении проекта
+    _createNewSession();
+    
+    // Загружаем сообщения проекта в новую сессию
     _currentSession = _currentSession!.copyWith(
       messages: List.from(projectMessages),
     );
-
+    
     notifyListeners();
+  }
+
+  /// Update processing status of the typing message
+  ///
+  /// Updates the processing status text for the current typing indicator.
+  /// This is prepared for Phase 2 when we'll show detailed processing steps.
+  ///
+  /// [status] The processing status text to display (e.g., "Analyzing request...")
+  void updateProcessingStatus(String status) {
+    if (_currentSession == null) return;
+    
+    final messages = _currentSession!.messages;
+    final typingIndex = messages.indexWhere((m) => m.isTyping);
+    
+    if (typingIndex >= 0) {
+      final updatedMessage = messages[typingIndex].copyWith(
+        processingStatus: status,
+      );
+      
+      final updatedMessages = List<Message>.from(messages);
+      updatedMessages[typingIndex] = updatedMessage;
+      
+      _currentSession = _currentSession!.copyWith(messages: updatedMessages);
+      notifyListeners();
+    }
   }
 
 

@@ -58,15 +58,23 @@ class _ChatPageState extends State<ChatPage> {
 
         // Initialize chat provider
         chatProvider.initialize().then((_) {
+          // Set language provider for localized responses
+          final languageProvider = Provider.of<LanguageProvider>(
+            context,
+            listen: false,
+          );
+          chatProvider.setLanguageProvider(languageProvider);
+          
+          // Set project provider for instant UI updates
+          chatProvider.setProjectProvider(projectProvider);
+          
           // Load current project messages into ChatProvider
           _syncProjectMessagesToChat(projectProvider, chatProvider);
         });
       });
 
-      // Listen to project changes to sync messages
-      projectProvider.addListener(() {
-        _syncProjectMessagesToChat(projectProvider, chatProvider);
-      });
+      // Note: No longer need to listen to project changes for message sync
+      // ChatProvider now manages ProjectProvider directly for instant UI updates
     });
   }
 
@@ -408,7 +416,15 @@ class _ChatPageState extends State<ChatPage> {
     final currentProject = projectProvider.currentProject;
     if (currentProject == null) return;
 
-    // Send message through ChatProvider (which handles AI logic)
+    // Clear message controller IMMEDIATELY
+    _messageController.clear();
+
+    // Check if we need to auto-rename BEFORE sending message
+    final shouldAutoRename = currentProject.messages.isEmpty &&
+        (currentProject.title.startsWith('Новый проект') ||
+            currentProject.title == 'New Project');
+    
+    // Send message through ChatProvider
     if (_selectedImages.isNotEmpty) {
       await chatProvider.sendMessageWithImages(
         content: message,
@@ -422,47 +438,16 @@ class _ChatPageState extends State<ChatPage> {
       await chatProvider.sendMessage(message);
     }
 
-    // After AI response, sync ALL messages from ChatProvider to current project
-    // ChatProvider.messages contains the complete conversation including the new AI response
-    final updatedProject = currentProject.copyWith(
-      messages: List.from(chatProvider.messages),
-      updatedAt: DateTime.now(),
-    );
-    await projectProvider.updateCurrentProjectWithMessage(updatedProject);
-
-    // Auto-rename project based on first user message (like ChatGPT)
-    // Check the project from provider after update
-    final projectAfterUpdate = projectProvider.currentProject;
-    if (projectAfterUpdate != null) {
-      print(
-        '🏷️ Auto-rename check: messageCount=${projectAfterUpdate.messages.length}, title="${projectAfterUpdate.title}"',
-      );
-
-      if (projectAfterUpdate.messages.length ==
-              2 && // user message + AI response
-          (projectAfterUpdate.title.startsWith('Новый проект') ||
-              projectAfterUpdate.title == 'New Project')) {
-        print('✅ Auto-rename conditions met, renaming project...');
-
-        // Get first user message
-        final firstUserMessage = projectAfterUpdate.messages.firstWhere(
-          (m) => m.type == MessageType.user,
-          orElse: () => projectAfterUpdate.messages.first,
-        );
-
-        // Generate title from first 50 chars of message
-        final newTitle = firstUserMessage.content.length > 50
-            ? '${firstUserMessage.content.substring(0, 50)}...'
-            : firstUserMessage.content;
-
-        print('🏷️ Renaming project to: "$newTitle"');
-        await projectProvider.renameProject(projectAfterUpdate.id, newTitle);
-      } else {
-        print('❌ Auto-rename conditions not met');
-      }
+    // Auto-rename project if needed
+    if (shouldAutoRename) {
+      final newTitle = message.length > 50
+          ? '${message.substring(0, 50)}...'
+          : message;
+      
+      debugPrint('🏷️ Auto-renaming new project to: "$newTitle"');
+      await projectProvider.renameProject(currentProject.id, newTitle);
     }
 
-    _messageController.clear();
     _scrollToBottom();
   }
 

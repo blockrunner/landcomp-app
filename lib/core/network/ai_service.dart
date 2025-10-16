@@ -467,6 +467,36 @@ IMPORTANT:
     return RegExp(r'[\u0400-\u04FF]').hasMatch(text);
   }
 
+  /// Enhance prompt with language-specific instructions for image generation
+  String _enhancePromptWithLanguage(String prompt, String language, {int? imageCount}) {
+    final countInstruction = imageCount != null && imageCount > 1 
+        ? '\nВАЖНО: Создай РОВНО $imageCount разных вариантов дизайна. Каждый вариант должен быть уникальным и отличаться от других.'
+        : '';
+        
+    if (language == 'ru') {
+      return '''
+$prompt$countInstruction
+
+ВАЖНО: 
+1. Пользователь пишет на русском языке. Отвечай ТОЛЬКО на русском языке.
+2. Создавай изображения согласно запросу пользователя.
+3. Если пользователь просит несколько вариантов, создай именно столько, сколько просит.
+4. Учитывай российский климат и условия при создании ландшафтных дизайнов.''';
+    } else {
+      final englishCountInstruction = imageCount != null && imageCount > 1 
+          ? '\nIMPORTANT: Create EXACTLY $imageCount different design variants. Each variant should be unique and different from others.'
+          : '';
+      return '''
+$prompt$englishCountInstruction
+
+IMPORTANT: 
+1. Respond in the same language as the user. If the user writes in Russian, respond in Russian.
+2. Create images according to the user's request.
+3. If the user asks for multiple variants, create exactly as many as requested.
+4. Consider local climate and conditions when creating landscape designs.''';
+    }
+  }
+
   /// Compress image to reduce size for API requests
   /// Targets max 100KB per image for OpenAI compatibility
   Future<Uint8List> _compressImage(
@@ -954,6 +984,8 @@ IMPORTANT:
     required String prompt,
     required List<Uint8List> images,
     String model = 'gemini-2.5-flash-image-preview',
+    String? userLanguage,
+    int? requestedImageCount,
   }) async {
     if (!EnvConfig.isGoogleConfigured) {
       throw Exception('Google API key not configured');
@@ -972,14 +1004,31 @@ IMPORTANT:
           ? '/proxy/gemini/v1beta/models/$model:generateContent'
           : 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent';
 
-      // Prepare content parts - start with text prompt
+      // Detect language and enhance prompt
+      final detectedLanguage = userLanguage ?? _detectUserLanguage(prompt, null);
+      final enhancedPrompt = _enhancePromptWithLanguage(
+        prompt, 
+        detectedLanguage,
+        imageCount: requestedImageCount,
+      );
+
+      debugPrint('🎨 Language detected: $detectedLanguage');
+      debugPrint('🎨 Requested image count: ${requestedImageCount ?? 'not specified'}');
+      debugPrint('🎨 Enhanced prompt length: ${enhancedPrompt.length} characters');
+
+      // Prepare content parts - start with enhanced text prompt
       final parts = <Map<String, dynamic>>[
-        {'text': prompt},
+        {'text': enhancedPrompt},
       ];
 
       // Add input images as base64
-      for (final imageBytes in images) {
+      for (var i = 0; i < images.length; i++) {
+        final imageBytes = images[i];
         final base64Image = base64Encode(imageBytes);
+        
+        debugPrint('🎨 Image ${i + 1}: ${imageBytes.length} bytes, '
+            'base64: ${base64Image.length} characters');
+        
         parts.add({
           'inline_data': {'mime_type': 'image/jpeg', 'data': base64Image},
         });
@@ -990,6 +1039,30 @@ IMPORTANT:
       debugPrint('🎨 Prompt: ${prompt.length} characters');
       debugPrint('🎨 Input images: ${images.length}');
 
+      // Prepare request payload
+      final requestPayload = {
+        'contents': [
+          {'parts': parts},
+        ],
+        'generationConfig': {
+          'temperature': 0.7,
+          'maxOutputTokens': 2000, // Increased for longer responses
+        },
+      };
+
+      debugPrint('🎨 Request payload size: ${jsonEncode(requestPayload).length} characters');
+      debugPrint('🎨 Request payload preview: ${jsonEncode({
+        'contents': [
+          {
+            'parts': [
+              {'text': '${enhancedPrompt.substring(0, 100)}...'},
+              if (parts.length > 1) {'inline_data': {'mime_type': 'image/jpeg', 'data': 'base64_image_data...'}},
+            ],
+          },
+        ],
+        'generationConfig': requestPayload['generationConfig'],
+      })}');
+
       final response = await _dio.post<Map<String, dynamic>>(
         url,
         queryParameters: {'key': _currentGoogleApiKey},
@@ -997,15 +1070,7 @@ IMPORTANT:
           headers: {'Content-Type': 'application/json'},
           validateStatus: (status) => status != null && status < 500,
         ),
-        data: {
-          'contents': [
-            {'parts': parts},
-          ],
-          'generationConfig': {
-            'temperature': 0.7,
-            'maxOutputTokens': 2000, // Increased for longer responses
-          },
-        },
+        data: requestPayload,
       );
 
       if (response.statusCode == 200) {
@@ -1086,11 +1151,23 @@ IMPORTANT:
         final error = errorData?['error'];
         final errorMessage = (error as Map<String, dynamic>?)?['message'] 
             as String? ?? 'Unknown error';
+        
+        debugPrint('🎨 Gemini API Error Response:');
+        debugPrint('🎨 Status Code: ${response.statusCode}');
+        debugPrint('🎨 Error Data: ${jsonEncode(errorData)}');
+        debugPrint('🎨 Error Message: $errorMessage');
+        
         throw Exception(
           'Google Gemini API error (${response.statusCode}): $errorMessage',
         );
       }
     } on DioException catch (e) {
+      debugPrint('🎨 DioException caught in sendImageGenerationToGemini:');
+      debugPrint('🎨 Status Code: ${e.response?.statusCode}');
+      debugPrint('🎨 Error Type: ${e.type}');
+      debugPrint('🎨 Error Message: ${e.message}');
+      debugPrint('🎨 Response Data: ${jsonEncode(e.response?.data)}');
+      
       if (e.response?.statusCode == 429) {
         // Try with fallback key
         if (await _tryFallbackGoogleKey()) {

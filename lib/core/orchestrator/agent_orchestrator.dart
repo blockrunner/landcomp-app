@@ -14,6 +14,7 @@ import 'package:uuid/uuid.dart';
 import 'package:landcomp_app/core/agents/base/agent.dart';
 import 'package:landcomp_app/core/agents/base/agent_adapter.dart';
 import 'package:landcomp_app/core/agents/base/agent_registry.dart';
+import 'package:landcomp_app/core/agents/generation_agent.dart';
 import 'package:landcomp_app/core/network/ai_service.dart';
 import 'package:landcomp_app/core/orchestrator/context_manager.dart';
 import 'package:landcomp_app/core/orchestrator/intent_classifier.dart';
@@ -359,6 +360,21 @@ class AgentOrchestrator {
   /// Select the best agent for the request using scoring system
   Future<Agent> _selectAgent(AgentRequest request) async {
     debugPrint('🤖 Selecting agent for intent: ${request.intent.type.name}');
+
+    // Priority for generation requests
+    if (request.intent.executionPlan?.action == ExecutionAction.generateImage) {
+      final generationAgent = _agentRegistry.getAgent('generation_agent');
+      if (generationAgent != null) {
+        final canHandle = await generationAgent.canHandle(
+          request.intent,
+          request.context,
+        );
+        if (canHandle) {
+          debugPrint('🎨 Using GenerationAgent based on execution plan');
+          return generationAgent;
+        }
+      }
+    }
 
     // Get all agents that can handle this intent and context
     final agentScores = <Agent, double>{};
@@ -809,8 +825,12 @@ class AgentOrchestrator {
       _agentRegistry.registerAgent(agent);
     }
 
+    // Register specialized agents
+    final generationAgent = GenerationAgent.instance;
+    _agentRegistry.registerAgent(generationAgent);
+
     debugPrint(
-      '✅ Agent registry initialized with ${existingAgents.length} agents',
+      '✅ Agent registry initialized with ${existingAgents.length + 1} agents',
     );
   }
 

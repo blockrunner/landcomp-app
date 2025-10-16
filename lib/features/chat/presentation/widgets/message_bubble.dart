@@ -5,12 +5,15 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
-import 'package:landcomp_app/features/chat/domain/entities/message.dart';
-import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
-import 'package:landcomp_app/shared/widgets/image_viewer.dart';
-import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:landcomp_app/core/localization/language_provider.dart';
+import 'package:landcomp_app/features/chat/data/config/ai_agents_config.dart';
+import 'package:landcomp_app/features/chat/domain/entities/attachment.dart';
+import 'package:landcomp_app/features/chat/domain/entities/message.dart';
+import 'package:landcomp_app/shared/widgets/image_viewer.dart';
 
 /// Message bubble widget
 class MessageBubble extends StatelessWidget {
@@ -90,7 +93,7 @@ class MessageBubble extends StatelessWidget {
         borderRadius: _getBorderRadius(isUser),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -132,7 +135,7 @@ class MessageBubble extends StatelessWidget {
           width: 24,
           height: 24,
           decoration: BoxDecoration(
-            color: agent.primaryColor.withOpacity(0.1),
+            color: agent.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(agent.icon, size: 16, color: agent.primaryColor),
@@ -149,17 +152,138 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  /// Build message text
+  /// Build message text with Markdown support
   Widget _buildMessageText(BuildContext context, bool isError) {
     final theme = Theme.of(context);
     final isUser = message.type == MessageType.user;
+    final textColor = _getTextColor(context, isUser, isError);
 
-    return Text(
-      message.content,
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: _getTextColor(context, isUser, isError),
-        height: 1.4,
+    // For user messages, use simple Text widget
+    if (isUser) {
+      return Text(
+        message.content,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor,
+          height: 1.4,
+        ),
+      );
+    }
+
+    // For AI messages, use MarkdownBody for rich formatting
+    return MarkdownBody(
+      data: message.content,
+      styleSheet: MarkdownStyleSheet(
+        // Text styles
+        p: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor,
+          height: 1.4,
+        ),
+        h1: theme.textTheme.headlineSmall?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        h2: theme.textTheme.titleLarge?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        h3: theme.textTheme.titleMedium?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        h4: theme.textTheme.titleSmall?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        h5: theme.textTheme.bodyLarge?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        h6: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        
+        // List styles
+        listBullet: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor,
+          height: 1.4,
+        ),
+        listBulletPadding: const EdgeInsets.only(right: 8),
+        
+        // Code styles
+        code: theme.textTheme.bodySmall?.copyWith(
+          color: textColor,
+          fontFamily: 'monospace',
+          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        ),
+        codeblockDecoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          ),
+        ),
+        codeblockPadding: const EdgeInsets.all(12),
+        
+        // Link styles
+        a: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.primary,
+          decoration: TextDecoration.underline,
+        ),
+        
+        // Blockquote styles
+        blockquote: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor.withValues(alpha: 0.8),
+          fontStyle: FontStyle.italic,
+        ),
+        blockquoteDecoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest
+              .withValues(alpha: 0.5),
+          border: Border(
+            left: BorderSide(
+              color: theme.colorScheme.primary,
+              width: 4,
+            ),
+          ),
+        ),
+        blockquotePadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        
+        // Table styles
+        tableBorder: TableBorder.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+        tableHead: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        tableBody: theme.textTheme.bodyMedium?.copyWith(
+          color: textColor,
+        ),
+        tableHeadAlign: TextAlign.center,
+        tableCellsPadding: const EdgeInsets.all(8),
+        
+        // Horizontal rule
+        horizontalRuleDecoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: theme.colorScheme.outline.withValues(alpha: 0.3),
+            ),
+          ),
+        ),
       ),
+      selectable: true,
+      onTapLink: (text, href, title) async {
+        // Handle link taps
+        if (href != null) {
+          final uri = Uri.tryParse(href);
+          if (uri != null && await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        }
+      },
     );
   }
 
@@ -190,7 +314,7 @@ class MessageBubble extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: agent.primaryColor.withOpacity(0.1),
+        color: agent.primaryColor.withValues(alpha: 0.1),
         borderRadius: _getBorderRadius(false),
       ),
       child: Row(
@@ -200,13 +324,24 @@ class MessageBubble extends StatelessWidget {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: agent.primaryColor.withOpacity(0.2),
+              color: agent.primaryColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(agent.icon, size: 16, color: agent.primaryColor),
           ),
           const SizedBox(width: 12),
           _buildTypingDots(context, agent.primaryColor),
+          // Processing status (if provided)
+          if (message.processingStatus != null) ...[
+            const SizedBox(width: 12),
+            Text(
+              message.processingStatus!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: agent.primaryColor,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -310,17 +445,7 @@ class MessageBubble extends StatelessWidget {
 
   /// Build attachments display
   Widget _buildAttachments(BuildContext context) {
-    print('📎 MessageBubble: Building attachments for message ${message.id}');
-    print('📎 Message type: ${message.type}');
-    print('📎 Attachments: ${message.attachments?.length ?? 0}');
-    if (message.attachments != null && message.attachments!.isNotEmpty) {
-      print(
-        '📎 Attachment types: ${message.attachments!.map((a) => a.type.name).toList()}',
-      );
-    }
-
     if (message.attachments == null || message.attachments!.isEmpty) {
-      print('📎 No attachments to display');
       return const SizedBox.shrink();
     }
 
@@ -385,7 +510,8 @@ class MessageBubble extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.secondary
+                .withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -428,7 +554,10 @@ class MessageBubble extends StatelessWidget {
       context: context,
       attachment: attachment,
       allImages: allImages,
-      constraints: const BoxConstraints(maxWidth: 250, maxHeight: 250),
+      constraints: const BoxConstraints(
+        maxWidth: 250,
+        maxHeight: 250,
+      ),
     );
   }
 
@@ -518,9 +647,11 @@ class MessageBubble extends StatelessWidget {
     if (difference.inDays > 0) {
       return '${timestamp.day}/${timestamp.month} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}${context.read<LanguageProvider>().getString('hoursAgo')}';
+      return '${difference.inHours}'
+          '${context.read<LanguageProvider>().getString('hoursAgo')}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}${context.read<LanguageProvider>().getString('minutesAgo')}';
+      return '${difference.inMinutes}'
+          '${context.read<LanguageProvider>().getString('minutesAgo')}';
     } else {
       return context.read<LanguageProvider>().getString('justNow');
     }
@@ -613,10 +744,14 @@ class _ImageWithHoverState extends State<_ImageWithHover> {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withOpacity(_isHovered ? 0.3 : 0.0),
+                            Colors.black.withValues(
+                              alpha: _isHovered ? 0.3 : 0.0,
+                            ),
                             Colors.transparent,
                             Colors.transparent,
-                            Colors.black.withOpacity(_isHovered ? 0.3 : 0.0),
+                            Colors.black.withValues(
+                              alpha: _isHovered ? 0.3 : 0.0,
+                            ),
                           ],
                           stops: const [0.0, 0.3, 0.7, 1.0],
                         ),
